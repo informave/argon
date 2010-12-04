@@ -1,0 +1,32 @@
+
+
+#define argon_MAJOR_VERSION @argon_MAJOR_VERSION@
+#define argon_MINOR_VERSION @argon_MINOR_VERSION@
+#define argon_PATCH_LEVEL @argon_PATCH_LEVEL@
+
+#define argon_PROJECT_NAME "@PROJECT_NAME@"
+
+#define argon_VERSION_STRING argon_PROJECT_NAME " " #argon_MAJOR_VERSION "." #argon_MINOR_VERSION "." #argon_PATCH_LEVEL
+
+#cmakedefine ARGON_HAVE_STDINT_H
+
+
+#cmakedefine ARGON_ON_WIN32
+
+#cmakedefine ARGON_ON_UNIX
+
+#cmakedefine ARGON_CXX98_COMPATIBILITY
+
+#cmakedefine ARGON_DEFAULT_CHARSET "@ARGON_DEFAULT_CHARSET@"
+
+#cmakedefine ARGON_INTERNAL_CHARTYPE @ARGON_INTERNAL_CHARTYPE@
+
+#if defined (ARGON_ON_WIN32) 
+  #if defined(argon_EXPORTS)
+    #define  ARGON_EXPORT __declspec(dllexport)
+  #else
+    #define  ARGON_EXPORT // __declspec(dllimport)
+  #endif /* ARGON_EXPORTS */
+#else /* defined (ARGON_ON_WIN32) */
+ #define ARGON_EXPORT
+#endif
