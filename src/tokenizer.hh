@@ -86,6 +86,9 @@ public:
     /// Create new Tokenizer from input stream iterator
     Tokenizer(streambuf_iterator in)
         : m_in(in),
+          m_char(),
+          m_keywords(),
+          m_templates(),
           m_line(1),
           m_charpos(0),
           m_srcname("<input>")

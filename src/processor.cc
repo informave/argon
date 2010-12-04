@@ -145,7 +145,8 @@ Processor::Processor(DTSEngine &engine)
     : m_engine(engine),
       m_stack(),
       m_tree(0),
-      m_symbols()
+      m_symbols(),
+      m_heap()
 {}
 
 

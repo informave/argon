@@ -139,8 +139,6 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
 endif(MSVC)
 
 
-add_definitions("-L/home/cytrinox/bin/usr/lib -I/home/cytrinox/bin/usr/include")
-
 
 #set(PACKAGE_NAME argon)
 #set(PACKAGE_VERSION 0.0.1)

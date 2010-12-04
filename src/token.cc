@@ -75,7 +75,8 @@ SourceInfo::expand(const SourceInfo &info)
 /// @details
 /// 
 Token::Token(void)
-    : m_id(0), 
+    : m_id(0),
+      m_data(), 
       m_info()
 {}
 
@@ -84,6 +85,7 @@ Token::Token(void)
 /// 
 Token::Token(int tid, SourceInfo info)
     : m_id(tid),
+      m_data(),
       m_info(info)
 {}
 

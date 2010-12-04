@@ -79,6 +79,14 @@ String TokenNode::str(void) const       { return "tokennode"; }
 
 /// @details
 /// 
+Node::Node(void)
+    : m_childs(),
+      m_sinfo()
+{}
+
+
+/// @details
+/// 
 Node::~Node(void)
 {}
 
@@ -339,6 +347,8 @@ ConnNode::init(Identifier _id, ConnSpec *_spec)
 /// @details
 /// 
 ConnSpec::ConnSpec(void)
+    : type(),
+      dbcstr()
 {}
 
 

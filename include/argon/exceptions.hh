@@ -50,10 +50,13 @@ ARGON_NAMESPACE_BEGIN
 class Exception : public std::exception
 {
 public:
-    virtual const char* what(void) const throw();
+    Exception(void) : m_tmp(), m_what()
+    {}
 
     virtual ~Exception(void) throw()
     {}
+
+    virtual const char* what(void) const throw();
 
     mutable std::string m_tmp;
     String m_what;

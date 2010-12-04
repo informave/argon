@@ -39,7 +39,8 @@ ARGON_NAMESPACE_BEGIN
 /// @details
 /// 
 RuntimeError::RuntimeError(const Processor::stack_type &stack)
-    : m_stack(stack)
+    : Exception(),
+      m_stack(stack)
 {
     std::wstringstream ss;
 

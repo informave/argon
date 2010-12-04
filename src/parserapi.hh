@@ -93,6 +93,9 @@ public:
 protected:
     void *m_parser;
 
+private:
+    Parser(const Parser&);
+    Parser& operator=(const Parser&);
 };
 
 

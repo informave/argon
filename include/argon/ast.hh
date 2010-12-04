@@ -63,6 +63,8 @@ class Node
 public:
     typedef NodeList nodelist_type;
 
+    Node(void);
+
     virtual ~Node(void);
 
     /// @brief Get all child nodes
@@ -134,7 +136,7 @@ protected:
 
 struct Identifier
 {
-    Identifier() { }
+    Identifier() : m_name() { }
 
     Identifier(const String& name) : m_name(name)
     { }
@@ -191,6 +193,10 @@ struct TokenNode : public Node
     
 protected:
     Token *m_token;
+
+private:
+    TokenNode(const TokenNode&);
+    TokenNode& operator=(const TokenNode&);
 };
 
 struct IdNode : public Node
@@ -256,6 +262,10 @@ struct ConnNode : public Node
 
 
     virtual String str(void) const;
+
+private:
+    ConnNode(const ConnNode&);
+    ConnNode& operator=(const ConnNode&);
 };
 
 
@@ -324,6 +334,12 @@ struct LogNode : public Node
 class ParseTree : public Node
 {
 public:
+    ParseTree(void)
+        : m_nodelists(),
+          m_nodes(),
+          m_tokens()
+    {}
+
     virtual ~ParseTree(void);
 
     virtual void accept(Visitor &visitor);
@@ -369,6 +385,10 @@ protected:
 
     /// @brief All allocated tokens, cleaned up by the destructor
     std::list<Token*>     m_tokens;
+
+private:
+    ParseTree(const ParseTree&);
+    ParseTree& operator=(const ParseTree&);
 };
 
 

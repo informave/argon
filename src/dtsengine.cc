@@ -68,6 +68,15 @@ ARGON_NAMESPACE_BEGIN
 
 /// @details
 /// 
+DTSEngine::DTSEngine(void)
+    : m_tree(),
+      m_connections(),
+      m_tasks(),
+      m_userConns()
+{}
+
+/// @details
+/// 
 void 
 DTSEngine::addConnection(String name, db::Connection *dbc)
 {

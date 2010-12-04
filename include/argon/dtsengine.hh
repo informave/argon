@@ -128,6 +128,10 @@ protected:
     // keep correct order for destruction
     db::Env::ptr m_alloc_env;
     db::Connection::ptr m_alloc_dbc;
+
+private:
+    Connection(const Connection &);
+    Connection& operator=(const Connection &);
 };
 
 
@@ -158,6 +162,10 @@ public:
 
 protected:
     TaskNode *m_node;
+
+private:
+    Task(const Task&);
+    Task& operator=(const Task&);
 };
 
 
@@ -188,6 +196,10 @@ public:
 
 protected:
     LogNode *m_node;
+
+private:
+    LogCmd(const LogCmd&);
+    LogCmd& operator=(const LogCmd&);
 };
 
 
@@ -273,6 +285,9 @@ protected:
 private:
     /// @brief Allocated elements
     std::list<ElementPtr> m_heap;
+
+    Processor(const Processor&);
+    Processor& operator=(const Processor&);
 };
 
 
@@ -288,6 +303,8 @@ class DTSEngine
     friend class Processor;
 
 public:
+    DTSEngine(void);
+
     /// @brief Adds a new connection to the internal connection list
     void addConnection(String name, db::Connection *dbc);
  
@@ -314,7 +331,11 @@ protected:
     std::auto_ptr<ParseTree>    m_tree;
     connection_map              m_connections;
     task_map                    m_tasks;
-    db::ConnectionMap             m_userConns;
+    db::ConnectionMap           m_userConns;
+
+private:
+    DTSEngine(const DTSEngine&);
+    DTSEngine& operator=(const DTSEngine&);
 };
 
 
