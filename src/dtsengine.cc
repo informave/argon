@@ -138,7 +138,7 @@ DTSEngine::load(std::istreambuf_iterator<wchar_t> in)
     Token t;
     Parser p;
     Tokenizer<wchar_t> tz(in);
-    tz.setSourceName(String("<unknown>"));
+    tz.setSourceName(String("<testsource>"));
 
     this->m_tree.reset(new ParseTree);
 

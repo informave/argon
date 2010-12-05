@@ -26,6 +26,7 @@
 
 
 #include "argon/dtsengine.hh"
+#include "argon/exceptions.hh"
 
 #include <iostream>
 #include <stack>
@@ -179,8 +180,28 @@ Value
 Processor::call(Element *obj, const ArgumentList &args)
 {
     ScopedStackPush _ssp(this->m_stack, obj);
-    return obj->run(args);
+    return enter_element(Executor(ArgumentList()), *obj);
+    /// @bug add try/except to provide a correct exception, even if something like 1234 is thrown.
 }
+
+
+/// @details
+/// 
+Value
+Processor::call(Element &obj)
+{
+    try
+    {
+        return enter_element(Executor(ArgumentList()), obj);
+    }
+    catch(const informave::db::ex::exception &e)
+    {
+        std::cout << "Exception on: " << obj.getSourceInfo() << std::endl;
+        std::cout << e.what() << std::endl;
+        throw RuntimeError(this->getStack());
+    }
+}
+
 
 
 /// @details

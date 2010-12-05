@@ -41,6 +41,7 @@ struct ConnSpec;
 struct TaskNode;
 struct Identifier;
 struct IdNode;
+struct SqlExecNode;
 struct LogNode;
 struct TaskExecNode;
 struct LiteralNode;
@@ -122,6 +123,7 @@ public:
     virtual void visit(LogNode *node);
     virtual void visit(TaskExecNode *node);
     virtual void visit(ColumnNode *node);
+    virtual void visit(SqlExecNode *node);
 
     void operator()(Node *node);
 
@@ -179,6 +181,26 @@ struct TaskExecNode : public Node
     Identifier taskid(void) const;
 
     Identifier m_taskid;
+
+};
+
+
+
+struct SqlExecNode : public Node
+{
+    SqlExecNode(void);
+    void init(String sql, Identifier conn_id);
+
+    virtual void accept(Visitor &visitor);
+    virtual ~SqlExecNode(void) {}
+
+    virtual String str(void) const;
+
+    Identifier connid(void) const;
+    String sql(void) const;
+
+    Identifier m_connid;
+    String m_sql;
 
 };
 
@@ -463,7 +485,7 @@ public:
     virtual void visit(LogNode *node);
     virtual void visit(TaskExecNode *node);
     virtual void visit(ColumnNode *node);
-
+    virtual void visit(SqlExecNode *node);
 
 };
 

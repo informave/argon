@@ -52,7 +52,7 @@ public:
     virtual void visit(LogNode *node)
     {
         LogCmd cmd(this->m_proc, node);
-        cmd.exec();
+        this->m_proc.call(cmd);
     }
 
     
@@ -65,6 +65,13 @@ public:
 
         // get arguments
         this->m_proc.call(task, ArgumentList());
+    }
+
+
+    virtual void visit(SqlExecNode *node)
+    {
+        SqlExecCmd cmd(this->m_proc, node);
+        this->m_proc.call(cmd);
     }
 
 private:
@@ -168,8 +175,8 @@ LogCmd::getSourceInfo(void) const
 
 /// @details
 /// 
-void
-LogCmd::exec(void)
+Value
+LogCmd::run(const ArgumentList &args)
 {
     std::cout << "exec log" << std::endl;
 
@@ -178,6 +185,140 @@ LogCmd::exec(void)
     foreach_node(this->m_node->getChilds(), LogChildVisitor(this->proc(), ss), 1);
 
     std::wcout << L"[LOG]: " << ss.str() << std::endl;
+
+    return Value();
+}
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// SqlExecCmd
+
+/// @details
+/// 
+SqlExecCmd::SqlExecCmd(Processor &proc, SqlExecNode *node)
+    : Element(proc),
+      m_node(node),
+      m_stmt()
+{}
+
+
+/// @details
+/// 
+String
+SqlExecCmd::str(void) const
+{
+    return "[EXECSQL: %s]";
+}
+
+
+/// @details
+/// 
+String
+SqlExecCmd::name(void) const
+{
+    return ARGON_UNNAMED_ELEMENT;
+}
+
+/// @details
+/// 
+String
+SqlExecCmd::type(void) const
+{
+    return "EXECSQL";
+}
+
+
+/// @details
+/// 
+SourceInfo
+SqlExecCmd::getSourceInfo(void) const
+{
+    return this->m_node->getSourceInfo();
+}
+
+
+
+
+
+//--------------------------------------------------------------------------
+/// SqlExec Child Visitor
+///
+/// @since 0.0.1
+/// @brief SqlExec Child Visitor
+struct SqlExecChildVisitor : public Visitor
+{
+public:
+    SqlExecChildVisitor(Processor &proc, SqlExecCmd &cmd, int &pnum)
+        : Visitor(ignore_none),
+          m_proc(proc),
+          m_cmd(cmd),
+          m_pnum(pnum)
+    {}
+
+
+    virtual void visit(IdNode *node)
+    {
+        //throw std::runtime_error("invalid id node");
+    }
+
+    virtual void visit(LiteralNode *node)
+    {
+        this->m_cmd.bindParam(m_pnum++, node->m_data);
+        //this->m_cmd.bindParam(m_pnum++, node->value()); /// @bug todo
+    }
+
+/*
+    virtual void visit(ExprNode *node)
+    {
+        this->m_cmd.bindParam(m_pnum++, node->value()); // calc expr and return value
+        // can be used for non-expr, too. generic method...
+    }
+*/
+
+private:
+    Processor          &m_proc;
+    SqlExecCmd         &m_cmd;
+
+    int                &m_pnum;
+
+};
+
+
+void
+SqlExecCmd::bindParam(int pnum, String value)
+{
+    this->m_stmt->bind(pnum, value);
+
+    std::cout << "bind param: " << pnum << " to " << value << std::endl;
+}
+
+/// @details
+/// 
+Value
+SqlExecCmd::run(const ArgumentList &args)
+{
+    assert(! this->m_node->sql().empty());
+
+    Connection* con = this->proc().getSymbol<Connection>(this->m_node->connid());
+    
+    db::Connection& dbc = con->getDbc();
+
+    this->m_stmt.reset( dbc.newStatement() );
+
+    this->m_stmt->prepare(this->m_node->sql());
+
+    foreach_node(this->m_node->getChilds(), PrintTreeVisitor(this->proc(), std::wcout));
+
+    int pnum = 1;
+    foreach_node(this->m_node->getChilds(), SqlExecChildVisitor(this->proc(), *this, pnum), 1);
+
+    std::cout << "exec sql on: " << this->m_node->connid().str() << std::endl;
+
+    this->m_stmt->execute();
+    this->m_stmt.reset(0);
+
+    return Value();
 }
 
 
@@ -245,10 +386,10 @@ Task::run(const ArgumentList &args)
 
     foreach_node( this->m_node->getChilds(), TaskChildVisitor(this->proc(), *this), 1);
 
-
+/*
     if(this->id() != Identifier("main"))
         throw RuntimeError(this->proc().getStack());
-
+*/
 
     return Value();
 

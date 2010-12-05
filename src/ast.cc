@@ -57,7 +57,7 @@ void IdNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskExecNode::accept(Visitor &visitor) { visitor.visit(this); }
 void ColumnNode::accept(Visitor &visitor)   { visitor.visit(this); }
 void TokenNode::accept(Visitor &visitor)    { /* visitor.visit(this); */ }
-
+void SqlExecNode::accept(Visitor &visitor) { visitor.visit(this); }
 
 
 String ConnNode::str(void) const     { return ""; }
@@ -70,6 +70,7 @@ String IdNode::str(void) const       { return String("IdNode: ") + this->data().
 String TaskExecNode::str(void) const       { return "taskexecnode"; }
 String ColumnNode::str(void) const       { return "columnnode"; }
 String TokenNode::str(void) const       { return "tokennode"; }
+String SqlExecNode::str(void) const       { return "sqlexecnode"; }
 
 
 
@@ -170,6 +171,7 @@ DEFAULT_VISIT(IdNode)
 DEFAULT_VISIT(LiteralNode)
 DEFAULT_VISIT(TaskExecNode)
 DEFAULT_VISIT(ColumnNode)
+DEFAULT_VISIT(SqlExecNode)
 
 
 /// @details
@@ -251,6 +253,48 @@ TaskExecNode::taskid(void) const
 {
     return this->m_taskid;
 }
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// SqlExecNode
+
+/// @details
+/// 
+SqlExecNode::SqlExecNode(void)
+    : Node(),
+      m_connid(),
+      m_sql()
+{}
+
+
+/// @details
+/// 
+void
+SqlExecNode::init(String sql, Identifier id)
+{
+    this->m_sql = sql;
+    this->m_connid = id;
+}
+
+
+/// @details
+/// 
+Identifier
+SqlExecNode::connid(void) const
+{
+    return this->m_connid;
+}
+
+
+/// @details
+/// 
+String
+SqlExecNode::sql(void) const
+{
+    return this->m_sql;
+}
+
 
 
 //..............................................................................
@@ -426,7 +470,7 @@ ParseTree::raiseSyntaxError(void)
 
 
 PrintTreeVisitor::PrintTreeVisitor(Processor &proc, std::wostream &stream)
-    : Visitor(),
+    : Visitor(Visitor::ignore_none),
       m_proc(proc),
       m_indent(""),
       m_stream(stream)
@@ -434,7 +478,7 @@ PrintTreeVisitor::PrintTreeVisitor(Processor &proc, std::wostream &stream)
 
 
 PrintTreeVisitor::PrintTreeVisitor(const PrintTreeVisitor& pt)
-    : Visitor(),
+    : Visitor(Visitor::ignore_none),
       m_proc(pt.m_proc),
       m_indent(pt.m_indent),
       m_stream(pt.m_stream)
@@ -508,6 +552,14 @@ void
 PrintTreeVisitor::visit(LiteralNode *node)
 {
     m_stream << this->m_indent << "LiteralNode: " << node->str() << std::endl;
+    next(node);
+}
+
+
+void
+PrintTreeVisitor::visit(SqlExecNode *node)
+{
+    m_stream << this->m_indent << "SqlExecNode: " << node->str() << std::endl;
     next(node);
 }
 

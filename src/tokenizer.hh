@@ -112,6 +112,9 @@ public:
         this->m_keywords[ _str<CharT, TraitsT>("VIEW")        ] = ARGON_TOK_VIEW;
         this->m_keywords[ _str<CharT, TraitsT>("PROCEDURE")   ] = ARGON_TOK_PROCEDURE;
         this->m_keywords[ _str<CharT, TraitsT>("SQL")         ] = ARGON_TOK_SQL;
+        this->m_keywords[ _str<CharT, TraitsT>("ON")         ] = ARGON_TOK_ON;
+        this->m_keywords[ _str<CharT, TraitsT>("WITH")         ] = ARGON_TOK_WITH;
+        this->m_keywords[ _str<CharT, TraitsT>("PARAMS")         ] = ARGON_TOK_PARAMS;
 
         this->m_keywords[ _str<CharT, TraitsT>("LOG")         ] = ARGON_TOK_LOG;
         this->m_keywords[ _str<CharT, TraitsT>("EXEC")        ] = ARGON_TOK_EXEC;

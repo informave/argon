@@ -43,6 +43,8 @@
 
 ARGON_NAMESPACE_BEGIN
 
+class Executor;
+
 
 class Value
 {
@@ -57,6 +59,15 @@ public:
 typedef std::list<Value> ArgumentList;
 
 
+
+template<class T>
+inline Value enter_element(const T &f, Element &elem)
+{
+    return f(elem);
+}
+
+
+
 //--------------------------------------------------------------------------
 /// Element base class
 ///
@@ -65,12 +76,10 @@ typedef std::list<Value> ArgumentList;
 class Element
 {
 public:
+    friend class Executor;
+
     virtual ~Element(void)
     {}
-
-
-    /// @bug add return type and argument list type
-    virtual Value run(const ArgumentList &args) { throw std::runtime_error("is not callabled"); }
 
     virtual String str(void) const = 0;
     virtual String name(void) const = 0;
@@ -82,6 +91,7 @@ protected:
     /// @brief Constructs a new element
     Element(Processor &proc);
 
+    virtual Value run(const ArgumentList &args) { throw std::runtime_error("is not callabled"); }
 
     inline Processor& proc(void)
     { return this->m_proc; }
@@ -94,6 +104,27 @@ private:
     Element(const Element&); // not implemented
     Element& operator=(const Element&); // not implemented
 };
+
+
+//--------------------------------------------------------------------------
+/// Executor
+///
+/// @since 0.0.1
+/// @brief Element Executor
+class Executor
+{
+public:
+    Executor(const ArgumentList &args) : m_list(args)
+    {}
+
+    inline Value operator()(Element &elem) const
+    {
+        return elem.run(m_list);
+    }
+    
+    ArgumentList m_list;
+};
+
 
 
 
@@ -158,9 +189,10 @@ public:
 
     virtual SourceInfo getSourceInfo(void) const;
 
-    virtual Value run(const ArgumentList &args);
 
 protected:
+    virtual Value run(const ArgumentList &args);
+
     TaskNode *m_node;
 
 private:
@@ -184,10 +216,6 @@ public:
 
     virtual String str(void) const;
 
-    // what does exec?
-    void exec(void);
-
-
     virtual SourceInfo getSourceInfo(void) const;
 
     virtual String name(void) const;
@@ -195,6 +223,8 @@ public:
 
 
 protected:
+    virtual Value run(const ArgumentList &args);
+
     LogNode *m_node;
 
 private:
@@ -202,6 +232,39 @@ private:
     LogCmd& operator=(const LogCmd&);
 };
 
+
+
+//--------------------------------------------------------------------------
+/// SQL EXEC Command
+///
+/// @since 0.0.1
+class SqlExecCmd : public Element
+{
+public:
+    SqlExecCmd(Processor &proc, SqlExecNode *node);
+
+    virtual ~SqlExecCmd(void) 
+    {}
+
+    virtual String str(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+    virtual String name(void) const;
+    virtual String type(void) const;
+
+    void bindParam(int pnum, String value);
+
+protected:
+    virtual Value run(const ArgumentList &args);
+
+    SqlExecNode   *m_node;
+    db::Stmt::ptr  m_stmt;
+
+private:
+    SqlExecCmd(const SqlExecCmd&);
+    SqlExecCmd& operator=(const SqlExecCmd&);
+};
 
 
 
@@ -263,8 +326,8 @@ public:
     template<typename T> T* getSymbol(Identifier name);
 
 
-    /// @bug remove me - NOT!
     Value call(Element *obj, const ArgumentList &args);
+    Value call(Element &localObj);
 
 
 protected:

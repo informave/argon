@@ -61,6 +61,7 @@ namespace db
 {
     
     typedef informave::db::dal::IDbc                    Connection;
+    typedef informave::db::dal::IStmt                   Stmt;
     typedef informave::db::dal::IEnv                    Env;
     typedef std::map<Identifier, Connection*>           ConnectionMap;
     

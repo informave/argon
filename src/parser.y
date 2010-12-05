@@ -280,7 +280,26 @@ bodyExprList(A) ::= . { A = tree->newNodeList(); }
 
 bodyExpr(A) ::= colAssignExpr. { A = 0; }
 
+bodyExpr(A) ::= sqlExecExpr(C). { A = C; }
+
 bodyExpr(A) ::= log(C). { A = C; }
+
+
+%type sqlExecExpr { SqlExecNode* }
+
+sqlExecExpr(A) ::= EXEC(Y) SQL LITERAL(B) ON ID(C) sqlExecParams(D) SEP(Z). {
+					CREATE_NODE(SqlExecNode);
+					node->init(B->data(), C->data());
+					node->addChilds(D);
+					ADD_TOKEN(node, Y);
+					ADD_TOKEN(node, Z);
+					A = node;
+}
+
+%type sqlExecParams { NodeList* }
+
+sqlExecParams(A) ::= WITH PARAMS callArgs(B). { A = B; }
+sqlExecParams(A) ::= . { A = tree->newNodeList(); }
 
 
 %type taskExecExpr { TaskExecNode* }
