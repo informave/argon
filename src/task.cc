@@ -67,7 +67,7 @@ TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
     ARGON_DPRINT(ARGON_MOD_PROC, "Calling task " << node->taskid().str());
     //foreach_node(node->getChilds(), PrintTreeVisitor(this->m_proc, std::wcout), 1);
     
-    Task* task = this->m_proc.getSymbols().find<Task>(node->taskid()); /// @bug use local instead of global ST
+    Task* task = this->m_proc.getSymbols().find<Task>(node->taskid()); // search task global
     
     /// @bug fix this
     ArgumentList al;
@@ -116,6 +116,29 @@ TaskChildVisitor::visit(TmplArgumentsNode *node)
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////////// Task
+
+
+/// @details
+/// This runs some code that is required by all tasks like Arguments->Symboltable
+Value
+Task::run(const ArgumentList &args)
+{
+    ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
+
+    // Load TASK arguments to local symbol table
+    this->getSymbols().reset();
+    safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
+
+    ARGON_ICERR(argsSpecNode->getChilds().size() == args.size(), *this,
+                "Argument count mismatch");
+    
+    ArgumentList::const_iterator i = args.begin();
+    foreach_node(argsSpecNode->getChilds(), Arg2SymVisitor(this->proc(), *this, i), 1);
+
+    return Value();
+}
+
+
 
 /// @details
 /// 

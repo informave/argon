@@ -93,11 +93,10 @@ VoidTask::getDestObject(void)
 Value
 VoidTask::run(const ArgumentList &args)
 {
-    ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
-
-//    std::cout << debug::ArgsPrinter(args) << std::endl;
+    Task::run(args);
 
     foreach_node( this->m_node->getChilds(), TaskChildVisitor(this->proc(), *this), 1);
+
 
     return Value();
 }

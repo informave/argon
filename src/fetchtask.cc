@@ -180,21 +180,7 @@ FetchTask::run(const ArgumentList &args)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
 
-    debug_print_arglist(args);
-
-    // Load TASK arguments to local symbol table
-    this->getSymbols().reset();
-    safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
-
-    ARGON_ICERR(argsSpecNode->getChilds().size() == args.size(), *this,
-                "Argument count mismatch");
-    
-    ArgumentList::const_iterator i = args.begin();
-    foreach_node(argsSpecNode->getChilds(), Arg2SymVisitor(this->proc(), *this, i), 1);
-    
-
-    //std::cout << this->getSymbols().str() << std::endl;
-
+    Task::run(args);
 
     // Get template arguments
     safe_ptr<TmplArgumentsNode> tmplArgNode = find_node<TmplArgumentsNode>(this->m_node);

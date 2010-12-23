@@ -395,7 +395,7 @@ public:
 
 protected:
     /// Tasks must be runnable
-    virtual Value run(const ArgumentList &args) = 0;
+    virtual Value run(const ArgumentList &args);
 
     TaskNode *m_node;
 
@@ -496,7 +496,7 @@ public:
 
 protected:
     /// Objects must be runnable
-    virtual Value run(const ArgumentList &args) = 0;
+    virtual Value run(const ArgumentList &args) = 0; /// implement argument2symbol
 
 private:
     Object(const Object&);

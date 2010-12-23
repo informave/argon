@@ -56,7 +56,10 @@ public:
 
     virtual void visit(IdNode *node)
     {
-        //throw std::runtime_error("invalid id node");
+        /// @todo this searches only for value elements, but there may other
+        /// elements which must be evaluated to a Value
+        ValueElement* elem = this->m_context.getSymbols().find<ValueElement>(node->data());
+        this->m_cmd.bindParam(m_pnum++, elem->getValue().data());
     }
 
     virtual void visit(LiteralNode *node)
@@ -70,7 +73,6 @@ public:
         {
             Value val = this->m_context.resolve(Column(node));
             this->m_cmd.bindParam(m_pnum++, val.data());
-
         }
         catch(RuntimeError &err)
         {
@@ -85,7 +87,6 @@ public:
         {
             Value val = this->m_context.resolve(Column(node));
             this->m_cmd.bindParam(m_pnum++, val.data());
-
         }
         catch(RuntimeError &err)
         {

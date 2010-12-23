@@ -77,6 +77,8 @@ public:
     ArgumentsVisitor(Processor &proc, Context &context, ArgumentList &list);
     virtual void visit(IdNode *node);
     virtual void visit(LiteralNode *node);
+    virtual void visit(ColumnNode *node);
+    virtual void visit(ColumnNumNode *node);
 
 protected:
     Processor &m_proc;
@@ -96,6 +98,7 @@ struct Arg2SymVisitor : public Visitor
 public:
     Arg2SymVisitor(Processor &proc, Context &context, ArgumentList::const_iterator &i);
 
+    // only IdNode support required, because argument declaration only contains IDs.
     virtual void visit(IdNode *node);
 
 protected:

@@ -64,6 +64,41 @@ ArgumentsVisitor::visit(LiteralNode *node)
 }
 
 
+
+void
+ArgumentsVisitor::visit(ColumnNumNode *node)
+{
+    try
+    {
+        Value val = this->m_context.resolve(Column(node));
+        m_list.push_back(val);
+    }
+    catch(RuntimeError &err)
+    {
+        err.addSourceInfo(node->getSourceInfo());
+        throw;
+    }
+}
+
+
+void
+ArgumentsVisitor::visit(ColumnNode *node)
+{
+    try
+    {
+        Value val = this->m_context.resolve(Column(node));
+        m_list.push_back(val);
+    }
+    catch(RuntimeError &err)
+    {
+        err.addSourceInfo(node->getSourceInfo());
+        throw;
+    }
+}
+
+
+
+
 //..............................................................................
 ///////////////////////////////////////////////////////////////// Arg2SymVisitor
 
