@@ -87,8 +87,7 @@ private:
 /// @details
 /// 
 SourceTable::SourceTable(Processor &proc, ObjectNode *node)
-    : Object(proc),
-      m_node(node),
+    : Object(proc, node),
       m_stmt()
 {}
 
@@ -140,17 +139,7 @@ SourceTable::run(const ArgumentList &args)
     String tableName, schemaName, dbName;
     Connection *conn;
 
-    // Load TASK arguments to local symbol table
-    this->getSymbols().reset();
-    safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
-
-    ARGON_ICERR(argsSpecNode->getChilds().size() == args.size(), *this,
-                "Argument count mismatch");
-    
-    ArgumentList::const_iterator i = args.begin();
-    foreach_node(argsSpecNode->getChilds(), Arg2SymVisitor(this->proc(), *this, i), 1);
-   
-    debug_print_arglist(args);
+    Object::run(args);
 
     foreach_node( this->m_node->getChilds(), ObjectChildVisitor(this->proc(), *this, *this), 1);
 
@@ -274,8 +263,7 @@ SourceTable::getSourceInfo(void) const
 /// @details
 /// 
 DestTable::DestTable(Processor &proc, ObjectNode *node)
-    : Object(proc),
-      m_node(node),
+    : Object(proc, node),
       m_stmt()
 {}
 

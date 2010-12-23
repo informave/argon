@@ -64,10 +64,32 @@ Column::getFrom(db::Resultset &rs, Context &context)
 
 /// @details
 /// 
-Object::Object(Processor &proc)
-    : Context(proc)
+Object::Object(Processor &proc, ObjectNode *node)
+    : Context(proc),
+      m_node(node)
+{}
+
+
+/// @details
+/// This runs some code that is required by all objects like Arguments->Symboltable
+Value
+Object::run(const ArgumentList &args)
 {
+    ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
+
+    // Load OBJECTs arguments to local symbol table
+    this->getSymbols().reset();
+    safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
+
+    ARGON_ICERR(argsSpecNode->getChilds().size() == args.size(), *this,
+                "Argument count mismatch");
+    
+    ArgumentList::const_iterator i = args.begin();
+    foreach_node(argsSpecNode->getChilds(), Arg2SymVisitor(this->proc(), *this, i), 1);
+
+    return Value();
 }
+
 
 
 /// @details

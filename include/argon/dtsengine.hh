@@ -473,7 +473,7 @@ public:
         UPDATE_MODE
     } mode;
 
-    Object(Processor &proc);
+    Object(Processor &proc, ObjectNode *node);
 
     virtual ~Object(void) 
     {}
@@ -496,7 +496,9 @@ public:
 
 protected:
     /// Objects must be runnable
-    virtual Value run(const ArgumentList &args) = 0; /// implement argument2symbol
+    virtual Value run(const ArgumentList &args);
+
+    ObjectNode *m_node;
 
 private:
     Object(const Object&);
@@ -576,7 +578,6 @@ public:
 protected:
     virtual Value run(const ArgumentList &args);
 
-    ObjectNode    *m_node;
     db::Stmt::ptr  m_stmt;
 
 private:
@@ -620,7 +621,6 @@ public:
 protected:
     virtual Value run(const ArgumentList &args);
 
-    ObjectNode     *m_node;
     db::Stmt::ptr   m_stmt;
 
 private:
