@@ -77,6 +77,7 @@ public:
     ArgumentsVisitor(Processor &proc, Context &context, ArgumentList &list);
     virtual void visit(IdNode *node);
     virtual void visit(LiteralNode *node);
+    virtual void visit(NumberNode *node);
     virtual void visit(ColumnNode *node);
     virtual void visit(ColumnNumNode *node);
 

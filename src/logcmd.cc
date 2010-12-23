@@ -90,6 +90,11 @@ public:
         m_stream << node->str();
     }
 
+    virtual void visit(NumberNode *node)
+    {
+        m_stream << node->data();
+    }
+
 private:
     Processor          &m_proc;
     std::wstringstream &m_stream;

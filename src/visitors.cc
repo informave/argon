@@ -64,6 +64,15 @@ ArgumentsVisitor::visit(LiteralNode *node)
 }
 
 
+/// @details
+/// 
+void
+ArgumentsVisitor::visit(NumberNode *node)
+{
+    m_list.push_back(Value(node->data()));
+}
+
+
 
 void
 ArgumentsVisitor::visit(ColumnNumNode *node)

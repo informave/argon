@@ -445,9 +445,9 @@ public:
             }
         }
 
-        if(isdigit(s[0]))
+        if(isnumber(s))
         {
-            Token tok(ARGON_TOK_NUMBER, SourceInfo(m_srcname, start, len, line), "DIGIT_NOT_IMPL");
+            Token tok(ARGON_TOK_NUMBER, SourceInfo(m_srcname, start, len, line), s);
             /// @bug add number value
             return tok;
         }

@@ -66,6 +66,7 @@ void TmplArgumentsNode::accept(Visitor &visitor)  { visitor.visit(this); }
 void IdCallNode::accept(Visitor &visitor)         { visitor.visit(this); }
 void ColumnAssignNode::accept(Visitor &visitor)   { visitor.visit(this); }
 void ColumnNumNode::accept(Visitor &visitor)      { visitor.visit(this); }
+void NumberNode::accept(Visitor &visitor)         { visitor.visit(this); }
 
 
 String ConnNode::str(void) const              { return "ConnNode"; }
@@ -86,6 +87,7 @@ String TmplArgumentsNode::str(void) const     { return "TmplArgumentsNode"; }
 String IdCallNode::str(void) const            { return "IdCallNode"; }
 String ColumnAssignNode::str(void) const      { return "ColumnAssignNode"; }
 String ColumnNumNode::str(void) const         { return "ColumnNumNode"; }
+String NumberNode::str(void) const            { return "NumberNode"; }
 
 
 String ConnNode::nodetype(void) const                { return ConnNode::name();            }
@@ -106,6 +108,7 @@ String TmplArgumentsNode::nodetype(void) const       { return TmplArgumentsNode:
 String IdCallNode::nodetype(void) const              { return IdCallNode::name();          }
 String ColumnAssignNode::nodetype(void) const        { return ColumnAssignNode::name();    }
 String ColumnNumNode::nodetype(void) const           { return ColumnNumNode::name();       }
+String NumberNode::nodetype(void) const              { return NumberNode::name();          }
 
 
 //..............................................................................
@@ -216,6 +219,7 @@ DEFAULT_VISIT(TmplArgumentsNode)
 DEFAULT_VISIT(IdCallNode)
 DEFAULT_VISIT(ColumnAssignNode)
 DEFAULT_VISIT(ColumnNumNode)
+DEFAULT_VISIT(NumberNode)
 
 /// @details
 /// 
@@ -496,6 +500,29 @@ LiteralNode::init(String data)
 {
     this->m_data = data;
 }
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// NumberNode
+
+/// @details
+/// 
+NumberNode::NumberNode(void)
+    : Node(),
+      m_data()
+{}
+
+
+/// @details
+/// 
+void
+NumberNode::init(String data)
+{
+    assert(data.length() > 0);
+    db::Variant v(data);
+    this->m_data = v.asInt();
+}
+
 
 //..............................................................................
 ///////////////////////////////////////////////////////////////////////// IdNode

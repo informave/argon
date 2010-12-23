@@ -55,6 +55,7 @@ struct TmplArgumentsNode;
 struct IdCallNode;
 struct ColumnAssignNode;
 struct ColumnNumNode;
+struct NumberNode;
 
 class Visitor;
 class ParseTree;
@@ -142,6 +143,7 @@ public:
     virtual void visit(ColumnAssignNode *node);
     virtual void visit(ColumnNumNode *node);
     virtual void visit(TableNode *node);
+    virtual void visit(NumberNode *node);
 
     void operator()(Node *node);
 
@@ -334,6 +336,34 @@ struct LiteralNode : public Node
 
 protected:
     String m_data;
+};
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// NumberNode
+///
+/// @since 0.0.1
+/// @brief Node for Numbers
+struct NumberNode : public Node
+{
+    NumberNode(void);
+
+    virtual ~NumberNode(void) {}
+
+    void init(String data);
+
+    virtual void accept(Visitor &visitor);
+
+    virtual String str(void) const;
+
+    inline int data(void) const { return m_data; } /// @todo replace with TNumeric
+
+    virtual String nodetype(void) const;
+
+    static String name(void) { return "Number"; }
+
+protected:
+    int m_data;
 };
 
 

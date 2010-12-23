@@ -686,7 +686,7 @@ public:
 
     virtual String type(void) const;
 
-    void bindParam(int pnum, String value);
+    void bindParam(int pnum, Value value);
 
 protected:
     virtual Value run(const ArgumentList &args);

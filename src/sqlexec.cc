@@ -67,6 +67,12 @@ public:
         this->m_cmd.bindParam(m_pnum++, node->data());
     }
 
+
+    virtual void visit(NumberNode *node)
+    {
+        this->m_cmd.bindParam(m_pnum++, Value(node->data()));
+    }
+
     virtual void visit(ColumnNumNode *node)
     {
         try
@@ -165,11 +171,11 @@ SqlExecCmd::getSourceInfo(void) const
 /// @details
 /// 
 void
-SqlExecCmd::bindParam(int pnum, String value)
+SqlExecCmd::bindParam(int pnum, Value value)
 {
-    this->m_stmt->bind(pnum, value);
+    this->m_stmt->bind(pnum, value.data());
 
-    ARGON_DPRINT(ARGON_MOD_PROC, "Bind param: " << pnum << " to " << value);
+    ARGON_DPRINT(ARGON_MOD_PROC, "Bind param: " << pnum << " to " << value.data());
 }
 
 

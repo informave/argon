@@ -321,6 +321,7 @@ logArgs(A) ::= . { A = tree->newNodeList(); }
 logArg(A) ::= id(B).      { A = B; }
 logArg(A) ::= literal(B). { A = B; }
 logArg(A) ::= column(B).  { A = B; }
+logArg(A) ::= number(B).  { A = B; }
 
 
 //..............................................................................
@@ -353,7 +354,7 @@ colAssignCmd(A) ::= column(B) ASSIGNOP value SEP. {
 value ::= column.
 value ::= NULL.
 value ::= LITERAL.
-value ::= NUMBER.
+value ::= number.
 value ::= ID.
 
 
@@ -419,6 +420,19 @@ literal(A) ::= LITERAL(B). {
                A = node;
 }
 
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////////// Number
+
+%type number { NumberNode* }
+number(A) ::= NUMBER(B). {
+	CREATE_NODE(NumberNode);
+	node->init(B->data());
+	ADD_TOKEN(node, B);
+	A = node;
+}
+
+
 //..............................................................................
 ///////////////////////////////////////////////////////////////////////// Column
 
@@ -473,4 +487,5 @@ callArgList(A) ::= callArgItem(B). {
 callArgItem(A) ::= id(B).      { A = B; }
 callArgItem(A) ::= literal(B). { A = B; }
 callArgItem(A) ::= column(B).  { A = B; }
+callArgItem(A) ::= number(B).  { A = B; }
 
