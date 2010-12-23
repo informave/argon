@@ -30,6 +30,7 @@
 #include "argon/dtsengine.hh"
 #include "argon/token.hh"
 #include "argon/exceptions.hh"
+#include "debug.hh"
 
 
 #include <cstdlib>
@@ -46,33 +47,65 @@
 ARGON_NAMESPACE_BEGIN
 
 
+void TokenNode::accept(Visitor &visitor)    {}
+void ConnSpec::accept(Visitor &visitor)     {}
 
-void ConnNode::accept(Visitor &visitor)     { visitor.visit(this); }
-void ConnSpec::accept(Visitor &visitor)     { /* visitor.visit(*this);*/ }
-void TaskNode::accept(Visitor &visitor)     { visitor.visit(this); }
-void ParseTree::accept(Visitor &visitor)    { visitor.visit(this); }
-void LogNode::accept(Visitor &visitor)      { visitor.visit(this); }
-void LiteralNode::accept(Visitor &visitor)  { visitor.visit(this); }
-void IdNode::accept(Visitor &visitor)       { visitor.visit(this); }
-void TaskExecNode::accept(Visitor &visitor) { visitor.visit(this); }
-void ColumnNode::accept(Visitor &visitor)   { visitor.visit(this); }
-void TokenNode::accept(Visitor &visitor)    { /* visitor.visit(this); */ }
-void SqlExecNode::accept(Visitor &visitor) { visitor.visit(this); }
-
-
-String ConnNode::str(void) const     { return ""; }
-String ConnSpec::str(void) const     { return ""; }
-String TaskNode::str(void) const     { return this->id.str(); }
-String ParseTree::str(void) const    { return ""; }
-String LogNode::str(void) const      { return ""; }
-String LiteralNode::str(void) const  { return this->m_data; }
-String IdNode::str(void) const       { return String("IdNode: ") + this->data().str(); }
-String TaskExecNode::str(void) const       { return "taskexecnode"; }
-String ColumnNode::str(void) const       { return "columnnode"; }
-String TokenNode::str(void) const       { return "tokennode"; }
-String SqlExecNode::str(void) const       { return "sqlexecnode"; }
+void ConnNode::accept(Visitor &visitor)           { visitor.visit(this); }
+void TaskNode::accept(Visitor &visitor)           { visitor.visit(this); }
+void ParseTree::accept(Visitor &visitor)          { visitor.visit(this); }
+void LogNode::accept(Visitor &visitor)            { visitor.visit(this); }
+void LiteralNode::accept(Visitor &visitor)        { visitor.visit(this); }
+void IdNode::accept(Visitor &visitor)             { visitor.visit(this); }
+void TaskExecNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void ColumnNode::accept(Visitor &visitor)         { visitor.visit(this); }
+void SqlExecNode::accept(Visitor &visitor)        { visitor.visit(this); }
+void TableNode::accept(Visitor &visitor)          { visitor.visit(this); }
+void ArgumentsNode::accept(Visitor &visitor)      { visitor.visit(this); }
+void ArgumentsSpecNode::accept(Visitor &visitor)  { visitor.visit(this); }
+void TmplArgumentsNode::accept(Visitor &visitor)  { visitor.visit(this); }
+void IdCallNode::accept(Visitor &visitor)         { visitor.visit(this); }
+void ColumnAssignNode::accept(Visitor &visitor)   { visitor.visit(this); }
+void ColumnNumNode::accept(Visitor &visitor)      { visitor.visit(this); }
 
 
+String ConnNode::str(void) const              { return "ConnNode"; }
+String ConnSpec::str(void) const              { return "ConnSpec"; }
+String TaskNode::str(void) const              { return this->id.str(); }
+String ParseTree::str(void) const             { return "ParseTree"; }
+String LogNode::str(void) const               { return "LogNode"; }
+String LiteralNode::str(void) const           { return this->m_data; }
+String IdNode::str(void) const                { return String("IdNode: ") + this->data().str(); }
+String TaskExecNode::str(void) const          { return "taskexecnode"; }
+String ColumnNode::str(void) const            { return "columnnode"; }
+String TokenNode::str(void) const             { return "tokennode"; }
+String SqlExecNode::str(void) const           { return "sqlexecnode"; }
+String TableNode::str(void) const             { return String("tablenode ") + this->id.str(); }
+String ArgumentsNode::str(void) const         { return "ArgumentsNode"; }
+String ArgumentsSpecNode::str(void) const     { return "ArgumentsSpecNode"; }
+String TmplArgumentsNode::str(void) const     { return "TmplArgumentsNode"; }
+String IdCallNode::str(void) const            { return "IdCallNode"; }
+String ColumnAssignNode::str(void) const      { return "ColumnAssignNode"; }
+String ColumnNumNode::str(void) const         { return "ColumnNumNode"; }
+
+
+String ConnNode::nodetype(void) const                { return ConnNode::name();            }
+String ConnSpec::nodetype(void) const                { return ConnSpec::name();            }
+String TaskNode::nodetype(void) const                { return TaskNode::name();            }
+String ParseTree::nodetype(void) const               { return ParseTree::name();           }
+String LogNode::nodetype(void) const                 { return LogNode::name();             }
+String LiteralNode::nodetype(void) const             { return LiteralNode::name();         }
+String IdNode::nodetype(void) const                  { return IdNode::name();              }
+String TaskExecNode::nodetype(void) const            { return TaskExecNode::name();        }
+String ColumnNode::nodetype(void) const              { return ColumnNode::name();          }
+String TokenNode::nodetype(void) const               { return TokenNode::name();           }
+String SqlExecNode::nodetype(void) const             { return SqlExecNode::name();         }
+String TableNode::nodetype(void) const               { return TableNode::name();           }
+String ArgumentsNode::nodetype(void) const           { return ArgumentsNode::name();       }
+String ArgumentsSpecNode::nodetype(void) const       { return ArgumentsSpecNode::name();   }
+String TmplArgumentsNode::nodetype(void) const       { return TmplArgumentsNode::name();   }
+String IdCallNode::nodetype(void) const              { return IdCallNode::name();          }
+String ColumnAssignNode::nodetype(void) const        { return ColumnAssignNode::name();    }
+String ColumnNumNode::nodetype(void) const           { return ColumnNumNode::name();       }
 
 
 //..............................................................................
@@ -148,19 +181,23 @@ Visitor::Visitor(visitor_mode mode)
 {}
 
 
+void
+Visitor::fallback_action(Node *node)
+{
+    if(this->m_mode == ignore_none)
+    {
+        std::string  s(std::string("Visitor for ") +typeid(*node).name()+ " is not implemented in <");
+        s.append(typeid(*this).name());
+        s.append(">");
+        throw std::runtime_error(s);
+    }
+}
 
 #define DEFAULT_VISIT(type)                                         \
     void                                                            \
     Visitor::visit(type *node)                                      \
     {                                                               \
-        if(this->m_mode == ignore_none)                             \
-        {                                                           \
-            std::string                                             \
-                s("Visitor for " #type " is not implemented in <"); \
-            s.append(typeid(*this).name());                         \
-            s.append(">");                                          \
-            throw std::runtime_error(s);                            \
-        }                                                           \
+        this->fallback_action(node);                                \
     }
 
 DEFAULT_VISIT(ConnNode)
@@ -172,7 +209,13 @@ DEFAULT_VISIT(LiteralNode)
 DEFAULT_VISIT(TaskExecNode)
 DEFAULT_VISIT(ColumnNode)
 DEFAULT_VISIT(SqlExecNode)
-
+DEFAULT_VISIT(TableNode)
+DEFAULT_VISIT(ArgumentsNode)
+DEFAULT_VISIT(ArgumentsSpecNode)
+DEFAULT_VISIT(TmplArgumentsNode)
+DEFAULT_VISIT(IdCallNode)
+DEFAULT_VISIT(ColumnAssignNode)
+DEFAULT_VISIT(ColumnNumNode)
 
 /// @details
 /// 
@@ -219,10 +262,41 @@ ColumnNode::init(String name)
 /// @details
 /// 
 String
-ColumnNode::colname(void) const
+ColumnNode::data(void) const
 {
     return this->m_data;
 }
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// ColumnNumNode
+
+/// @details
+/// 
+ColumnNumNode::ColumnNumNode(void)
+    : m_data()
+{}
+
+
+/// @details
+/// 
+void
+ColumnNumNode::init(String name)
+{
+    assert(name.length() > 0);
+    db::Variant v(name);
+    this->m_data = v.asInt();
+}
+
+
+/// @details
+/// 
+int
+ColumnNumNode::data(void) const
+{
+    return this->m_data;
+}
+
 
 
 
@@ -253,6 +327,113 @@ TaskExecNode::taskid(void) const
 {
     return this->m_taskid;
 }
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// ArgumentsNode
+
+/// @details
+/// 
+ArgumentsNode::ArgumentsNode(void)
+    : Node()
+{}
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////// ColumnAssignNode
+
+/// @details
+/// 
+ColumnAssignNode::ColumnAssignNode(void)
+    : Node()
+{}
+
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////// ArgumentsSpecNode
+
+/// @details
+/// 
+ArgumentsSpecNode::ArgumentsSpecNode(void)
+    : Node()
+{}
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////// TmplArgumentsNode
+
+/// @details
+/// 
+TmplArgumentsNode::TmplArgumentsNode(void)
+    : Node()
+{}
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////// ArgumentItemNode
+
+/// @details
+/// 
+/*
+ArgumentItemNode::ArgumentItemNode(void)
+    : Node()
+{}
+*/
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// IdCallNode
+
+/// @details
+/// 
+IdCallNode::IdCallNode(void)
+    : Node()
+{}
+
+
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// TableNode
+
+
+/// @details
+/// 
+ObjectNode::ObjectNode(void)
+    : Node(),
+      id()
+{}
+
+/// @details
+/// 
+void
+ObjectNode::init(Identifier _id)
+{
+    this->id = _id;
+}
+
+
+
+/// @details
+/// 
+TableNode::TableNode(void)
+    : ObjectNode()
+{}
+
+
+/// @details
+/// 
+void
+TableNode::init(Identifier id)
+{
+    ObjectNode::init(id);
+}
+
+
 
 
 
@@ -350,16 +531,18 @@ IdNode::data(void) const
 /// @details
 /// 
 TaskNode::TaskNode(void)
-    : id()
+    : id(),
+      type()
 {}
 
 
 /// @details
 /// 
 void
-TaskNode::init(Identifier _id)
+TaskNode::init(Identifier _id, String _type)
 {
     id = _id;
+    type = _type;
 }
 
 
@@ -383,8 +566,7 @@ ConnNode::init(Identifier _id, ConnSpec *_spec)
     this->id = _id;
     this->spec = _spec;
 
-    std::cout << "Connection: " << id << " Spec: " << spec->type << " " << spec->dbcstr
-              << std::endl;
+    ARGON_DPRINT(ARGON_MOD_CONN, "Connection: " << id << " Spec: " << spec->type << " " << spec->dbcstr);
 }
 
 
@@ -467,8 +649,8 @@ ParseTree::raiseSyntaxError(void)
 //..............................................................................
 /////////////////////////////////////////////////////////////// PrintTreeVisitor
 
-
-
+/// @details
+/// 
 PrintTreeVisitor::PrintTreeVisitor(Processor &proc, std::wostream &stream)
     : Visitor(Visitor::ignore_none),
       m_proc(proc),
@@ -477,6 +659,8 @@ PrintTreeVisitor::PrintTreeVisitor(Processor &proc, std::wostream &stream)
 {}
 
 
+/// @details
+/// 
 PrintTreeVisitor::PrintTreeVisitor(const PrintTreeVisitor& pt)
     : Visitor(Visitor::ignore_none),
       m_proc(pt.m_proc),
@@ -487,6 +671,8 @@ PrintTreeVisitor::PrintTreeVisitor(const PrintTreeVisitor& pt)
 }
 
 
+/// @details
+/// 
 void 
 PrintTreeVisitor::next(Node *node)
 {
@@ -535,16 +721,9 @@ PrintTreeVisitor::visit(TaskExecNode *node)
 
 
 void
-PrintTreeVisitor::visit(IdNode *node)
-{
-    m_stream << this->m_indent << "IdNode: " << node->str() << std::endl;
-    next(node);
-}
-
-void
 PrintTreeVisitor::visit(ColumnNode *node)
 {
-    m_stream << this->m_indent << "ColumnNode: " << node->colname() << std::endl;
+    m_stream << this->m_indent << "ColumnNode: " << node->data() << std::endl;
     next(node);
 }
 
@@ -562,6 +741,25 @@ PrintTreeVisitor::visit(SqlExecNode *node)
     m_stream << this->m_indent << "SqlExecNode: " << node->str() << std::endl;
     next(node);
 }
+
+
+
+void
+PrintTreeVisitor::visit(TableNode *node)
+{
+    m_stream << this->m_indent << "TableNode: " << node->str()  << std::endl;
+    next(node);
+}
+
+
+
+void
+PrintTreeVisitor::fallback_action(Node *node)
+{
+    m_stream << this->m_indent << node->str()  << std::endl;
+    next(node);
+}
+
 
 
 

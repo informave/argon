@@ -217,7 +217,11 @@ add_custom_command(
 	COMMAND lemon -p -s T=${CMAKE_CURRENT_SOURCE_DIR}/lemon/lempar.c ${ARGON_MAIN_SRC_DIR}/parser.y
 	DEPENDS lemon ${ARGON_MAIN_SRC_DIR}/parser.y
 	${CMAKE_CURRENT_SOURCE_DIR}/lemon/lempar.c
+	${CMAKE_CURRENT_SOURCE_DIR}/include/argon/ast.hh # depend workaround cmake
+	
+
 )
+
 
 
 
@@ -227,6 +231,16 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/token.cc
 	${ARGON_MAIN_SRC_DIR}/ast.cc
 	${ARGON_MAIN_SRC_DIR}/elements.cc
+	${ARGON_MAIN_SRC_DIR}/symboltable.cc
+	${ARGON_MAIN_SRC_DIR}/task.cc
+	${ARGON_MAIN_SRC_DIR}/voidtask.cc
+	${ARGON_MAIN_SRC_DIR}/visitors.cc
+	${ARGON_MAIN_SRC_DIR}/logcmd.cc
+	${ARGON_MAIN_SRC_DIR}/sqlexec.cc
+	${ARGON_MAIN_SRC_DIR}/connection.cc
+	${ARGON_MAIN_SRC_DIR}/table.cc
+	${ARGON_MAIN_SRC_DIR}/fetchtask.cc
+	${ARGON_MAIN_SRC_DIR}/semantic.cc
 	${ARGON_MAIN_SRC_DIR}/processor.cc
 	${ARGON_MAIN_SRC_DIR}/dtsengine.cc
 	${ARGON_MAIN_SRC_DIR}/exceptions.cc

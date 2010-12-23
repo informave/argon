@@ -19,7 +19,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-%start_symbol start
 
 %token_prefix ARGON_TOK_
 
@@ -29,323 +28,449 @@
 
 %extra_argument { informave::argon::ParseTree *tree }
 
+%syntax_error {  
+	tree->raiseSyntaxError();
+}
+
+
 %include {
-         #include "argon/ast.hh"
-         #include "argon/token.hh"
-         #include <iostream>  
+	#include "argon/ast.hh"
+	#include "argon/token.hh"
+	#include <iostream>  
 
-         using namespace informave::argon;
+	using namespace informave::argon;
 
-         //#define YYNOERRORRECOVERY 1
+	//#define YYNOERRORRECOVERY 1
      
-         #define CREATE_NODE(type)  type *node = tree->newNode<type>()
-         #define ADD_TOKEN(n, t)     n->addChild( tree->newTokenNode(t) )
+	#define CREATE_NODE(type)  type *node = tree->newNode<type>()
+   #define ADD_TOKEN(n, t)     n->addChild( tree->newTokenNode(t) )
 }  
 
 
-%syntax_error {  
-              tree->raiseSyntaxError();
-} 
 
-//%left PLUS MINUS.   
-//%left DIVIDE TIMES.  
-   
-//%left LITERAL SEP ID.
-//%left CONNECTION TYPE DBCSTR PROGRAM TASK AS TEMPLATE LP RP LB RB BEGIN END.
+//..............................................................................
+////////////////////////////////////////////////////////////////////////// START
 
-
-
-
-////////////// Caller arguments ////////////////////////////
-
-%type callArgs { NodeList* }
-%type callArgList { NodeList* }
-
-callArgs(A) ::= LP callArgList(B) RP. { A = B; }
-callArgs(A) ::= LP RP .               { A = tree->newNodeList(); }
-callArgs(A) ::= .                     { A = tree->newNodeList(); }
-
-
-callArgList(A) ::= callArgList(B) COMMA callArgItem(C). {
-            A = B;
-            assert(A);
-            A->push_back(C);
-}
-
-callArgList(A) ::= callArgItem(B). {
-               A = tree->newNodeList();
-               A->push_back(B);
-}
-
-callArgItem(A) ::= ID(B). {
-               CREATE_NODE(IdNode);
-               node->init(Identifier(B->data()));
-               A = node;
-}
-
-callArgItem(A) ::= LITERAL(B). {
-               CREATE_NODE(LiteralNode);
-               node->init(B->data());
-               A = node;
-}
-
-callArgItem(A) ::= COLUMN(B). {
-               CREATE_NODE(ColumnNode);
-               node->init(B->data());
-               A = node;
-}
-
-/// other
-
-
-arglist ::= LP arglistx RP.
-arglistx ::= arglistx argitem COMMA.
-arglistx ::= arglistx argitem.
-arglistx ::= .
-
-argitem ::= ID.
-argitem ::= LITERAL.
-
+%start_symbol start
 
 start ::= setuplist PROGRAM inslist.
 
-setuplist ::= setuplist conn.
+setuplist ::= setuplist connDecl.
 setuplist ::= setuplist decl.
 setuplist ::= .
 
-decl ::= DECLARE ID(A) declArgList AS otype SEP. { 
-     std::cout << "Declare: " << A->data() << std::endl; 
-}
-
-otype ::= TABLE arglist declBody.
-otype ::= VIEW arglist declBody.
-otype ::= PROCEDURE arglist declBody.
-otype ::= SQL arglist declBody.
-
-declBody ::= BEGIN bodyExpr END.
-declBody ::= .
 
 
-declArgList ::= LP declArgItems RP.
-declArgList ::= LP  RP.
-declArgList ::= .
-declArgItems ::= declArgItems COMMA declArgItem.
-declArgItems ::= declArgItem. { std::cout << "decl args" << std::endl; }
-declArgItem ::= ID.
-
-
-
-/*
-declArgList ::= LP declArgItems declArgItem RP. // (item1, item2, item3)
-declArgList ::= .
-
-declArgItems ::= declArgItems declArgItem COMMA.
-declArgItems ::= .
-
-declArgItem ::= ID.
-*/
-
-
-////////////// Connection ////////////////////////////
+//..............................................................................
+///////////////////////////////////////////////////////// Connection declaration
 
 %type connspec { ConnSpec* }
 
-conn ::= CONNECTION(Y) ID(A) connspec(B) SEP(Z). {
-     CREATE_NODE(ConnNode);
-     node->init(Identifier(A->data()), B);
-     tree->addChild(node);
+connDecl ::= CONNECTION(Y) ID(A) connspec(B) SEP(Z). {
+	CREATE_NODE(ConnNode);
+   node->init(Identifier(A->data()), B);
+   tree->addChild(node);
 
-     ADD_TOKEN(node, Y);
-     ADD_TOKEN(node, Z);
+   ADD_TOKEN(node, Y);
+   ADD_TOKEN(node, Z);
 }
 
 
 connspec(A) ::= TYPE LITERAL(B) DBCSTR LITERAL(C). {
-            CREATE_NODE(ConnSpec);
-            node->init(B->data(), C->data());
-            A = node;
+	CREATE_NODE(ConnSpec);
+   node->init(B->data(), C->data());
+   A = node;
 }
 
 
 connspec(A) ::= . {
-            CREATE_NODE(ConnSpec);
-            A = node;
+	CREATE_NODE(ConnSpec);
+	A = node;
 }
 
 
-////////////// Instructions ////////////////////////////
 
+//..............................................................................
+///////////////////////////////////////////////////////////// OBJECT Declaration
+
+%type objType { ObjectNode* }
+%type declBody { NodeList* }
+
+decl ::= DECLARE(Y) ID(A) declArgList(C) AS objType(B) declBody(D) SEP(Z). { 
+	  ObjectNode *node = B;
+	  if(node)
+	  {
+			node->init(Identifier(A->data()));
+
+		  	node->addChild(C);
+			node->addChilds(D);
+
+	   	tree->addChild(node);
+	   	ADD_TOKEN(node, Y);
+	   	ADD_TOKEN(node, Z);
+		}
+}
+
+
+objType(A) ::= tableObj(B).       { A = B; }
+objType(A) ::= viewObj(B).        { A = B; }
+objType(A) ::= procedureObj(B).   { A = B; }
+objType(A) ::= sqlObj(B).         { A = B; }
+
+
+declBody(A) ::= BEGIN bodyExprList(B) END.  { A = B; }
+declBody(A) ::= .                           { A = tree->newNodeList(); }
+
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////////// Table
+
+%type tableObj { ObjectNode* }
+
+tableObj(A) ::= TABLE callArgs(B). {
+     CREATE_NODE(TableNode);
+	  node->addChild(B);
+	  A = node;
+}
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////////////// View
+
+%type viewObj { ObjectNode* }
+
+viewObj(A) ::= VIEW callArgs. { A = 0; }
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// Procedure
+
+%type procedureObj { ObjectNode* }
+
+procedureObj(A) ::= PROCEDURE callArgs. { A = 0; }
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// SQL Object
+
+%type sqlObj { ObjectNode* }
+
+sqlObj(A) ::= SQL callArgs. { A = 0; }
+
+
+
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// Instruction
 
 inslist ::= inslist ins.
 inslist ::= .
 
-
-//ins ::= error.
-
 ins ::= task.
-
-%type log { LogNode* }
-
-%type logArgs { NodeList* }
-
-log(X) ::= LOG(Y) logArgs(A) SEP(Z). {
-    CREATE_NODE(LogNode);
-    //node->addChild(LogLevelNode());
-    assert(A && A->size() > 0);
-    node->addChilds(A); // copy nodelist to node
-
-    ADD_TOKEN(node, Y);
-    ADD_TOKEN(node, Z);
-
-    X = node;
-}
-
-%type logArg { Node* }
-
-logArgs(A) ::= logArgs(B) logArg(C). {
-   A = B;
-   assert(A);
-   //if(A == 0) A = new NodeList();
-   A->push_back(C);
-}
-
-logArgs(A) ::= . { A = tree->newNodeList(); }
-
-logArg(A) ::= ID(B). {
-   CREATE_NODE(IdNode);
-   node->init(Identifier(B->data()));
-   A = node;
-}
-
-logArg(A) ::= LITERAL(B). {
-   CREATE_NODE(LiteralNode);
-   node->init(B->data());
-   A = node;
-}
+// ins ::= function.
 
 
+//..............................................................................
+/////////////////////////////////////////////////////////////////////////// TASK
 
-////////////// TASK Instruction ////////////////////////////
+%type taskBody { NodeList* }
+%type bodyExprList { NodeList* }
 
-//%type task { Task* }
-
-%type taskbody { NodeList* }
-
-task ::= TASK(Y) ID(A) LP taskargs RP AS TEMPLATE tmplargs taskbody(B) SEP(Z).
+task ::= TASK(Y) ID(A) declArgList(E) AS TEMPLATE(C) tmplArgs(D) taskBody(B) SEP(Z).
 {
    CREATE_NODE(TaskNode);
-   node->init(A->data());
-   tree->addChild(node);
+   node->init(A->data(), C->data());
+
+	node->addChild(E);
+	node->addChild(D);
 
    assert(B);
    node->addChilds(B);
 
+   tree->addChild(node);
    ADD_TOKEN(node, Y);
    ADD_TOKEN(node, Z);
-
-   //std::cout << node->getSourceInfo() << std::endl;
-   //std::cout << Z->getSourceInfo() << std::endl;
-
-
-
-/*
-   node->addArgs(Args);
-   node->addBody();
-   node->setTemplate(T->data());
-   node->setTemplateArgs(TA);
-*/
 }
 
 
+taskBody(A) ::= BEGIN bodyExprList(B) END. { A = B; }
 
-%type bodyExprList { NodeList* }
-
-
-
-taskbody(A) ::= BEGIN bodyExprList(B) END. { A = B; }
-taskbody(A) ::= . { A = tree->newNodeList(); }
-
+taskBody(A) ::= . { A = tree->newNodeList(); }
 
 
 bodyExprList(A) ::= bodyExprList(B) bodyExpr(C). {
-             A = B;
-             assert(A); 
-             if(C)
-                        A->push_back(C);
-            else
-               std::cout << "ingnoring NULL node" << std::endl;
+	A = B;
+   assert(A); 
+   if(C)
+		A->push_back(C);
+   else
+		std::cout << "ingnoring NULL node" << std::endl;
 }
 
 bodyExprList(A) ::= . { A = tree->newNodeList(); }
 
-bodyExpr(A) ::= colAssignExpr. { A = 0; }
 
-bodyExpr(A) ::= sqlExecExpr(C). { A = C; }
+bodyExpr(A) ::= colAssignCmd(B). { A = B; }
+bodyExpr(A) ::= sqlExecCmd(B).   { A = B; }
+bodyExpr(A) ::= logCmd(B).       { A = B; }
+bodyExpr(A) ::= taskExecCmd(B).  { A = B; }
 
-bodyExpr(A) ::= log(C). { A = C; }
+
+//..............................................................................
+///////////////////////////////////////////////////////////// Template Arguments
+
+%type tmplArgs { TmplArgumentsNode* }
+%type tmplArgList { NodeList* }
+
+tmplArgs(A) ::= LB tmplArgList(B)  RB. {
+				CREATE_NODE(TmplArgumentsNode);
+				node->addChilds(B);
+				A = node;
+}
+
+tmplArgs(A) ::= . {
+				CREATE_NODE(TmplArgumentsNode);
+				A = node;				
+}
+
+tmplArgList(A) ::= tmplArgList(B) COMMA tmplArgItem(C). {
+					A = B;
+					assert(A);
+					A->push_back(C);
+}
+
+tmplArgList(A) ::= tmplArgItem(B). {
+					A = tree->newNodeList();
+					A->push_back(B);
+}
 
 
-%type sqlExecExpr { SqlExecNode* }
+tmplArgItem(A) ::= id(B). {
+               A = B;
+}
 
-sqlExecExpr(A) ::= EXEC(Y) SQL LITERAL(B) ON ID(C) sqlExecParams(D) SEP(Z). {
+tmplArgItem(A) ::= id(B) LP callArgList(C) RP. { // @bug is callArgList ok?
+               CREATE_NODE(IdCallNode);
+					node->addChild(B);
+					node->addChild(C);
+               A = node;
+}
+
+tmplArgItem(A) ::= objType(B). {
+					A = B;
+}
+
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// EXEC SQL
+
+%type sqlExecCmd { SqlExecNode* }
+%type sqlExecParams { ArgumentsNode* }
+
+sqlExecCmd(A) ::= EXEC(Y) SQL LITERAL(B) ON ID(C) sqlExecParams(D) SEP(Z). {
 					CREATE_NODE(SqlExecNode);
 					node->init(B->data(), C->data());
-					node->addChilds(D);
+					node->addChild(D);
 					ADD_TOKEN(node, Y);
 					ADD_TOKEN(node, Z);
 					A = node;
 }
 
-%type sqlExecParams { NodeList* }
-
 sqlExecParams(A) ::= WITH PARAMS callArgs(B). { A = B; }
-sqlExecParams(A) ::= . { A = tree->newNodeList(); }
+
+sqlExecParams(A) ::= . {
+					  CREATE_NODE(ArgumentsNode);
+					  A = node;
+}
 
 
-%type taskExecExpr { TaskExecNode* }
 
-bodyExpr(A) ::= taskExecExpr(B). { A = B; }
+//..............................................................................
+//////////////////////////////////////////////////////////////////////////// LOG
+
+%type logCmd { LogNode* }
+%type logArgs { NodeList* }
+%type logArg { Node* }
+
+logCmd(X) ::= LOG(Y) logArgs(A) SEP(Z). {
+    CREATE_NODE(LogNode);
+    //node->addChild(LogLevelNode());
+    assert(A && A->size() > 0);
+    node->addChilds(A);
+    ADD_TOKEN(node, Y);
+    ADD_TOKEN(node, Z);
+    X = node;
+}
+
+logArgs(A) ::= logArgs(B) logArg(C). {
+   A = B;
+   assert(A);
+   A->push_back(C);
+}
+
+logArgs(A) ::= . { A = tree->newNodeList(); }
+
+logArg(A) ::= id(B).      { A = B; }
+logArg(A) ::= literal(B). { A = B; }
+logArg(A) ::= column(B).  { A = B; }
 
 
-taskExecExpr(A) ::= EXEC(Y) TASK ID(B) callArgs(C) SEP(Z). { 
+//..............................................................................
+////////////////////////////////////////////////////////////////////// EXEC TASK
+
+%type taskExecCmd { TaskExecNode* }
+
+
+taskExecCmd(A) ::= EXEC(Y) TASK ID(B) callArgs(C) SEP(Z). { 
                 CREATE_NODE(TaskExecNode);
                 node->init(B->data());
-                node->addChilds(C);
+                node->addChild(C);
                 ADD_TOKEN(node, Y);
                 ADD_TOKEN(node, Z);
                 A = node;
 }
 
 
+//..............................................................................
+///////////////////////////////////////////////////////////////////// Assign Cmd
 
+%type colAssignCmd { ColumnAssignNode* }
 
+colAssignCmd(A) ::= column(B) ASSIGNOP value SEP. {
+	CREATE_NODE(ColumnAssignNode);
+	node->addChild(B);
+	A = node;
+}
 
-colAssignExpr ::= COLUMN ASSIGNOP value SEP.
-
-value ::= COLUMN.
+value ::= column.
 value ::= NULL.
 value ::= LITERAL.
 value ::= NUMBER.
 value ::= ID.
 
 
-taskargs ::= taskargs ID COMMA.
-taskargs ::= taskargs ID.
-taskargs ::= .
 
-tmplargs ::= LB tmplargsx RB.
-tmplargs ::= .
-tmplargsx ::= tmplargsx tmplarg COMMA.
-tmplargsx ::= tmplargsx tmplarg.
-tmplargsx ::= .
 
-tmplarg ::= ID.
-tmplarg ::= ID LP tmplArgParams RP.
-tmplarg ::= otype.
 
-tmplArgParams ::= tmplArgParams tmplArgParam.
-tmplArgParams ::= .
+//..............................................................................
+////////////////////////////////////////////////////// Argument list declaration
 
-tmplArgParam ::= ID.
+%type declArgList { ArgumentsSpecNode* }
+%type declArgItems { NodeList* }
 
+
+declArgList(A) ::= LP declArgItems(B) RP.   { 
+					CREATE_NODE(ArgumentsSpecNode);
+					A = node;
+					A->addChilds(B); 
+}
+
+declArgList(A) ::= LP  RP. { 
+					CREATE_NODE(ArgumentsSpecNode);
+					A = node;
+}
+
+declArgList(A) ::= . {
+					CREATE_NODE(ArgumentsSpecNode);
+					A = node;
+}
+
+declArgItems(A) ::= declArgItems(B) COMMA declArgItem(C). {
+					 A = B;
+					 A->push_back(C);
+}
+
+declArgItems(A) ::= declArgItem(B). {
+					 A = tree->newNodeList();
+					 A->push_back(B);
+}
+
+declArgItem(A) ::= id(B). { A = B; }
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// Identifier
+
+%type id { IdNode* }
+id(A) ::= ID(B). {
+               CREATE_NODE(IdNode);
+               node->init(Identifier(B->data()));
+					ADD_TOKEN(node, B);
+               A = node;
+}
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////////// Literal
+
+%type literal { LiteralNode* }
+literal(A) ::= LITERAL(B). {
+               CREATE_NODE(LiteralNode);
+               node->init(B->data());
+					ADD_TOKEN(node, B);
+               A = node;
+}
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////////// Column
+
+// %type column { ColumnNode* }
+column(A) ::= COLUMN(B). {
+               CREATE_NODE(ColumnNode);
+               node->init(B->data());
+					ADD_TOKEN(node, B);
+               A = node;
+}
+
+column(A) ::= COLUMN_NUM(B). {
+               CREATE_NODE(ColumnNumNode);
+               node->init(B->data());
+					ADD_TOKEN(node, B);
+               A = node;
+}
+
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////// Call Argument list
+
+%type callArgs { ArgumentsNode* }
+%type callArgList { ArgumentsNode* }
+
+callArgs(A) ::= LP callArgList(B) RP. { A = B; }
+
+callArgs(A) ::= LP RP . {
+				CREATE_NODE(ArgumentsNode);
+				A = node;
+}
+
+callArgs(A) ::= . {
+				CREATE_NODE(ArgumentsNode);
+				A = node;
+}
+
+callArgList(A) ::= callArgList(B) COMMA callArgItem(C). {
+            A = B;
+            assert(A);
+            A->addChild(C);
+}
+
+callArgList(A) ::= callArgItem(B). {
+					CREATE_NODE(ArgumentsNode);
+					node->addChild(B);
+					A = node;
+}
+
+callArgItem(A) ::= id(B).      { A = B; }
+callArgItem(A) ::= literal(B). { A = B; }
+callArgItem(A) ::= column(B).  { A = B; }
 

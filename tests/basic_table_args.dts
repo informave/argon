@@ -1,0 +1,45 @@
+
+CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
+
+DECLARE srcTable(id) 	AS TABLE(c1, "srcTable");
+
+
+PROGRAM.
+
+//TASK copytable AS TRANSFER [ destTable, srcTable ]
+TASK copytable(num) AS FETCH [ srcTable(num) ]
+BEGIN
+	LOG "read row...";
+END;
+
+
+TASK main() AS VOID
+BEGIN
+	LOG "Creating test data...";
+
+	EXEC SQL "CREATE TABLE srcTable (id INT, name TEXT);" ON c1;
+
+	EXEC SQL "INSERT INTO srcTable VALUES(?, ?)" ON c1 WITH PARAMS ("1", "foo");
+
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+	EXEC SQL "INSERT INTO srcTable SELECT id+id, name from srcTable;" ON c1;
+
+
+	EXEC TASK copytable("1");
+
+	LOG "Copy done";
+END;
+

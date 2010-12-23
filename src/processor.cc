@@ -27,15 +27,17 @@
 
 #include "argon/dtsengine.hh"
 #include "argon/exceptions.hh"
+#include "semantic.hh"
+#include "debug.hh"
+#include "visitors.hh"
 
 #include <iostream>
 #include <stack>
 
 ARGON_NAMESPACE_BEGIN
 
-
-//--------------------------------------------------------------------------
-/// Scoped stack-push
+//..............................................................................
+//////////////////////////////////////////////////////////////// ScopedStackPush
 ///
 /// @since 0.0.1
 /// @brief Scoped stack-push
@@ -74,15 +76,16 @@ ProcTreeWalker::ProcTreeWalker(Processor &proc)
 void
 ProcTreeWalker::visit(ConnNode *node)
 {
-    Connection *elem = this->proc().toHeap( new Connection(this->proc(), node, this->m_proc.getConnections()) );
-    this->proc().addSymbol(node->id, elem);
+    Connection *elem = this->proc().getSymbols().addPtr(
+        new Connection(this->proc(), node, this->m_proc.getConnections()) );
+    this->proc().getSymbols().add(node->id, elem);
 
     if(! elem->getDbc().isConnected())
     {
         throw std::runtime_error("dbc is not connected");
     }
 
-    this->m_proc.getSymbol<Element>(node->id);
+    this->m_proc.getSymbols().find<Element>(node->id);
 
     //this->m_proc.getSymbol<Task>(id).exec(argumentlist);
 }
@@ -91,11 +94,54 @@ ProcTreeWalker::visit(ConnNode *node)
 /// @details
 /// 
 void
+ProcTreeWalker::visit(TableNode *node)
+{
+/*
+    Connection *elem = this->proc().toHeap( new Connection(this->proc(), node, this->m_proc.getConnections()) );
+    this->proc().addSymbol(node->id, elem);
+
+    if(! elem->getDbc().isConnected())
+    {
+        throw std::runtime_error("dbc is not connected");
+    }
+*/
+
+
+    ObjectInfo *elem = this->proc().getSymbols().addPtr( new ObjectInfo(this->proc(), node) );
+    this->proc().getSymbols().add(node->id, elem);
+
+    this->m_proc.getSymbols().find<Element>(node->id);
+
+    //this->m_proc.getSymbol<Task>(id).exec(argumentlist);
+}
+
+
+
+
+/// @details
+/// 
+void
 ProcTreeWalker::visit(TaskNode *node)
 {
     /// @bug is this good style?
-    Task *elem = this->proc().toHeap( new Task(this->proc(), node) );
-    this->proc().addSymbol(node->id, elem);
+
+    assert(! node->type.empty());
+    ARGON_DPRINT(ARGON_MOD_PROC, "Task type: " << node->type);
+
+    if(node->type == "VOID")
+    {
+        Task *elem = this->proc().getSymbols().addPtr( new VoidTask(this->proc(), node) );
+        this->proc().getSymbols().add(node->id, elem);
+    }
+    else if(node->type == "FETCH")
+    {
+        Task *elem = this->proc().getSymbols().addPtr( new FetchTask(this->proc(), node) );
+        this->proc().getSymbols().add(node->id, elem);
+    }
+    else
+    {
+        assert(!"unknown task type");
+    }
 
 }
 
@@ -146,8 +192,7 @@ Processor::Processor(DTSEngine &engine)
     : m_engine(engine),
       m_stack(),
       m_tree(0),
-      m_symbols(),
-      m_heap()
+      m_symbols()
 {}
 
 
@@ -168,8 +213,18 @@ Processor::compile(ParseTree *tree)
     this->m_tree = tree;
 
     // print node tree
+    #ifdef ARGON_DEV_DEBUG
     foreach_node(this->m_tree, PrintTreeVisitor(*this, std::wcout), 1);
+    #endif
 
+
+    SemanticCheck sc(this->m_tree);
+
+    sc.check();
+
+    //::abort();
+
+    // Generate connections, objects etc...
     foreach_node( this->m_tree, ProcTreeWalker(*this), 2); // only deep 2
 }
 
@@ -180,9 +235,10 @@ Value
 Processor::call(Element *obj, const ArgumentList &args)
 {
     ScopedStackPush _ssp(this->m_stack, obj);
-    return enter_element(Executor(ArgumentList()), *obj);
-    /// @bug add try/except to provide a correct exception, even if something like 1234 is thrown.
+
+    return enter_element(Executor(args), *obj);
 }
+
 
 
 /// @details
@@ -190,16 +246,7 @@ Processor::call(Element *obj, const ArgumentList &args)
 Value
 Processor::call(Element &obj)
 {
-    try
-    {
-        return enter_element(Executor(ArgumentList()), obj);
-    }
-    catch(const informave::db::ex::exception &e)
-    {
-        std::cout << "Exception on: " << obj.getSourceInfo() << std::endl;
-        std::cout << e.what() << std::endl;
-        throw RuntimeError(this->getStack());
-    }
+    return enter_element(Executor(ArgumentList()), obj);
 }
 
 
@@ -208,9 +255,13 @@ Processor::call(Element &obj)
 /// 
 void Processor::run(void)
 {
-    std::cout << std::endl << "Running script.." << std::endl;
+    ARGON_DPRINT(ARGON_MOD_PROC, "Running script");
+   
 
-    Task *task = this->getSymbol<Task>(Identifier("main"));
+
+    Task *task = this->getSymbols().find<Task>(Identifier("main"));
+
+    // RUN TASK
     Value v = this->call(task, ArgumentList());
 
     assert(this->m_stack.size() == 0);
@@ -222,15 +273,10 @@ void Processor::run(void)
 
 /// @details
 /// 
-void
-Processor::addSymbol(Identifier name, Element *symbol)
+SymbolTable&
+Processor::getSymbols(void)
 {
-    assert(name.str().length() > 0);
-            
-    element_map::iterator i = this->m_symbols.find(name);
-    if(i != this->m_symbols.end())
-        throw std::runtime_error("duplicated symbol error: " + std::string(name.str()));
-    this->m_symbols[name] = symbol;
+    return this->m_symbols;
 }
 
 
@@ -238,6 +284,40 @@ Processor::addSymbol(Identifier name, Element *symbol)
 /// 
 const Processor::stack_type&
 Processor::getStack(void)
+{
+    return this->m_stack;
+}
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// LastError
+
+/// @details
+/// 
+String
+LastError::str(void) const
+{
+    std::wstringstream ss;
+
+    ss << L"Stack trace:" << std::endl;
+
+    for(Processor::stack_type::const_iterator i = m_stack.begin();
+        i != m_stack.end();
+        ++i)
+    {
+        ss << (*i)->type() << L" " << (*i)->name()
+           << L" (" << (*i)->getSourceInfo().sourceName() << L":"
+           << (*i)->getSourceInfo().linenum() << L")" << std::endl;
+    }
+
+    return ss.str();
+}
+
+
+/// @details
+/// 
+const Processor::stack_type&
+LastError::getStack(void) const
 {
     return this->m_stack;
 }

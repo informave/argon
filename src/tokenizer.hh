@@ -42,6 +42,18 @@
 ARGON_NAMESPACE_BEGIN
 
 
+template<class T>
+bool isnumber(const std::basic_string<T> &s)
+{
+    for(typename std::basic_string<T>::const_iterator i = s.begin();
+        i != s.end();
+        ++i)
+    {
+        if(! isdigit(*i))
+            return false;
+    }
+    return true;
+}
 
 
 template <typename CharT, typename TraitsT, size_t N>
@@ -193,7 +205,7 @@ public:
         size_t line = this->m_line;
         size_t len = 0;
                   
-        SourceInfo si(m_srcname, start, line, len);
+        SourceInfo si(m_srcname, start, len, line);
 
         if(traits_type::to_int_type(c) == traits_type::eof())
             return Token(0);
@@ -204,31 +216,31 @@ public:
             return this->readLiteral(start, len, line);
         case ';':
             consume();
-            return Token(ARGON_TOK_SEP, si);
+            return Token(ARGON_TOK_SEP, si, ";");
         case '(':
             consume();
-            return Token(ARGON_TOK_LP, si);
+            return Token(ARGON_TOK_LP, si, "(");
         case ')':
             consume();
-            return Token(ARGON_TOK_RP, si);
+            return Token(ARGON_TOK_RP, si, ")");
         case '[':
             consume();
-            return Token(ARGON_TOK_LB, si);
+            return Token(ARGON_TOK_LB, si, "[");
         case ']':
             consume();
-            return Token(ARGON_TOK_RB, si);
+            return Token(ARGON_TOK_RB, si, "]");
         case ',':
             consume();
-            return Token(ARGON_TOK_COMMA, si);
+            return Token(ARGON_TOK_COMMA, si, ",");
         case '=':
             consume();
-            return Token(ARGON_TOK_ASSIGNOP, si);
+            return Token(ARGON_TOK_ASSIGNOP, si, "=");
 
         case '<':
             consume();
             assert(m_char == '-');
             consume();
-            return Token(ARGON_TOK_ASSIGNOP, si);
+            return Token(ARGON_TOK_ASSIGNOP, si, "<-");
 
 
         case '$':
@@ -282,8 +294,12 @@ public:
                 traits_type::to_int_type(c) != traits_type::eof();
                 c = getnc())
             {
-                if(! isprint(c))
+                
+                if(c == 0x0A || c == 0x0D) // read until line end
+                {
+                    skiplb();
                     break;
+                }
             };
         }
         else if(m_char == '*')
@@ -317,24 +333,47 @@ public:
 
         c = getnc();
         if(c == '(')
+        {
+            c = getnc();
             par = true;
+        }
                 
             
         for(;
             traits_type::to_int_type(c) != traits_type::eof();
             c = getnc())
         {
-            if((par && c != ')') || isalnum(c))
+            if(par)
+            {
+                if(c != ')')
+                    v.push_back(c);
+                else
+                    break;
+            }
+            else if(isalnum(c) || c == '_')
+            {
                 v.push_back(c);
+            }
             else
                 break;
         };
+
         if(par && c == ')')
             consume(); // skip )
         std::basic_string<char_type> s(v.begin(), v.end());
-        Token tok(ARGON_TOK_COLUMN, SourceInfo(m_srcname, start, len, line));
-        tok.setData(s);
-        return tok;
+        if(par)
+        {
+            Token tok(ARGON_TOK_COLUMN, SourceInfo(m_srcname, start, len, line));
+            tok.setData(s);
+            return tok;
+        }
+        else
+        {
+            bool b = isnumber(s);
+            Token tok(b ? ARGON_TOK_COLUMN_NUM : ARGON_TOK_COLUMN, SourceInfo(m_srcname, start, len, line));
+            tok.setData(s);
+            return tok;            
+        }
     }
 
 
@@ -377,7 +416,7 @@ public:
             traits_type::to_int_type(c) != traits_type::eof();
             c = getnc())
         {
-            if(::isalnum(c) || c == '.')
+            if(::isalnum(c) || c == '.' || c == '_')
                 v.push_back(c);
             else
                 break;
@@ -408,7 +447,7 @@ public:
 
         if(isdigit(s[0]))
         {
-            Token tok(ARGON_TOK_NUMBER, SourceInfo(m_srcname, start, len, line));
+            Token tok(ARGON_TOK_NUMBER, SourceInfo(m_srcname, start, len, line), "DIGIT_NOT_IMPL");
             /// @bug add number value
             return tok;
         }

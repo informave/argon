@@ -42,8 +42,9 @@
 ARGON_NAMESPACE_BEGIN
 
 
-//--------------------------------------------------------------------------
-/// Exception base class
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// Exception
 ///
 /// @since 0.0.1
 /// @brief Exception base class
@@ -63,8 +64,9 @@ public:
 };
 
 
-//--------------------------------------------------------------------------
-/// Not-declared exception
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// NotDeclared
 ///
 /// @since 0.0.1
 /// @brief Not-declared exception
@@ -73,8 +75,9 @@ class NotDeclared : public Exception
 };
 
 
-//--------------------------------------------------------------------------
-/// connection-error exception
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// ConnextionErr
 ///
 /// @since 0.0.1
 /// @brief connection-error exception
@@ -83,8 +86,9 @@ class ConnectionErr : public Exception
 };
 
 
-//--------------------------------------------------------------------------
-/// Syntax-error exception
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// SyntaxError
 ///
 /// @since 0.0.1
 /// @brief Syntax-error exception
@@ -99,8 +103,8 @@ public:
 };
 
 
-//--------------------------------------------------------------------------
-/// parse-error exception
+//..............................................................................
+///////////////////////////////////////////////////////////////////// ParseError
 ///
 /// @since 0.0.1
 /// @brief parse-error exception
@@ -109,22 +113,57 @@ class ParseError : public Exception
 };
 
 
-//--------------------------------------------------------------------------
-/// Runtime-error exception
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////// RuntimeError
 ///
 /// @since 0.0.1
 /// @brief Runtime-error exception
 class RuntimeError : public Exception
 {
 public:
-    RuntimeError(const Processor::stack_type &stack);
+    RuntimeError(Context &context);
+
+    //RuntimeError(void) { }
+    
+    void addSourceInfo(const SourceInfo &info);
 
     virtual ~RuntimeError(void) throw()
     {}
 
-protected:
-    const Processor::stack_type m_stack;
 };
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// FieldNotFound
+///
+/// @since 0.0.1
+/// @brief Field not found exception
+class FieldNotFound : public RuntimeError
+{
+public:
+    FieldNotFound(Context &context, String fname);
+
+    virtual ~FieldNotFound(void) throw()
+    {}
+};
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// InternalError
+///
+/// @since 0.0.1
+/// @brief Internal-error exception
+class InternalError : public RuntimeError
+{
+public:
+    InternalError(Context &context, const char* expr, const char *what, const char *file, int line);
+
+    virtual ~InternalError(void) throw()
+    {}
+
+};
+
 
 
 

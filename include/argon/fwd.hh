@@ -52,6 +52,13 @@ class DTSEngine;
 class ParseTree;
 class Identifier;
 class Processor;
+class Exception;
+class Executor;
+class Value;
+class Column;
+class Object;
+class LastError;
+template<typename T> class safe_ptr;
 
 
 typedef std::tr1::shared_ptr<Element> ElementPtr;
@@ -63,10 +70,16 @@ namespace db
     typedef informave::db::dal::IDbc                    Connection;
     typedef informave::db::dal::IStmt                   Stmt;
     typedef informave::db::dal::IEnv                    Env;
+    typedef informave::db::dal::IResult                 Resultset;
     typedef std::map<Identifier, Connection*>           ConnectionMap;
     
     typedef informave::db::Database<informave::db::dal::generic> Database;
+
+    typedef Database::Variant Variant;
+    typedef Database::Value   Value;
 }
+
+
 
 
 

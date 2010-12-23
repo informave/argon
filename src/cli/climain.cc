@@ -1,3 +1,28 @@
+//
+// climain.cc - CLI Application
+//
+// Copyright (C)         informave.org
+//   2010,               Daniel Vogelbacher <daniel@vogelbacher.name>
+// 
+// Lesser GPL 3.0 License
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+/// @file
+/// @brief CLI Application
+/// @author Daniel Vogelbacher
+/// @since 0.1
 
 
 //ARGONCLIMP.001 argoncli(1)
@@ -75,15 +100,50 @@
 #include <argon/dtsengine>
 
 #include <iostream>
+#include <fstream>
 
-int main(void)
+int main(int argc, char **argv)
 {
+    using namespace informave::argon;
+
+    std::locale::global(std::locale(""));
+
+    std::ios_base::sync_with_stdio(true);
+    std::cout.setf(std::ios::unitbuf);
+    std::wcout.setf(std::ios::unitbuf);
+
 	std::cout << "Argon command line interface (c) 2010 Daniel Vogelbacher" << std::endl
 		<< std::endl;
 
-	//foo();
+    if(argc != 2)
+    {
+        std::cout << "No file given" << std::endl;
+        return -1;
+    }
+    
 
-	return 0;
+    DTSEngine engine;
 
+    //engine.addConnection("c2", &c2);
+    try
+    {
+        engine.load(argv[1]);
+        engine.exec();
+	}
+	catch(std::exception &e)
+	{
+		std::cout << "EXCEPTION:" << std::endl << e.what() << std::endl;
+        return -1;
+	}
+    return 0;
 }
 
+
+//
+// Local Variables:
+// mode: C++
+// c-file-style: "bsd"
+// c-basic-offset: 4
+// indent-tabs-mode: nil
+// End:
+//

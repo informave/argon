@@ -70,6 +70,15 @@ public:
         return this->m_file;
     }
 
+    inline String str(void) const
+    {
+    	std::stringstream ss;
+    	ss << "(" << sourceName() << ":" << linenum() << ")";
+	return String(ss.str());
+    }
+
+
+
 protected:
     String            m_file;
     std::streamsize   m_offset;
@@ -100,7 +109,7 @@ public:
     Token(void);
 
     /// @brief Creates a new token with the given ID
-    Token(int tid, SourceInfo si = SourceInfo());
+    Token(int tid, SourceInfo si = SourceInfo(), String data = String());
 
     /// @brief Copy constructor
     Token(const Token& t);
@@ -129,6 +138,7 @@ public:
 protected:
     int         m_id;
     String      m_data;
+    //db::Variant m_variant;
     SourceInfo  m_info;
 };
 

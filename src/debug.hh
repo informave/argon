@@ -1,5 +1,5 @@
 //
-// value.cc - Value (definition)
+// debug.hh - Debugging macros
 //
 // Copyright (C)         informave.org
 //   2010,               Daniel Vogelbacher <daniel@vogelbacher.name>
@@ -20,13 +20,52 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /// @file
-/// @brief Value (definition)
+/// @brief Debugging macros
 /// @author Daniel Vogelbacher
 /// @since 0.1
 
+
+#ifndef INFORMAVE_ARGON_DEBUG_HH
+#define INFORMAVE_ARGON_DEBUG_HH
+
+#include "argon/fwd.hh"
+#include "argon/token.hh"
+#include "argon/ast.hh"
 #include "argon/dtsengine.hh"
 
+#include <iostream>
 
+ARGON_NAMESPACE_BEGIN
+
+//#define ARGON_DEV_DEBUG
+
+#ifdef ARGON_DEV_DEBUG
+#define ARGON_DPRINT(mod, expr) std::cout << "[DEBUG] (" << mod << ") " << expr << std::endl
+#else
+#define ARGON_DPRINT(mod, expr)
+#endif
+
+#define ARGON_MOD_SEM "semantic"
+#define ARGON_MOD_PROC "processor"
+#define ARGON_MOD_CONN "connection"
+#define ARGON_MOD_DD "--*****--"
+
+
+inline void debug_print_arglist(const ArgumentList &list)
+{
+#ifdef ARGON_DEV_DEBUG
+    for(ArgumentList::const_iterator i = list.begin();
+        i != list.end();
+        ++i)
+    {
+        ARGON_DPRINT(ARGON_MOD_PROC, "Argumemnt item: " << i->data());
+    }
+#endif
+}
+
+ARGON_NAMESPACE_END
+
+#endif
 
 //
 // Local Variables:

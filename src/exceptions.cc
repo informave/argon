@@ -34,29 +34,67 @@ ARGON_NAMESPACE_BEGIN
 
 
 //..............................................................................
+////////////////////////////////////////////////////////////////// InternalError
+
+/// @details
+/// 
+InternalError::InternalError(Context &context, const char* expr, const char *what, const char *file, int line)
+    : RuntimeError(context)
+{
+    std::wstringstream ss;
+    
+    ss << L"Internal compiler error: "
+       << String(what)
+       << L" at " << String(file) << L":" << line
+       << L" - expr: " << String(expr)
+       << std::endl
+       << L"Please report this BUG on <http://argon.informave.org/bugtracker> or send a PATCH to argon-list@informave.org"
+       << std::endl;
+    
+
+    this->m_what = String(ss.str()) + this->m_what;
+}
+
+
+//..............................................................................
 /////////////////////////////////////////////////////////////////// RuntimeError
 
 /// @details
 /// 
-RuntimeError::RuntimeError(const Processor::stack_type &stack)
-    : Exception(),
-      m_stack(stack)
+RuntimeError::RuntimeError(Context &context)
+	: Exception()
+{
+    LastError e(context.proc().getStack());
+    m_what = e.str();
+}
+
+
+/// @details
+/// 
+void
+RuntimeError::addSourceInfo(const SourceInfo &info)
 {
     std::wstringstream ss;
-
-    ss << L"Stack trace:" << std::endl;
-
-    for(Processor::stack_type::const_iterator i = m_stack.begin();
-        i != m_stack.end();
-        ++i)
-    {
-        ss << (*i)->type() << L" " << (*i)->name()
-           << L" (" << (*i)->getSourceInfo().sourceName() << L":"
-           << (*i)->getSourceInfo().linenum() << L")" << std::endl;
-    }
-
-    this->m_what = ss.str();
+    ss << L"In file " << info.str() << std::endl;
+    m_what = String(ss.str()) + m_what;
 }
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// FieldNotFound
+
+/// @details
+/// 
+FieldNotFound::FieldNotFound(Context &context, String fname)
+	: RuntimeError(context)
+{
+    //String s("Field not found: ");
+    //s.append(fname);
+    std::wstringstream ss;
+    ss << fname << std::endl;
+    m_what = String(ss.str()) + m_what;
+}
+
 
 
 //..............................................................................
@@ -77,6 +115,9 @@ SyntaxError::SyntaxError(Token *t)
     this->m_what = ss.str();
 }
 
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// Exception
 
 /// @details
 /// 

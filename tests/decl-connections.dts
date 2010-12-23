@@ -1,0 +1,17 @@
+
+CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
+
+
+DECLARE table1(arg1, arg2) AS TABLE(c1, "mytable")
+BEGIN
+END;
+
+DECLARE table2 AS TABLE(c1, "mytable");
+
+
+PROGRAM.
+
+
+TASK main() AS VOID;
+
+

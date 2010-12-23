@@ -41,11 +41,25 @@
 #include <dbwtl/dal/engines/generic>
 
 
+class RuntimeError;
+
 ARGON_NAMESPACE_BEGIN
 
-class Executor;
 
 
+#define ARGON_ICERR(checkExpr, context, msg)                            \
+    if(!( checkExpr ))                                                  \
+    {                                                                   \
+        throw InternalError(context, #checkExpr, msg, __FILE__, __LINE__); \
+    }
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////////// Value
+///
+/// @since 0.0.1
+/// @brief Value
 class Value
 {
 public:
@@ -54,22 +68,153 @@ public:
     // add value token
     // IVariant?
 
+    template<typename T>
+    Value(const T &val) : m_var(val)
+    {}
+
+    Value(void) : m_var()
+    {}
+
+    Value(const db::Value & ref) : m_var()
+    {
+        m_var.assign(ref);
+    }
+
+    Value(const Value &val) : m_var()
+    {
+        m_var.assign(val.m_var);
+    }
+
+    Value& operator=(Value &val)
+    {
+        m_var.assign(val.m_var);
+        return *this;
+    }
+
+    String str(void) const
+    {
+        return data().asStr();
+    }
+
+    db::Variant& data(void)             { return this->m_var; }
+    const db::Variant& data(void) const { return this->m_var; }
+
+protected:
+    db::Variant m_var;
+
 };
 
 typedef std::list<Value> ArgumentList;
 
 
-
-template<class T>
-inline Value enter_element(const T &f, Element &elem)
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// safe_ptr
+///
+/// @since 0.0.1
+/// @brief Safe pointer
+template<typename T>
+class safe_ptr
 {
-    return f(elem);
-}
+public:
+    safe_ptr(T* p = 0) : m_pointee(p)
+    {}
+
+    safe_ptr& operator=(T *p)
+    {
+        this->m_pointee = p;
+        return *this;
+    }
+
+    operator bool(void) const
+    {
+        return m_pointee != 0;
+    }
+
+    T* operator->(void)
+    {
+        assert(m_pointee);
+        return m_pointee;
+    }
+
+    T& operator*(void)
+    {
+        return *this->m_pointee;
+    }
+
+private:
+    T *m_pointee;
+};
 
 
 
-//--------------------------------------------------------------------------
-/// Element base class
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// SymbolTable
+///
+/// @since 0.0.1
+/// @brief Symbol table
+class SymbolTable
+{
+public:
+    typedef std::deque<Element*>            stack_type;
+    typedef std::map<Identifier, Element*>  element_map;
+    typedef std::list<Element*>             heap_type;
+
+    /// @brief Constructor
+    /// @param[in] parent Pointer to a parent symbol table or NULL
+    SymbolTable(SymbolTable *parent = 0);
+
+    ~SymbolTable(void);
+
+    /// @brief Adds a new symbol to the symbol table
+    void add(Identifier name, Element *symbol);
+
+    /// @brief Get a symbol by identifier
+    /// Throws if symbol is not of type T
+    template<typename T> T* find(Identifier name);
+
+    /// @brief Dumps the symbol table as printable string
+    String str(void) const;
+
+    /// @brief Adds a pointer to the symbol table's memory manager
+    template<typename T>
+    inline T* addPtr(T* elem)
+    {
+        m_heap.push_back(elem);
+        return elem;
+    }
+
+    /// @brief Clear out all entries and release memory
+    inline void reset(void)
+    {
+        this->m_symbols.clear();
+        this->freeHeap();
+    }
+
+protected:
+    void freeHeap(void);
+
+    Element* find_element(Identifier id);
+
+    /// @brief Symbol list
+    element_map             m_symbols;
+
+    /// @brief Allocated elements
+    heap_type                m_heap;
+
+    /// @brief Parent table
+    safe_ptr<SymbolTable>   m_parent;
+
+
+private:
+    SymbolTable(const SymbolTable &);
+    SymbolTable& operator=(const SymbolTable &);
+};
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////////// Element
 ///
 /// @since 0.0.1
 /// @brief Element base class
@@ -91,11 +236,13 @@ protected:
     /// @brief Constructs a new element
     Element(Processor &proc);
 
-    virtual Value run(const ArgumentList &args) { throw std::runtime_error("is not callabled"); }
+    /// @brief Gives the control to the element.
+    /// The default behavior is to raise an exception.
+    /// Derived classes must implement this method.
+    virtual Value run(const ArgumentList &args);
 
-    inline Processor& proc(void)
-    { return this->m_proc; }
-
+    /// @brief Access to the processor
+    inline Processor& proc(void) { return this->m_proc; }
 
 private:
     Processor &m_proc;
@@ -106,8 +253,10 @@ private:
 };
 
 
-//--------------------------------------------------------------------------
-/// Executor
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// Executor
 ///
 /// @since 0.0.1
 /// @brief Element Executor
@@ -121,21 +270,26 @@ public:
     {
         return elem.run(m_list);
     }
-    
+
+private:
     ArgumentList m_list;
 };
 
 
 
 
-//--------------------------------------------------------------------------
-/// CONNECTION Command
+//..............................................................................
+///////////////////////////////////////////////////////////////////// Connection
 ///
 /// @since 0.0.1
+/// @brief Connection element
 class Connection : public Element
 {
 public:
     Connection(Processor &proc, ConnNode *node, db::ConnectionMap &userConns);
+
+    virtual ~Connection(void)
+    {}
     
     db::Connection& getDbc(void);
 
@@ -143,22 +297,20 @@ public:
 
     virtual String str(void) const;
 
-
     virtual String name(void) const;
+
     virtual String type(void) const;
 
     virtual SourceInfo getSourceInfo(void) const;
 
-    virtual ~Connection(void)
-    {}
 
 protected:
-    ConnNode      *m_node;
-    db::Connection  *m_dbc;
+    ConnNode             *m_node;
+    db::Connection       *m_dbc;
 
     // keep correct order for destruction
-    db::Env::ptr m_alloc_env;
-    db::Connection::ptr m_alloc_dbc;
+    db::Env::ptr          m_alloc_env;
+    db::Connection::ptr   m_alloc_dbc;
 
 private:
     Connection(const Connection &);
@@ -168,11 +320,62 @@ private:
 
 
 
-//--------------------------------------------------------------------------
-/// TASK Command
+//..............................................................................
+//////////////////////////////////////////////////////////////////////// Context
 ///
 /// @since 0.0.1
-class Task : public Element
+/// @brief Context elements
+class Context : public Element
+{
+public:
+    friend class RuntimeError;
+
+    virtual ~Context(void)
+    {}
+
+    virtual SymbolTable& getSymbols(void);
+
+    virtual const SymbolTable& getSymbols(void) const;
+
+    /// @brief Returns the main object or raises an exception if
+    /// there is no main object in this context.
+    virtual Object* getMainObject(void) = 0;
+
+    /// @brief Returns the object containing the "results" after
+    /// an successful task execution. This is used for the % operator.
+    virtual Object* getResultObject(void) = 0;
+
+    /// @brief Returns the object to which data should be written.
+    /// Used for STORE and TRANSFER templates by the ColAssignOp.
+    virtual Object* getDestObject(void) = 0;
+
+    /// @brief Resolved the value of the given column
+    /// or throws an exception if this context does not
+    /// have a main object and/or open resultset.
+    virtual Value resolve(const Column &col) = 0;
+
+
+protected:
+    /// @brief Hidden constructor, only derived classes can be instantiated
+    Context(Processor &proc);
+
+    /// @brief Context-related symbol table
+    SymbolTable m_symbols;
+
+private:
+    Context(void); // not implemented
+    Context(const Context&); // not implemented
+    Context& operator=(const Context&); // not implemented
+};
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////////////// Task
+///
+/// @since 0.0.1
+/// @brief Task base class
+class Task : public Context
 {
 public:
     Task(Processor &proc, TaskNode *node);
@@ -185,13 +388,14 @@ public:
     virtual String str(void) const;
 
     virtual String name(void) const;
+
     virtual String type(void) const;
 
     virtual SourceInfo getSourceInfo(void) const;
 
-
 protected:
-    virtual Value run(const ArgumentList &args);
+    /// Tasks must be runnable
+    virtual Value run(const ArgumentList &args) = 0;
 
     TaskNode *m_node;
 
@@ -201,15 +405,241 @@ private:
 };
 
 
-
-//--------------------------------------------------------------------------
-/// LOG Command
+//..............................................................................
+///////////////////////////////////////////////////////////////////// FETCH Task
 ///
 /// @since 0.0.1
+/// @brief FETCH Task
+class FetchTask : public Task
+{
+public:
+    FetchTask(Processor &proc, TaskNode *node);
+
+    virtual ~FetchTask(void)
+    {}
+
+    virtual Object* getMainObject(void);
+    virtual Object* getResultObject(void);
+    virtual Object* getDestObject(void);
+
+    virtual Value resolve(const Column &col);
+
+protected:
+    virtual Value run(const ArgumentList &args);
+
+    /// @brief Main object
+    /// This object only exists while task is running
+    std::auto_ptr<Object> m_mainobject;
+};
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// VOID Task
+///
+/// @since 0.0.1
+/// @brief VOID Task
+class VoidTask : public Task
+{
+public:
+    VoidTask(Processor &proc, TaskNode *node);
+
+    virtual ~VoidTask(void)
+    {}
+
+    virtual Object* getMainObject(void);
+    virtual Object* getResultObject(void);
+    virtual Object* getDestObject(void);
+
+    virtual Value resolve(const Column &col);
+
+protected:
+    virtual Value run(const ArgumentList &args);
+};
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////////// Object
+///
+/// @since 0.0.1
+/// @brief Object base
+class Object : public Context
+{
+public:
+    typedef enum
+    {
+        READ_MODE,
+        ADD_MODE,
+        UPDATE_MODE
+    } mode;
+
+    Object(Processor &proc);
+
+    virtual ~Object(void) 
+    {}
+    
+    /// @brief Fetches the next record
+    /// @return true if there was a new record
+    virtual bool next(void) = 0;
+
+    /// @return true if end of resultset is reached
+    virtual bool eof(void) const = 0;
+
+    virtual const db::Value& getColumn(Column col) = 0;
+
+    virtual Value resolve(const Column &col);
+
+    virtual Object* getMainObject(void);
+    virtual Object* getResultObject(void);
+    virtual Object* getDestObject(void);
+
+
+protected:
+    /// Objects must be runnable
+    virtual Value run(const ArgumentList &args) = 0;
+
+private:
+    Object(const Object&);
+    Object& operator=(const Object&);
+};
+
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// ObjectInfo
+///
+/// @since 0.0.1
+/// @brief Object info
+class ObjectInfo : public Element
+{
+public:
+    ObjectInfo(Processor &proc, ObjectNode *node);
+
+    virtual ~ObjectInfo(void)
+    {}
+
+    inline Identifier id(void) const { return m_node->id; } /// @bug is this correct?
+
+    virtual String str(void) const;
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+    /// @brief Creates a new object based on the object information
+    virtual Object* newInstance(Object::mode mode);
+    
+protected:
+    ObjectNode *m_node;
+
+private:
+    ObjectInfo(const ObjectInfo&);
+    ObjectInfo& operator=(const ObjectInfo&);
+};
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// SourceTable
+///
+/// @since 0.0.1
+/// @brief Source Table
+class SourceTable : public Object
+{
+public:
+    SourceTable(Processor &proc, ObjectNode *node); // change node
+
+    virtual ~SourceTable(void) 
+    {}
+
+    virtual String str(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+    inline Identifier id(void) const { return m_node->id; } /// @bug is this correct?
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual void setColumn(Column col, Value v);
+
+    virtual const db::Value& getColumn(Column col);
+
+    virtual bool next(void);
+
+    virtual bool eof(void) const;
+
+protected:
+    virtual Value run(const ArgumentList &args);
+
+    ObjectNode    *m_node;
+    db::Stmt::ptr  m_stmt;
+
+private:
+    SourceTable(const SourceTable&);
+    SourceTable& operator=(const SourceTable&);
+};
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// DestTable
+///
+/// @since 0.0.1
+/// @brief Destination Table
+class DestTable : public Object
+{
+public:
+    DestTable(Processor &proc, ObjectNode *node); // change node
+
+    virtual ~DestTable(void) 
+    {}
+
+    virtual String str(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+    inline Identifier id(void) const { return m_node->id; } /// @bug is this correct?
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual void setColumn(Column col, Value v);
+
+    virtual const db::Value& getColumn(Column col);
+
+    virtual bool next(void);
+
+    virtual bool eof(void) const;
+
+protected:
+    virtual Value run(const ArgumentList &args);
+
+    ObjectNode     *m_node;
+    db::Stmt::ptr   m_stmt;
+
+private:
+    DestTable(const DestTable&);
+    DestTable& operator=(const DestTable&);
+};
+
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////////// LogCmd
+///
+/// @since 0.0.1
+/// @brief LOG Command
 class LogCmd : public Element
 {
 public:
-    LogCmd(Processor &proc, LogNode *node);
+    LogCmd(Processor &proc, Context &context, LogNode *node);
 
     virtual ~LogCmd(void) 
     {}
@@ -219,12 +649,13 @@ public:
     virtual SourceInfo getSourceInfo(void) const;
 
     virtual String name(void) const;
-    virtual String type(void) const;
 
+    virtual String type(void) const;
 
 protected:
     virtual Value run(const ArgumentList &args);
 
+    Context &m_context;
     LogNode *m_node;
 
 private:
@@ -234,14 +665,15 @@ private:
 
 
 
-//--------------------------------------------------------------------------
-/// SQL EXEC Command
+//..............................................................................
+///////////////////////////////////////////////////////////////////// SqlExecCmd
 ///
 /// @since 0.0.1
+/// @brief EXEC SQL Command
 class SqlExecCmd : public Element
 {
 public:
-    SqlExecCmd(Processor &proc, SqlExecNode *node);
+    SqlExecCmd(Processor &proc, Context &context, SqlExecNode *node);
 
     virtual ~SqlExecCmd(void) 
     {}
@@ -251,6 +683,7 @@ public:
     virtual SourceInfo getSourceInfo(void) const;
 
     virtual String name(void) const;
+
     virtual String type(void) const;
 
     void bindParam(int pnum, String value);
@@ -258,6 +691,7 @@ public:
 protected:
     virtual Value run(const ArgumentList &args);
 
+    Context       &m_context;
     SqlExecNode   *m_node;
     db::Stmt::ptr  m_stmt;
 
@@ -269,32 +703,92 @@ private:
 
 
 
-//--------------------------------------------------------------------------
-/// Processor initial tree walker
+//..............................................................................
+/////////////////////////////////////////////////////////////////// ValueElement
 ///
 /// @since 0.0.1
-class ProcTreeWalker : public Visitor
+/// @brief Value Element
+class ValueElement : public Element
 {
 public:
-    ProcTreeWalker(Processor &proc);
+    ValueElement(Processor &proc, const Value& value);
 
-    virtual void visit(ConnNode *node);
-    virtual void visit(TaskNode *node);
-    virtual void visit(ParseTree *node);
-    virtual void visit(LogNode *node);
-    virtual void visit(IdNode *node);
-    virtual void visit(LiteralNode *node);
+    virtual ~ValueElement(void)
+    {}
+
+    virtual Value& getValue(void)
+    {
+        return this->m_value;
+    }
+    
+    virtual SourceInfo getSourceInfo(void) const;
+    virtual String str(void) const;
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
 
 protected:
-    inline Processor& proc(void) { return m_proc; }
-    Processor &m_proc;
+    Value m_value;
+};
+
+
+template<class T>
+inline Value enter_element(const T &f, Element &elem)
+{
+    return f(elem);
+}
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////////// Column
+///
+/// @since 0.0.1
+/// @brief Column
+class Column
+{
+public:
+    enum selection_mode {
+        by_number,
+        by_name
+    };
+
+    Column(ColumnNode *node) : m_mode(by_name), m_name(), m_num()
+    {
+        m_name = node->data();
+    }
+
+    Column(ColumnNumNode *node) : m_mode(by_number), m_name(), m_num()
+    {
+        m_num = node->data();
+    }
+
+    Column(int num) : m_mode(by_number), m_name(), m_num(num)
+    {}
+
+    Column(String name) : m_mode(by_name), m_name(name), m_num(0)
+    {}
+
+    inline enum selection_mode mode(void) const { return this->m_mode; }
+
+    inline String getName(void) const { return this->m_name; }
+
+    inline int getNum(void) const { return this->m_num; }
+
+    const db::Value& getFrom(db::Resultset &rs, Context &context);
+
+protected:
+    enum selection_mode  m_mode;
+    String               m_name;
+    int                  m_num;
 };
 
 
 
 
-//--------------------------------------------------------------------------
-/// DTS Processor
+//..............................................................................
+////////////////////////////////////////////////////////////////////// Processor
 ///
 /// @since 0.0.1
 /// @brief DTS Processor
@@ -303,10 +797,9 @@ class Processor
     friend class ProcTreeWalker;
 
 public:
-    typedef std::deque<Element*>            stack_type;
-    typedef std::map<Identifier, Element*>  element_map;
+    typedef std::deque<Element*>   stack_type;
 
-
+    /// @brief Constructor
     Processor(DTSEngine &engine);
 
     /// @brief Compile the parse tree
@@ -318,46 +811,49 @@ public:
     /// @brief Get call stack
     const stack_type& getStack(void);
 
-    /// @brief Adds a new symbol to the symbol table
-    inline void addSymbol(Identifier name, Element *symbol);
-
-    /// @brief Get a symbol by identifier
-    /// Throws if symbol is not of type T
-    template<typename T> T* getSymbol(Identifier name);
-
-
     Value call(Element *obj, const ArgumentList &args);
+
     Value call(Element &localObj);
+
+    SymbolTable& getSymbols(void);
 
 
 protected:
     db::ConnectionMap& getConnections(void);
 
-    template<typename T>
-    inline T* toHeap(T* elem)
-    {
-        m_heap.push_back(ElementPtr(elem));
-        return elem;
-    }
-
     DTSEngine    &m_engine;
     stack_type    m_stack;
     ParseTree    *m_tree;
-    element_map   m_symbols;
+    SymbolTable   m_symbols;
 
 private:
-    /// @brief Allocated elements
-    std::list<ElementPtr> m_heap;
-
     Processor(const Processor&);
     Processor& operator=(const Processor&);
 };
 
 
+//..............................................................................
+////////////////////////////////////////////////////////////////////// LastError
+///
+/// @since 0.0.1
+/// @brief Last Error
+class LastError
+{
+public:
+    LastError(const Processor::stack_type &stack) : m_stack(stack)
+    {}
+
+    String str(void) const;
+
+    const Processor::stack_type& getStack(void) const;
+
+protected:
+    const Processor::stack_type m_stack;
+};
 
 
-//--------------------------------------------------------------------------
-/// DTS Engine
+//..............................................................................
+////////////////////////////////////////////////////////////////////// DTSEngine
 ///
 /// @since 0.0.1
 /// @brief DTS Engine
@@ -373,7 +869,10 @@ public:
  
 
     /// @bug fixme
-    void load(std::istreambuf_iterator<wchar_t> in);
+    void load(std::istreambuf_iterator<wchar_t> in, String sourcename = String("<input>"));
+
+    void load(const char* file);
+
 
     /// @brief Execute the loaded script
     void exec(void);
@@ -395,6 +894,7 @@ protected:
     connection_map              m_connections;
     task_map                    m_tasks;
     db::ConnectionMap           m_userConns;
+    Processor                   m_proc;
 
 private:
     DTSEngine(const DTSEngine&);
@@ -404,22 +904,19 @@ private:
 
 
 
+
 //
 //
 template<typename T> T*
-Processor::getSymbol(Identifier name)
+SymbolTable::find(Identifier name)
 {
-    element_map::iterator i = this->m_symbols.find(name);
-    if(i != this->m_symbols.end())
-    {
-        T* ptr = dynamic_cast<T*>(i->second);
-        if(!ptr)
-            throw std::runtime_error("invalid element type");
-        else
-            return ptr;
-    }
+    Element *elem = this->find_element(name);
+    
+    T* ptr = dynamic_cast<T*>(elem);
+    if(!ptr)
+        throw std::runtime_error("invalid element type");
     else
-        throw std::runtime_error("element not found");
+        return ptr;
 }
 
 

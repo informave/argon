@@ -1,0 +1,50 @@
+
+CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
+
+DECLARE srcTable 	AS TABLE(c1, "srcTable");
+DECLARE destTable 	AS TABLE(c1, "destTable");
+
+
+PROGRAM.
+
+
+
+TASK print AS FETCH [ destTable ]
+BEGIN
+	LOG "Table row: " $value " / " $number;
+END;
+
+//TASK copytable AS TRANSFER [ destTable, srcTable ]
+TASK copytable AS FETCH [ srcTable ]
+BEGIN
+	LOG "Copy row, value: " $name " and " $1;
+
+	EXEC SQL "INSERT INTO destTable VALUES(?, ?);" ON c1 WITH PARAMS ($1, $2);
+
+	//LOG "VALUE: " $name " END";
+	$bla <- $name;
+	
+END;
+
+
+TASK main() AS VOID
+BEGIN
+	LOG "Creating test data...";
+
+	EXEC SQL "CREATE TABLE srcTable (id INT, name TEXT);" ON c1;
+
+	EXEC SQL "INSERT INTO srcTable VALUES(?, ?);" ON c1 WITH PARAMS ("1", "Donald");
+	EXEC SQL "INSERT INTO srcTable VALUES(?, ?);" ON c1 WITH PARAMS ("2", "Dagobert");
+	EXEC SQL "INSERT INTO srcTable VALUES(?, ?);" ON c1 WITH PARAMS ("3", "Daisy");
+
+	EXEC SQL "CREATE TABLE destTable(number INT, value TEXT);" ON c1;
+
+	LOG "Starting basic table transfer with 3 rows";
+
+	EXEC TASK copytable;
+
+	EXEC TASK print;
+
+	LOG "Copy done";
+END;
+

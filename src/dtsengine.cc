@@ -60,6 +60,7 @@
 #include <cstdio>
 #include <memory>
 #include <iostream>
+#include <fstream>
 
 ARGON_NAMESPACE_BEGIN
 
@@ -72,7 +73,8 @@ DTSEngine::DTSEngine(void)
     : m_tree(),
       m_connections(),
       m_tasks(),
-      m_userConns()
+      m_userConns(),
+      m_proc(*this)
 {}
 
 /// @details
@@ -122,28 +124,40 @@ DTSEngine::getConnections(void)
 void
 DTSEngine::exec(void)
 {
-    Processor proc(*this);
-
     // this adds included scripts to the tree
-    proc.compile(this->m_tree.get());
-    proc.run();
+    this->m_proc.compile(this->m_tree.get());
+    this->m_proc.run();
 }
+
 
 
 /// @details
 /// 
 void
-DTSEngine::load(std::istreambuf_iterator<wchar_t> in)
+DTSEngine::load(const char *file)
+{
+    std::wifstream in;
+    in.exceptions( std::ios::badbit | std::ios::failbit );
+    in.open(file, std::ios::binary);
+    
+    this->load(std::istreambuf_iterator<wchar_t>(in.rdbuf()), String(file));
+}
+
+
+
+/// @details
+/// 
+void
+DTSEngine::load(std::istreambuf_iterator<wchar_t> in, String sourcename)
 {
     Token t;
     Parser p;
     Tokenizer<wchar_t> tz(in);
-    tz.setSourceName(String("<testsource>"));
+    tz.setSourceName(sourcename);
 
     this->m_tree.reset(new ParseTree);
 
     //p.trace(stdout, "[LEMON] ");
-
     do
     {
         t = tz.next();
@@ -152,6 +166,9 @@ DTSEngine::load(std::istreambuf_iterator<wchar_t> in)
         {
             if(t.id() != 0)
             {
+                assert(! t.data().empty());
+                assert(t.getSourceInfo().linenum() > 0);
+                
                 Token *tp = this->m_tree->newToken(t);
                 p.parse(t.id(), tp, this->m_tree.get());
             }

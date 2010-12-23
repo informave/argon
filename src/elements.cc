@@ -26,7 +26,8 @@
 
 #include "argon/dtsengine.hh"
 #include "argon/exceptions.hh"
-
+#include "debug.hh"
+#include "visitors.hh"
 
 #include <iostream>
 #include <sstream>
@@ -34,86 +35,80 @@
 ARGON_NAMESPACE_BEGIN
 
 
-//--------------------------------------------------------------------------
-/// Task Child Visitor
-///
-/// @since 0.0.1
-/// @brief Task Child Visitor
-struct TaskChildVisitor : public Visitor
+//..............................................................................
+///////////////////////////////////////////////////////////////////////// Column
+
+/// @details
+/// 
+const db::Value&
+Column::getFrom(db::Resultset &rs, Context &context)
 {
-public:
-    TaskChildVisitor(Processor &proc, Task &task)
-        : Visitor(Visitor::ignore_none),
-          m_proc(proc),
-          m_task(task)
-    {}
-
-
-    virtual void visit(LogNode *node)
+    using informave::db::ex::not_found;
+    try
     {
-        LogCmd cmd(this->m_proc, node);
-        this->m_proc.call(cmd);
+        if(Column::by_number == mode())
+            return rs.column(getNum());
+        else
+            return rs.column(getName());
     }
-
-    
-    virtual void visit(TaskExecNode *node)
+    catch(not_found &e)
     {
-        std::cout << "calling task: " << node->taskid().str() << std::endl;
-        //foreach_node(node->getChilds(), PrintTreeVisitor(this->m_proc, std::wcout), 1);
-
-        Task* task = this->m_proc.getSymbol<Task>(node->taskid());
-
-        // get arguments
-        this->m_proc.call(task, ArgumentList());
+        throw FieldNotFound(context, e.what()); /// @bug replace what with colum name
     }
-
-
-    virtual void visit(SqlExecNode *node)
-    {
-        SqlExecCmd cmd(this->m_proc, node);
-        this->m_proc.call(cmd);
-    }
-
-private:
-    Processor &m_proc;
-    Task      &m_task;
-};
+}
 
 
 
+//..............................................................................
+///////////////////////////////////////////////////////////////////////// Object
 
-//--------------------------------------------------------------------------
-/// Log Child Visitor
-///
-/// @since 0.0.1
-/// @brief Log Child Visitor
-struct LogChildVisitor : public Visitor
+/// @details
+/// 
+Object::Object(Processor &proc)
+    : Context(proc)
 {
-public:
-    LogChildVisitor(Processor &proc, std::wstringstream &stream)
-        : Visitor(),
-          m_proc(proc),
-          m_stream(stream)
-    {}
+}
 
 
-    virtual void visit(IdNode *node)
-    {
-        Element* elem = this->m_proc.getSymbol<Element>(node->data());
-        m_stream << elem->str();
-    }
+/// @details
+/// 
+Value
+Object::resolve(const Column &col)
+{
+    throw std::runtime_error("resolve() not allowed on objects");
+}
 
 
-    virtual void visit(LiteralNode *node)
-    {
-        m_stream << node->str();
-    }
+/// @details
+/// 
+Object*
+Object::getMainObject(void)
+{
+    return this; /// @bug is this ok? maybe we need this for query() calls from object bodies
+    // we should check the object mode
+}
 
-private:
-    Processor          &m_proc;
-    std::wstringstream &m_stream;
 
-};
+/// @details
+/// 
+Object*
+Object::getResultObject(void) 
+{ 
+    ARGON_ICERR(false, *this,
+                "An object does not contains a result object.");
+}
+
+
+/// @details
+/// 
+Object*
+Object::getDestObject(void)
+{
+    ARGON_ICERR(false, *this,
+                "An object does not contains a destination object.");
+}
+
+
 
 
 //..............................................................................
@@ -126,13 +121,52 @@ Element::Element(Processor &proc)
 {}
 
 
-
 //..............................................................................
-///////////////////////////////////////////////////////////////////////// LogCmd
+//////////////////////////////////////////////////////////////////////// Context
 
 /// @details
 /// 
-LogCmd::LogCmd(Processor &proc, LogNode *node)
+Context::Context(Processor &proc)
+    : Element(proc),
+      m_symbols(&proc.getSymbols()) /// @bug good style??
+{}
+
+
+/// @details
+/// 
+SymbolTable&
+Context::getSymbols(void)
+{
+    return this->m_symbols;
+}
+
+
+/// @details
+/// 
+const SymbolTable&
+Context::getSymbols(void) const
+{
+    return this->m_symbols;
+}
+
+
+/// @details
+/// 
+Value
+Element::run(const ArgumentList &args)
+{ 
+    throw std::runtime_error("is not callabled");
+}
+
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// ObjectInfo
+
+/// @details
+/// 
+ObjectInfo::ObjectInfo(Processor &proc, ObjectNode *node)
     : Element(proc),
       m_node(node)
 {}
@@ -141,16 +175,16 @@ LogCmd::LogCmd(Processor &proc, LogNode *node)
 /// @details
 /// 
 String
-LogCmd::str(void) const
+ObjectInfo::str(void) const
 {
-    return "[LOG]";
+    return "[OBJINFO]";
 }
 
 
 /// @details
 /// 
 String
-LogCmd::name(void) const
+ObjectInfo::name(void) const
 {
     return ARGON_UNNAMED_ELEMENT;
 }
@@ -158,16 +192,16 @@ LogCmd::name(void) const
 /// @details
 /// 
 String
-LogCmd::type(void) const
+ObjectInfo::type(void) const
 {
-    return "LOG";
+    return "OBJECT";
 }
 
 
 /// @details
 /// 
 SourceInfo
-LogCmd::getSourceInfo(void) const
+ObjectInfo::getSourceInfo(void) const
 {
     return this->m_node->getSourceInfo();
 }
@@ -175,273 +209,46 @@ LogCmd::getSourceInfo(void) const
 
 /// @details
 /// 
-Value
-LogCmd::run(const ArgumentList &args)
+Object*
+ObjectInfo::newInstance(Object::mode mode)
 {
-    std::cout << "exec log" << std::endl;
-
-    std::wstringstream ss;
-
-    foreach_node(this->m_node->getChilds(), LogChildVisitor(this->proc(), ss), 1);
-
-    std::wcout << L"[LOG]: " << ss.str() << std::endl;
-
-    return Value();
+    switch(mode)
+    {
+    case Object::READ_MODE:
+        return new SourceTable(this->proc(), this->m_node);
+    case Object::ADD_MODE:
+        return new DestTable(this->proc(), this->m_node);
+    default:
+        throw std::runtime_error("object mode not handled");
+    }
 }
+
 
 
 
 //..............................................................................
-///////////////////////////////////////////////////////////////////// SqlExecCmd
+/////////////////////////////////////////////////////////////////// ValueElement
 
 /// @details
 /// 
-SqlExecCmd::SqlExecCmd(Processor &proc, SqlExecNode *node)
+ValueElement::ValueElement(Processor &proc, const Value &val)
     : Element(proc),
-      m_node(node),
-      m_stmt()
-{}
-
-
-/// @details
-/// 
-String
-SqlExecCmd::str(void) const
+      m_value(val)
 {
-    return "[EXECSQL: %s]";
 }
 
 
 /// @details
 /// 
 String
-SqlExecCmd::name(void) const
+ValueElement::str(void) const
 {
-    return ARGON_UNNAMED_ELEMENT;
-}
-
-/// @details
-/// 
-String
-SqlExecCmd::type(void) const
-{
-    return "EXECSQL";
-}
-
-
-/// @details
-/// 
-SourceInfo
-SqlExecCmd::getSourceInfo(void) const
-{
-    return this->m_node->getSourceInfo();
-}
-
-
-
-
-
-//--------------------------------------------------------------------------
-/// SqlExec Child Visitor
-///
-/// @since 0.0.1
-/// @brief SqlExec Child Visitor
-struct SqlExecChildVisitor : public Visitor
-{
-public:
-    SqlExecChildVisitor(Processor &proc, SqlExecCmd &cmd, int &pnum)
-        : Visitor(ignore_none),
-          m_proc(proc),
-          m_cmd(cmd),
-          m_pnum(pnum)
-    {}
-
-
-    virtual void visit(IdNode *node)
-    {
-        //throw std::runtime_error("invalid id node");
-    }
-
-    virtual void visit(LiteralNode *node)
-    {
-        this->m_cmd.bindParam(m_pnum++, node->m_data);
-        //this->m_cmd.bindParam(m_pnum++, node->value()); /// @bug todo
-    }
-
-/*
-    virtual void visit(ExprNode *node)
-    {
-        this->m_cmd.bindParam(m_pnum++, node->value()); // calc expr and return value
-        // can be used for non-expr, too. generic method...
-    }
-*/
-
-private:
-    Processor          &m_proc;
-    SqlExecCmd         &m_cmd;
-
-    int                &m_pnum;
-
-};
-
-
-void
-SqlExecCmd::bindParam(int pnum, String value)
-{
-    this->m_stmt->bind(pnum, value);
-
-    std::cout << "bind param: " << pnum << " to " << value << std::endl;
-}
-
-/// @details
-/// 
-Value
-SqlExecCmd::run(const ArgumentList &args)
-{
-    assert(! this->m_node->sql().empty());
-
-    Connection* con = this->proc().getSymbol<Connection>(this->m_node->connid());
+    String s;
+    //s.append(this->id().str());
+    s.append("Value: ");
+    //s.append(this->getValue().data().asStr());
+    s.append(this->m_value.data().asStr());
     
-    db::Connection& dbc = con->getDbc();
-
-    this->m_stmt.reset( dbc.newStatement() );
-
-    this->m_stmt->prepare(this->m_node->sql());
-
-    foreach_node(this->m_node->getChilds(), PrintTreeVisitor(this->proc(), std::wcout));
-
-    int pnum = 1;
-    foreach_node(this->m_node->getChilds(), SqlExecChildVisitor(this->proc(), *this, pnum), 1);
-
-    std::cout << "exec sql on: " << this->m_node->connid().str() << std::endl;
-
-    this->m_stmt->execute();
-    this->m_stmt.reset(0);
-
-    return Value();
-}
-
-
-
-//..............................................................................
-/////////////////////////////////////////////////////////////////////////// Task
-
-/// @details
-/// 
-Task::Task(Processor &proc, TaskNode *node)
-    : Element(proc),
-      m_node(node)
-{
-    std::cout << "Processing task: " << node->id << std::endl;
-}
-
-
-/// @details
-/// 
-String
-Task::str(void) const
-{
-    String s;
-    s.append(this->id().str());
-    s.append("[TASK]");
-    return s;
-}
-
-
-/// @details
-/// 
-String
-Task::name(void) const
-{
-    return this->id().str();
-}
-
-
-/// @details
-/// 
-String
-Task::type(void) const
-{
-    return "TASK";
-}
-
-
-/// @details
-/// 
-SourceInfo
-Task::getSourceInfo(void) const
-{
-    return this->m_node->getSourceInfo();
-}
-
-
-/// @details
-/// 
-Value
-Task::run(const ArgumentList &args)
-{
-    std::cout << "running task: " << this->id() << std::endl;
-
-//    std::cout << debug::ArgsPrinter(args) << std::endl;
-
-    foreach_node( this->m_node->getChilds(), TaskChildVisitor(this->proc(), *this), 1);
-
-/*
-    if(this->id() != Identifier("main"))
-        throw RuntimeError(this->proc().getStack());
-*/
-
-    return Value();
-
-    //this->proc().call(t);
-
-
-    //this->m_script.getTask(Identifier("foo"));
-}
-
-
-
-//..............................................................................
-///////////////////////////////////////////////////////////////////// Connection
-
-/// @details
-/// 
-Connection::Connection(Processor &proc, ConnNode *node, db::ConnectionMap &userConns)
-    : Element(proc),
-      m_node(node),
-      m_dbc(0),
-      m_alloc_env(),
-      m_alloc_dbc()
-{
-    std::cout << "Processing connection: " << node->id << std::endl;
-
-    if(userConns[node->id])
-    {
-        std::cout << "Using user-supplied connection: " << node->id << std::endl;
-        this->m_dbc = userConns[node->id];
-    }
-    else
-    {
-        if(node->spec->type.empty())
-        {
-            throw std::runtime_error("no dbc type given");
-        }
-        this->m_alloc_env.reset(new db::Database::Environment(node->spec->type));
-        this->m_alloc_dbc.reset(this->m_alloc_env->newConnection());
-        this->m_dbc = this->m_alloc_dbc.get();
-        this->m_dbc->connect(node->spec->dbcstr);
-    }
-}
-
-
-/// @details
-/// 
-String
-Connection::str(void) const
-{
-    String s;
-    s.append(this->id().str());
-    s.append("[CONNECTION]");
     return s;
 }
 
@@ -449,38 +256,30 @@ Connection::str(void) const
 /// @details
 /// 
 SourceInfo
-Connection::getSourceInfo(void) const
+ValueElement::getSourceInfo(void) const
 {
-    return this->m_node->getSourceInfo();
+    return SourceInfo(); /// @bug fixme
+    //return this->m_node->getSourceInfo();
 }
 
 
 /// @details
 /// 
 String
-Connection::name(void) const
+ValueElement::name(void) const
 {
-    return this->id().str();
+    return this->m_value.data().asStr();
 }
 
 
 /// @details
 /// 
 String
-Connection::type(void) const
+ValueElement::type(void) const
 {
-    return "CONNECTION";
+    return "VALUE";
 }
 
-
-/// @details
-/// 
-db::Connection&
-Connection::getDbc(void)
-{
-    assert(this->m_dbc);
-    return *this->m_dbc;
-}
 
 
 ARGON_NAMESPACE_END

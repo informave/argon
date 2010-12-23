@@ -83,9 +83,9 @@ Token::Token(void)
 
 /// @details
 /// 
-Token::Token(int tid, SourceInfo info)
+Token::Token(int tid, SourceInfo info, String data)
     : m_id(tid),
-      m_data(),
+      m_data(data),
       m_info(info)
 {}
 

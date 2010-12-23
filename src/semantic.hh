@@ -1,5 +1,5 @@
 //
-// value.cc - Value (definition)
+// semantic.hh - Semantic checker
 //
 // Copyright (C)         informave.org
 //   2010,               Daniel Vogelbacher <daniel@vogelbacher.name>
@@ -20,13 +20,47 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /// @file
-/// @brief Value (definition)
+/// @brief Semantic checker
 /// @author Daniel Vogelbacher
 /// @since 0.1
 
-#include "argon/dtsengine.hh"
+
+#ifndef INFORMAVE_ARGON_SEMANTIC_HH
+#define INFORMAVE_ARGON_SEMANTIC_HH
+
+#include "argon/fwd.hh"
+#include "argon/token.hh"
+#include "argon/ast.hh"
+
+#include <list>
 
 
+ARGON_NAMESPACE_BEGIN
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// SemanticCheck
+///
+/// @since 0.0.1
+/// @brief Semantic check
+class SemanticCheck
+{
+public:
+    SemanticCheck(ParseTree *tree);
+
+    void check(void);
+
+protected:
+
+    ParseTree *m_tree;
+};
+
+
+
+ARGON_NAMESPACE_END
+
+
+#endif
 
 //
 // Local Variables:
