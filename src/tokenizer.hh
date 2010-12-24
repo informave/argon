@@ -232,6 +232,15 @@ public:
         case ',':
             consume();
             return Token(ARGON_TOK_COMMA, si, ",");
+        case '+':
+            consume();
+            return Token(ARGON_TOK_PLUS, si, "+");
+        case '-':
+            consume();
+            return Token(ARGON_TOK_MINUS, si, "-");
+        case '*':
+            consume();
+            return Token(ARGON_TOK_MUL, si, "*");
         case '=':
             consume();
             return Token(ARGON_TOK_ASSIGNOP, si, "=");
@@ -255,7 +264,10 @@ public:
                 return this->next();
             }
             else
-                assert(!"/ err token");
+            {
+                //consume();
+                return Token(ARGON_TOK_DIV, si, "/");                
+            }
             //return ARGON_TOK_DIV;
 
             // case '%':

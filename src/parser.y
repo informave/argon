@@ -318,11 +318,14 @@ logArgs(A) ::= logArgs(B) logArg(C). {
 
 logArgs(A) ::= . { A = tree->newNodeList(); }
 
+/*
 logArg(A) ::= id(B).      { A = B; }
 logArg(A) ::= literal(B). { A = B; }
 logArg(A) ::= column(B).  { A = B; }
 logArg(A) ::= number(B).  { A = B; }
+*/
 
+logArg(A) ::= expr(B). { A = B; }
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// EXEC TASK
@@ -351,13 +354,7 @@ colAssignCmd(A) ::= column(B) ASSIGNOP value SEP. {
 	A = node;
 }
 
-value ::= column.
-value ::= NULL.
-value ::= LITERAL.
-value ::= number.
-value ::= ID.
-
-
+value(A) ::= expr(B). { A = B; }
 
 
 
@@ -484,8 +481,46 @@ callArgList(A) ::= callArgItem(B). {
 					A = node;
 }
 
-callArgItem(A) ::= id(B).      { A = B; }
-callArgItem(A) ::= literal(B). { A = B; }
-callArgItem(A) ::= column(B).  { A = B; }
-callArgItem(A) ::= number(B).  { A = B; }
+
+callArgItem(A) ::= expr(B). { A = B; }
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// Expressions
+
+expr(A) ::= expr(B) PLUS term(C). {
+		  CREATE_NODE(ExprNode);
+		  node->init(ExprNode::plus_expr, B, C);
+		  A = node;
+}
+
+expr(A) ::= expr(B) MINUS term(C). {
+		  CREATE_NODE(ExprNode);
+		  node->init(ExprNode::minus_expr, B, C);
+		  A = node;
+}
+
+expr(A) ::= term(B). { A = B; }
+
+term(A) ::= term(B) MUL op(C). {
+		  CREATE_NODE(ExprNode);
+		  node->init(ExprNode::mul_expr, B, C);
+		  A = node;
+}
+
+term(A) ::= term(B) DIV op(C). {
+		  CREATE_NODE(ExprNode);
+		  node->init(ExprNode::div_expr, B, C);
+		  A = node;
+}
+
+term(A) ::= op(B). { A = B; }
+
+op(A) ::= LP expr(B) RP. { A = B; }
+
+op(A) ::= number(B).   { A = B; }
+op(A) ::= id(B).       { A = B; }
+op(A) ::= literal(B).  { A = B; }
+op(A) ::= column(B).   { A = B; }
 

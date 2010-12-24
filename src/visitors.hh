@@ -66,6 +66,26 @@ protected:
 
 
 
+
+struct EvalExprVisitor : public Visitor
+{
+    EvalExprVisitor(Context &context, Value &value);
+    
+    virtual void visit(ExprNode *node);
+    virtual void visit(NumberNode *node);
+    virtual void visit(IdNode *node);
+    virtual void visit(LiteralNode *node);
+    virtual void visit(ColumnNode *node);
+    virtual void visit(ColumnNumNode *node);
+
+protected:
+    Context &m_context;
+    Value   &m_value;
+};
+
+
+
+
 //..............................................................................
 /////////////////////////////////////////////////////////////// ArgumentsVisitor
 ///
@@ -75,13 +95,11 @@ struct ArgumentsVisitor : public Visitor
 {
 public:
     ArgumentsVisitor(Processor &proc, Context &context, ArgumentList &list);
-    virtual void visit(IdNode *node);
-    virtual void visit(LiteralNode *node);
-    virtual void visit(NumberNode *node);
-    virtual void visit(ColumnNode *node);
-    virtual void visit(ColumnNumNode *node);
+
 
 protected:
+    virtual void fallback_action(Node *node);
+
     Processor &m_proc;
     Context &m_context;
     ArgumentList &m_list;

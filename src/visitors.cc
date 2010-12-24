@@ -26,8 +26,137 @@
 
 #include "visitors.hh"
 
+#include <stdexcept>
 
 ARGON_NAMESPACE_BEGIN
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////// EvalExprVisitor
+
+/// @details
+/// 
+EvalExprVisitor::EvalExprVisitor(Context &context, Value &value)
+    : Visitor(ignore_none),
+      m_context(context),
+      m_value(value)
+{}
+
+    
+/// @details
+/// 
+void
+EvalExprVisitor::visit(ExprNode *node)
+{
+    ARGON_ICERR(node->getChilds().size() == 2, m_context,
+                "ExprNode must have exactly two childs.");
+
+    Value val1, val2;
+    {
+        EvalExprVisitor eval(this->m_context, val1);
+        eval(node->getChilds()[0]);
+    }
+    {
+        EvalExprVisitor eval(this->m_context, val2);
+        eval(node->getChilds()[1]);
+    }
+
+    
+    switch(node->data())
+    {
+    case ExprNode::plus_expr:
+        try
+        {
+            m_value.data() = val1.data().asInt() + val2.data().asInt();
+        }
+        catch(...) /// @bug only for tests!
+        {
+            m_value.data() = val1.data().asStr() + val2.data().asStr();
+        }
+        break;
+    case ExprNode::minus_expr:
+        m_value.data() = val1.data().asInt() - val2.data().asInt();
+        break;
+    case ExprNode::mul_expr:
+        m_value.data() = val1.data().asInt() * val2.data().asInt();
+        break;
+    case ExprNode::div_expr:
+        if(val2.data().asInt() == 0)
+            throw std::runtime_error("zero division error");
+        m_value.data() = val1.data().asInt() / val2.data().asInt();
+        break;
+    }
+}
+
+
+/// @details
+/// 
+void
+EvalExprVisitor::visit(NumberNode *node)
+{
+    m_value.data() = node->data();
+}
+
+
+
+/// @details
+/// 
+void
+EvalExprVisitor::visit(IdNode *node)
+{
+    Identifier id = node->data();
+    ValueElement* elem = m_context.getSymbols().find<ValueElement>(id);
+    m_value.data() = elem->getValue().data();
+}
+
+
+/// @details
+/// 
+void
+EvalExprVisitor::visit(LiteralNode *node)
+{
+    m_value.data() = node->data();
+}
+
+
+/// @details
+/// 
+void
+EvalExprVisitor::visit(ColumnNode *node)
+{
+    try
+    {
+        Value val = this->m_context.resolve(Column(node));
+        m_value.data() = val.data();
+    }
+    catch(RuntimeError &err)
+    {
+        err.addSourceInfo(node->getSourceInfo());
+        throw;
+    }
+
+
+}
+
+
+/// @details
+/// 
+void
+EvalExprVisitor::visit(ColumnNumNode *node)
+{
+    try
+    {
+        Value val = this->m_context.resolve(Column(node));
+        m_value.data() = val.data();
+    }
+    catch(RuntimeError &err)
+    {
+        err.addSourceInfo(node->getSourceInfo());
+        throw;
+    }    
+}
+
+
 
 //..............................................................................
 /////////////////////////////////////////////////////////////// ArgumentsVisitor
@@ -45,64 +174,14 @@ ArgumentsVisitor::ArgumentsVisitor(Processor &proc, Context &context, ArgumentLi
 /// @details
 /// 
 void
-ArgumentsVisitor::visit(IdNode *node)
+ArgumentsVisitor::fallback_action(Node *node)
 {
-    Identifier id = node->data();
-    
-    ValueElement* elem = m_context.getSymbols().find<ValueElement>(id);
-    
-    m_list.push_back(Value(elem->getValue()));
-}
+    Value val;
+    EvalExprVisitor eval(this->m_context, val);
+    eval(node);
 
-
-/// @details
-/// 
-void
-ArgumentsVisitor::visit(LiteralNode *node)
-{
-    m_list.push_back(Value(node->data()));
-}
-
-
-/// @details
-/// 
-void
-ArgumentsVisitor::visit(NumberNode *node)
-{
-    m_list.push_back(Value(node->data()));
-}
-
-
-
-void
-ArgumentsVisitor::visit(ColumnNumNode *node)
-{
-    try
-    {
-        Value val = this->m_context.resolve(Column(node));
-        m_list.push_back(val);
-    }
-    catch(RuntimeError &err)
-    {
-        err.addSourceInfo(node->getSourceInfo());
-        throw;
-    }
-}
-
-
-void
-ArgumentsVisitor::visit(ColumnNode *node)
-{
-    try
-    {
-        Value val = this->m_context.resolve(Column(node));
-        m_list.push_back(val);
-    }
-    catch(RuntimeError &err)
-    {
-        err.addSourceInfo(node->getSourceInfo());
-        throw;
-    }
+    /// @bug Fix Expr visitor
+    m_list.push_back(val);
 }
 
 
@@ -128,7 +207,7 @@ Arg2SymVisitor::visit(IdNode *node)
 {
     Element *tmp = m_context.getSymbols().addPtr( new ValueElement(m_proc, *m_arg_iterator));
     m_context.getSymbols().add(node->data(),
-                  tmp);
+                               tmp);
     ++m_arg_iterator;
 }
 

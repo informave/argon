@@ -67,6 +67,7 @@ void IdCallNode::accept(Visitor &visitor)         { visitor.visit(this); }
 void ColumnAssignNode::accept(Visitor &visitor)   { visitor.visit(this); }
 void ColumnNumNode::accept(Visitor &visitor)      { visitor.visit(this); }
 void NumberNode::accept(Visitor &visitor)         { visitor.visit(this); }
+void ExprNode::accept(Visitor &visitor)           { visitor.visit(this); }
 
 
 String ConnNode::str(void) const              { return "ConnNode"; }
@@ -87,7 +88,13 @@ String TmplArgumentsNode::str(void) const     { return "TmplArgumentsNode"; }
 String IdCallNode::str(void) const            { return "IdCallNode"; }
 String ColumnAssignNode::str(void) const      { return "ColumnAssignNode"; }
 String ColumnNumNode::str(void) const         { return "ColumnNumNode"; }
-String NumberNode::str(void) const            { return "NumberNode"; }
+
+String NumberNode::str(void) const
+{
+    std::wstringstream ss;
+    ss << "NumberNode " << this->data();
+    return String(ss.str());
+}
 
 
 String ConnNode::nodetype(void) const                { return ConnNode::name();            }
@@ -109,6 +116,7 @@ String IdCallNode::nodetype(void) const              { return IdCallNode::name()
 String ColumnAssignNode::nodetype(void) const        { return ColumnAssignNode::name();    }
 String ColumnNumNode::nodetype(void) const           { return ColumnNumNode::name();       }
 String NumberNode::nodetype(void) const              { return NumberNode::name();          }
+String ExprNode::nodetype(void) const                { return ExprNode::name();            }
 
 
 //..............................................................................
@@ -220,6 +228,7 @@ DEFAULT_VISIT(IdCallNode)
 DEFAULT_VISIT(ColumnAssignNode)
 DEFAULT_VISIT(ColumnNumNode)
 DEFAULT_VISIT(NumberNode)
+DEFAULT_VISIT(ExprNode)
 
 /// @details
 /// 
@@ -399,10 +408,57 @@ IdCallNode::IdCallNode(void)
 
 
 
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// ExprNode
 
+
+/// @details
+/// 
+ExprNode::ExprNode(void)
+    : Node(),
+      m_mode()
+{}
+
+/// @details
+/// 
+void
+ExprNode::init(ExprNode::mode m, Node *left, Node *right)
+{
+    this->m_mode = m;
+    this->addChild(left);
+    this->addChild(right);
+}
+
+
+/// @details
+/// 
+ExprNode::mode
+ExprNode::data(void) const
+{
+    return this->m_mode;
+}
+
+
+String
+ExprNode::str(void) const
+{
+    String s("ExprNode ");
+    switch(m_mode)
+    {
+    case ExprNode::plus_expr:
+        s.append("+"); break;
+    case ExprNode::minus_expr:
+        s.append("-"); break;
+    case ExprNode::mul_expr:
+        s.append("*"); break;
+    case ExprNode::div_expr:
+        s.append("/"); break;
+    };
+    return s;
+}
 
 //..............................................................................
-////////////////////////////////////////////////////////////////////// TableNode
+///////////////////////////////////////////////////////////////////// ObjectNode
 
 
 /// @details
@@ -420,6 +476,9 @@ ObjectNode::init(Identifier _id)
     this->id = _id;
 }
 
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// TableNode
 
 
 /// @details

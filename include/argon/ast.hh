@@ -56,6 +56,7 @@ struct IdCallNode;
 struct ColumnAssignNode;
 struct ColumnNumNode;
 struct NumberNode;
+struct ExprNode;
 
 class Visitor;
 class ParseTree;
@@ -144,6 +145,7 @@ public:
     virtual void visit(ColumnNumNode *node);
     virtual void visit(TableNode *node);
     virtual void visit(NumberNode *node);
+    virtual void visit(ExprNode *node);
 
     void operator()(Node *node);
 
@@ -615,6 +617,39 @@ struct TaskNode : public Node
     Identifier id;
     String type;
 };
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// ExprNode
+///
+/// @since 0.0.1
+/// @brief Node for Expressions
+struct ExprNode : public Node
+{
+    enum mode { plus_expr, minus_expr, mul_expr, div_expr };
+
+    ExprNode(void);
+
+    virtual ~ExprNode(void)
+    {}
+
+    void init(enum mode m, Node *left, Node *right);
+
+    virtual void accept(Visitor &visitor);
+
+    virtual String str(void) const;
+
+    enum mode data(void) const;
+
+    virtual String nodetype(void) const;
+
+    static String name(void) { return "Expr"; }
+
+protected:
+    enum mode m_mode;
+};
+
 
 
 

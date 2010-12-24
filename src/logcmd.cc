@@ -28,6 +28,7 @@
 #include "argon/exceptions.hh"
 #include "argon/ast.hh"
 #include "debug.hh"
+#include "visitors.hh"
 
 #include <iostream>
 #include <sstream>
@@ -52,48 +53,15 @@ public:
     {}
 
 
-    virtual void visit(IdNode *node)
+    void fallback_action(Node *node)
     {
-        Element* elem = this->m_context.getSymbols().find<Element>(node->data());
-        m_stream << elem->str();
+        Value val;
+        EvalExprVisitor eval(this->m_context, val);
+        eval(node);
+        
+        m_stream << val.data().asStr();
     }
 
-
-    virtual void visit(ColumnNumNode *node)
-    {
-        try
-        {
-            m_stream << this->m_context.resolve(Column(node)).str();
-        }
-        catch(RuntimeError &err)
-        {
-            err.addSourceInfo(node->getSourceInfo());
-            throw;
-        }
-    }
-
-    virtual void visit(ColumnNode *node)
-    {
-        try
-        {
-            m_stream << this->m_context.resolve(Column(node)).str();
-        }
-        catch(RuntimeError &err)
-        {
-            err.addSourceInfo(node->getSourceInfo());
-            throw;
-        }
-    }
-
-    virtual void visit(LiteralNode *node)
-    {
-        m_stream << node->str();
-    }
-
-    virtual void visit(NumberNode *node)
-    {
-        m_stream << node->data();
-    }
 
 private:
     Processor          &m_proc;

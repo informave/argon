@@ -75,8 +75,6 @@ Object::Object(Processor &proc, ObjectNode *node)
 Value
 Object::run(const ArgumentList &args)
 {
-    ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
-
     // Load OBJECTs arguments to local symbol table
     this->getSymbols().reset();
     safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
