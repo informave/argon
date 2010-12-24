@@ -129,6 +129,9 @@ Task::run(const ArgumentList &args)
     this->getSymbols().reset();
     safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
 
+    ARGON_ICERR(argsSpecNode.get() != 0, *this,
+                "no argument specification");
+
     ARGON_ICERR(argsSpecNode->getChilds().size() == args.size(), *this,
                 "Argument count mismatch");
     

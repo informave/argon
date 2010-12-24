@@ -141,6 +141,11 @@ public:
         return *this->m_pointee;
     }
 
+    T* get(void)
+    {
+        return this->m_pointee;
+    }
+
 private:
     T *m_pointee;
 };

@@ -79,12 +79,15 @@ Object::run(const ArgumentList &args)
     this->getSymbols().reset();
     safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
 
+    ARGON_ICERR(argsSpecNode.get() != 0, *this,
+                "no argument specification");
+    
     ARGON_ICERR(argsSpecNode->getChilds().size() == args.size(), *this,
                 "Argument count mismatch");
     
     ArgumentList::const_iterator i = args.begin();
     foreach_node(argsSpecNode->getChilds(), Arg2SymVisitor(this->proc(), *this, i), 1);
-
+    
     return Value();
 }
 

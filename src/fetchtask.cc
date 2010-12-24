@@ -56,8 +56,9 @@ public:
     virtual void visit(IdNode *node)
     {
         Identifier id = node->data();
-        this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id); // replace with context?
+        this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id); /// @bug replace with context?
     }
+    
     
     virtual void visit(IdCallNode *node)
     {
@@ -73,7 +74,10 @@ public:
 
     virtual void visit(TableNode *node)
     {
-        //AnonymousObjectInfo *info = *magic*;
+        ObjectInfo *elem = this->m_context.getSymbols().addPtr( new ObjectInfo(this->m_proc, node) );
+        this->m_context.getSymbols().add(node->id, elem); // using anonymous id
+
+        m_objinfo = elem;
     }
 
 
@@ -206,6 +210,9 @@ FetchTask::run(const ArgumentList &args)
 
     //std::auto_ptr<Object> x(sourceInfoObj->newInstance(Object::READ_MODE));
     this->m_mainobject.reset(sourceInfoObj->newInstance(Object::READ_MODE));
+
+    ARGON_ICERR(this->m_mainobject.get() != 0, *this,
+                "Main object allocation failed");
 
     //std::cout << x->getSourceInfo() << std::endl;
 

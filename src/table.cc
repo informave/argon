@@ -170,6 +170,9 @@ SourceTable::run(const ArgumentList &args)
         Node::nodelist_type &args = argNode->getChilds();
         safe_ptr<LiteralNode> node;
 
+
+        /// @todo only literal strings supported for now. This
+        /// can be extended to identifiers later.
         node = node_cast<LiteralNode>(args.at(1));
         tableName = node->data();
 

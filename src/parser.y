@@ -121,7 +121,14 @@ objType(A) ::= sqlObj(B).         { A = B; }
 declBody(A) ::= BEGIN bodyExprList(B) END.  { A = B; }
 declBody(A) ::= .                           { A = tree->newNodeList(); }
 
+%type anonymousObj { ObjectNode* }
 
+anonymousObj(A) ::= objType(B). {
+					 CREATE_NODE(ArgumentsSpecNode);
+					 A = B;
+					 A->init(Identifier("anonymous-1"));
+					 A->addChild(node);
+}
 
 
 //..............................................................................
@@ -262,7 +269,7 @@ tmplArgItem(A) ::= id(B) LP callArgList(C) RP. { // @bug is callArgList ok?
                A = node;
 }
 
-tmplArgItem(A) ::= objType(B). {
+tmplArgItem(A) ::= anonymousObj(B). {
 					A = B;
 }
 
