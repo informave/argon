@@ -194,8 +194,19 @@ SourceTable::run(const ArgumentList &args)
 
 
     String s("SELECT * FROM ");
-    s.append(tableName);
+    String objname;
 
+    if(dbName.length() > 0)
+        objname.append(dbName);
+
+    if(schemaName.length() > 0)
+        objname.append( (objname.length() > 0 ? String(".") : String("")) + schemaName);
+
+    if(tableName.length() > 0)
+        objname.append( (objname.length() > 0 ? String(".") : String("")) + tableName);
+
+
+    s.append(objname);
 
     ARGON_DPRINT(ARGON_MOD_PROC, "RUN SELECT: " << s);
 
