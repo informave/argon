@@ -56,7 +56,7 @@ public:
     void fallback_action(Node *node)
     {
         Value val;
-        EvalExprVisitor eval(this->m_context, val);
+        EvalExprVisitor eval(this->m_proc, this->m_context, val);
         eval(node);
         
         m_stream << val.data().asStr();

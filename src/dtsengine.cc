@@ -56,16 +56,30 @@
 #include "parserapi.hh"
 #include "tokenizer.hh"
 
+#include "builtin/functions.hh"
+
 #include <cstdlib>
 #include <cstdio>
 #include <memory>
 #include <iostream>
 #include <fstream>
 
+
 ARGON_NAMESPACE_BEGIN
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// DTSEngine
+
+
+/// @details
+/// Creates a new function object
+template<typename T>
+Function* new_function(Processor &proc)
+{
+    return new T(proc);
+}
+
+
 
 /// @details
 /// 
@@ -74,8 +88,14 @@ DTSEngine::DTSEngine(void)
       m_connections(),
       m_tasks(),
       m_userConns(),
-      m_proc(*this)
-{}
+      m_proc(*this),
+      m_functions()
+{
+#define ADD_FUNCTION(id, type) m_functions[Identifier(id)] = new_function<type>
+
+    ADD_FUNCTION("string.concat", string::func_concat);
+    ADD_FUNCTION("string.len", string::func_len);
+}
 
 /// @details
 /// 

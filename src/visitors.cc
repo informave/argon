@@ -26,6 +26,8 @@
 
 #include "visitors.hh"
 
+#include "builtin/functions.hh"
+
 #include <stdexcept>
 
 ARGON_NAMESPACE_BEGIN
@@ -36,8 +38,9 @@ ARGON_NAMESPACE_BEGIN
 
 /// @details
 /// 
-EvalExprVisitor::EvalExprVisitor(Context &context, Value &value)
+EvalExprVisitor::EvalExprVisitor(Processor &proc, Context &context, Value &value)
     : Visitor(ignore_none),
+      m_proc(proc),
       m_context(context),
       m_value(value)
 {}
@@ -53,11 +56,11 @@ EvalExprVisitor::visit(ExprNode *node)
 
     Value val1, val2;
     {
-        EvalExprVisitor eval(this->m_context, val1);
+        EvalExprVisitor eval(this->m_proc, this->m_context, val1);
         eval(node->getChilds()[0]);
     }
     {
-        EvalExprVisitor eval(this->m_context, val2);
+        EvalExprVisitor eval(this->m_proc, this->m_context, val2);
         eval(node->getChilds()[1]);
     }
 
@@ -73,6 +76,9 @@ EvalExprVisitor::visit(ExprNode *node)
         {
             m_value.data() = val1.data().asStr() + val2.data().asStr();
         }
+        break;
+    case ExprNode::concat_expr:
+        m_value.data() = val1.data().asStr() + val2.data().asStr();
         break;
     case ExprNode::minus_expr:
         m_value.data() = val1.data().asInt() - val2.data().asInt();
@@ -107,6 +113,25 @@ EvalExprVisitor::visit(IdNode *node)
     Identifier id = node->data();
     ValueElement* elem = m_context.getSymbols().find<ValueElement>(id);
     m_value.data() = elem->getValue().data();
+}
+
+
+
+/// @details
+/// 
+void
+EvalExprVisitor::visit(FuncCallNode *node)
+{
+    ArgumentList al;
+    Identifier id = node->data();
+    ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
+    assert(argsnode);
+    foreach_node(argsnode->getChilds(), ArgumentsVisitor(m_proc, m_context, al), 1);
+
+    // create new function in current context
+    std::auto_ptr<Function> fun( m_proc.createFunction(id) );
+
+    m_value.data() = m_proc.call(fun.get(), al).data();
 }
 
 
@@ -177,7 +202,7 @@ void
 ArgumentsVisitor::fallback_action(Node *node)
 {
     Value val;
-    EvalExprVisitor eval(this->m_context, val);
+    EvalExprVisitor eval(this->m_proc, this->m_context, val);
     eval(node);
 
     /// @bug Fix Expr visitor

@@ -66,10 +66,17 @@ protected:
 
 
 
-
+//..............................................................................
+//////////////////////////////////////////////////////////////// EvalExprVisitor
+///
+/// @since 0.0.1
+/// @brief Evaluates each node and writes the result to the given value reference
+///
+/// @note
+/// EvalExprVisitor calls itself to evaluate subnodes
 struct EvalExprVisitor : public Visitor
 {
-    EvalExprVisitor(Context &context, Value &value);
+    EvalExprVisitor(Processor &proc, Context &context, Value &value);
     
     virtual void visit(ExprNode *node);
     virtual void visit(NumberNode *node);
@@ -77,8 +84,10 @@ struct EvalExprVisitor : public Visitor
     virtual void visit(LiteralNode *node);
     virtual void visit(ColumnNode *node);
     virtual void visit(ColumnNumNode *node);
+    virtual void visit(FuncCallNode *node);
 
 protected:
+    Processor &m_proc;
     Context &m_context;
     Value   &m_value;
 };

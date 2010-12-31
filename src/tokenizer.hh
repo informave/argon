@@ -241,6 +241,11 @@ public:
         case '*':
             consume();
             return Token(ARGON_TOK_MUL, si, "*");
+        case '|':
+            consume();
+            assert(m_char == '|');
+            consume();
+            return Token(ARGON_TOK_CONCAT, si, "||");
         case '=':
             consume();
             return Token(ARGON_TOK_ASSIGNOP, si, "=");

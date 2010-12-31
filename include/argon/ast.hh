@@ -57,6 +57,7 @@ struct ColumnAssignNode;
 struct ColumnNumNode;
 struct NumberNode;
 struct ExprNode;
+struct FuncCallNode;
 
 class Visitor;
 class ParseTree;
@@ -146,6 +147,7 @@ public:
     virtual void visit(TableNode *node);
     virtual void visit(NumberNode *node);
     virtual void visit(ExprNode *node);
+    virtual void visit(FuncCallNode *node);
 
     void operator()(Node *node);
 
@@ -195,6 +197,42 @@ struct Identifier
 protected:
     String m_name;
 };
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////// SimpleNode<>
+///
+/// @since 0.0.1
+/// @brief Base class for nodes which only have one data attribute
+template<class T>
+class SimpleNode : public Node
+{
+public:
+    virtual ~SimpleNode(void)
+    {}
+
+    virtual void init(const T &data)
+    {
+        this->m_data = data;
+    }
+
+    virtual const T& data(void) const
+    {
+        return this->m_data;
+    }
+
+    virtual T& data(void)
+    {
+        return this->m_data;
+    }
+
+protected:
+    SimpleNode(void) : Node(), m_data()
+    {}
+
+    T m_data;
+};
+
 
 
 //..............................................................................
@@ -311,6 +349,32 @@ struct IdNode : public Node
 protected:
     Identifier m_data;
 };
+
+
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////// FuncCallNode
+///
+/// @since 0.0.1
+/// @brief Node for function calls
+struct FuncCallNode : public SimpleNode<Identifier>
+{
+    FuncCallNode(void);
+
+    virtual ~FuncCallNode(void)
+    {}
+
+    virtual void accept(Visitor &visitor);
+
+    virtual String str(void) const;
+
+    virtual String nodetype(void) const;
+
+    static String name(void) { return "FuncCall"; }
+};
+
 
 
 //..............................................................................
@@ -627,7 +691,7 @@ struct TaskNode : public Node
 /// @brief Node for Expressions
 struct ExprNode : public Node
 {
-    enum mode { plus_expr, minus_expr, mul_expr, div_expr };
+    enum mode { plus_expr, minus_expr, mul_expr, div_expr, concat_expr };
 
     ExprNode(void);
 

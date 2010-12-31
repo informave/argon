@@ -376,6 +376,50 @@ private:
 
 
 //..............................................................................
+/////////////////////////////////////////////////////////////////////// Function
+///
+/// @since 0.0.1
+/// @brief Function base class
+class Function : public Context
+{
+public:
+    Function(Processor &proc);
+
+    virtual ~Function(void)
+    {}
+
+    //inline Identifier id(void) const { return m_node->id; }
+
+    virtual String str(void) const;
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+
+    virtual Object* getMainObject(void);
+    virtual Object* getResultObject(void);
+    virtual Object* getDestObject(void);
+
+    virtual Value resolve(const Column &col);
+
+
+protected:
+    /// Tasks must be runnable
+    //virtual Value run(const ArgumentList &args);
+
+    //TaskNode *m_node;
+
+private:
+    Function(const Function&);
+    Function& operator=(const Function&);
+};
+
+
+
+//..............................................................................
 /////////////////////////////////////////////////////////////////////////// Task
 ///
 /// @since 0.0.1
@@ -822,6 +866,7 @@ public:
 
     SymbolTable& getSymbols(void);
 
+    Function* createFunction(const Identifier &id);
 
 protected:
     db::ConnectionMap& getConnections(void);
@@ -890,8 +935,11 @@ public:
 
 
 protected:
-    typedef std::map<Identifier, Connection*>   connection_map;
-    typedef std::map<Identifier, Task*>         task_map;
+    typedef Function* (*FunctionCreator)(Processor &proc);
+
+    typedef std::map<Identifier, Connection*>       connection_map;
+    typedef std::map<Identifier, Task*>             task_map;
+    typedef std::map<Identifier, FunctionCreator>   function_map;
 
     db::ConnectionMap& getConnections(void);
 
@@ -900,6 +948,7 @@ protected:
     task_map                    m_tasks;
     db::ConnectionMap           m_userConns;
     Processor                   m_proc;
+    function_map                m_functions;
 
 private:
     DTSEngine(const DTSEngine&);
@@ -919,7 +968,7 @@ SymbolTable::find(Identifier name)
     
     T* ptr = dynamic_cast<T*>(elem);
     if(!ptr)
-        throw std::runtime_error("invalid element type");
+        throw std::runtime_error("found element, but it has a different type");
     else
         return ptr;
 }

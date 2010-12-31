@@ -198,6 +198,19 @@ Processor::Processor(DTSEngine &engine)
 
 /// @details
 /// 
+Function*
+Processor::createFunction(const Identifier &id)
+{
+    DTSEngine::function_map::iterator i = this->m_engine.m_functions.find(id);
+    if(i == this->m_engine.m_functions.end())
+        throw std::runtime_error(String("Unknown function ").append(id.str()));
+    else
+        return i->second(*this);
+}
+
+
+/// @details
+/// 
 db::ConnectionMap&
 Processor::getConnections(void)
 {

@@ -53,61 +53,17 @@ public:
           m_pnum(pnum)
     {}
 
+    /// @todo visitor for columns may speed up the processing of large columns
 
-    virtual void visit(IdNode *node)
+    void fallback_action(Node *node)
     {
-        /// @todo this searches only for value elements, but there may other
-        /// elements which must be evaluated to a Value
-        ValueElement* elem = this->m_context.getSymbols().find<ValueElement>(node->data());
-        this->m_cmd.bindParam(m_pnum++, elem->getValue().data());
+        Value val;
+        EvalExprVisitor eval(this->m_proc, this->m_context, val);
+        eval(node);
+
+        this->m_cmd.bindParam(m_pnum++, val);
     }
 
-    virtual void visit(LiteralNode *node)
-    {
-        this->m_cmd.bindParam(m_pnum++, node->data());
-    }
-
-
-    virtual void visit(NumberNode *node)
-    {
-        this->m_cmd.bindParam(m_pnum++, Value(node->data()));
-    }
-
-    virtual void visit(ColumnNumNode *node)
-    {
-        try
-        {
-            Value val = this->m_context.resolve(Column(node));
-            this->m_cmd.bindParam(m_pnum++, val.data());
-        }
-        catch(RuntimeError &err)
-        {
-            err.addSourceInfo(node->getSourceInfo());
-            throw;
-        }
-    }
-
-    virtual void visit(ColumnNode *node)
-    {
-        try
-        {
-            Value val = this->m_context.resolve(Column(node));
-            this->m_cmd.bindParam(m_pnum++, val.data());
-        }
-        catch(RuntimeError &err)
-        {
-            err.addSourceInfo(node->getSourceInfo());
-            throw;
-        }
-    }
-
-/*
-  virtual void visit(ExprNode *node)
-  {
-  this->m_cmd.bindParam(m_pnum++, node->value()); // calc expr and return value
-  // can be used for non-expr, too. generic method...
-  }
-*/
 
 private:
     Processor          &m_proc;

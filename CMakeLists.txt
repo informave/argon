@@ -245,6 +245,7 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/dtsengine.cc
 	${ARGON_MAIN_SRC_DIR}/exceptions.cc
 	${ARGON_MAIN_SRC_DIR}/value.cc
+	${ARGON_MAIN_SRC_DIR}/builtin/string.cc
 )
 
 

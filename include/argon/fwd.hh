@@ -58,6 +58,7 @@ class Value;
 class Column;
 class Object;
 class LastError;
+class Function;
 template<typename T> class safe_ptr;
 
 

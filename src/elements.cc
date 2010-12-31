@@ -58,6 +58,92 @@ Column::getFrom(db::Resultset &rs, Context &context)
 }
 
 
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// Function
+
+/// @details
+/// 
+Function::Function(Processor &proc)
+    : Context(proc)
+{}
+
+
+
+
+/// @details
+/// 
+String
+Function::str(void) const
+{
+    return "[FUNCTION]";
+}
+
+
+/// @details
+/// 
+String
+Function::name(void) const
+{
+    return ARGON_UNNAMED_ELEMENT;
+}
+
+/// @details
+/// 
+String
+Function::type(void) const
+{
+    return "Function";
+}
+
+
+/// @details
+/// 
+SourceInfo
+Function::getSourceInfo(void) const
+{
+    //return this->m_node->getSourceInfo();
+}
+
+
+
+/// @details
+/// 
+Value
+Function::resolve(const Column &col)
+{
+    throw std::runtime_error("resolve() not allowed on functions");
+}
+
+
+/// @details
+/// 
+Object*
+Function::getMainObject(void)
+{
+    //return this; /// @bug is this ok? maybe we need this for query() calls from object bodies
+    // we should check the object mode
+}
+
+
+/// @details
+/// 
+Object*
+Function::getResultObject(void) 
+{ 
+    ARGON_ICERR(false, *this,
+                "An object does not contains a result object.");
+}
+
+
+/// @details
+/// 
+Object*
+Function::getDestObject(void)
+{
+    ARGON_ICERR(false, *this,
+                "An object does not contains a destination object.");
+}
+
 
 //..............................................................................
 ///////////////////////////////////////////////////////////////////////// Object

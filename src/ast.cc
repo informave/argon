@@ -68,6 +68,7 @@ void ColumnAssignNode::accept(Visitor &visitor)   { visitor.visit(this); }
 void ColumnNumNode::accept(Visitor &visitor)      { visitor.visit(this); }
 void NumberNode::accept(Visitor &visitor)         { visitor.visit(this); }
 void ExprNode::accept(Visitor &visitor)           { visitor.visit(this); }
+void FuncCallNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
 
 String ConnNode::str(void) const              { return "ConnNode"; }
@@ -88,6 +89,7 @@ String TmplArgumentsNode::str(void) const     { return "TmplArgumentsNode"; }
 String IdCallNode::str(void) const            { return "IdCallNode"; }
 String ColumnAssignNode::str(void) const      { return "ColumnAssignNode"; }
 String ColumnNumNode::str(void) const         { return "ColumnNumNode"; }
+String FuncCallNode::str(void) const          { return "FuncCallNode"; }
 
 String NumberNode::str(void) const
 {
@@ -117,6 +119,7 @@ String ColumnAssignNode::nodetype(void) const        { return ColumnAssignNode::
 String ColumnNumNode::nodetype(void) const           { return ColumnNumNode::name();       }
 String NumberNode::nodetype(void) const              { return NumberNode::name();          }
 String ExprNode::nodetype(void) const                { return ExprNode::name();            }
+String FuncCallNode::nodetype(void) const            { return FuncCallNode::name();            }
 
 
 //..............................................................................
@@ -167,6 +170,8 @@ Node::addChilds(const NodeList *list)
 void 
 Node::addChild(Node *child)
 {
+    if(!child)
+        return; /// @bug replace with ARGON_ICERR
     this->m_childs.push_back(child);
     this->updateSourceInfo(child->getSourceInfo());
 }
@@ -229,6 +234,7 @@ DEFAULT_VISIT(ColumnAssignNode)
 DEFAULT_VISIT(ColumnNumNode)
 DEFAULT_VISIT(NumberNode)
 DEFAULT_VISIT(ExprNode)
+DEFAULT_VISIT(FuncCallNode)
 
 /// @details
 /// 
@@ -409,6 +415,17 @@ IdCallNode::IdCallNode(void)
 
 
 //..............................................................................
+/////////////////////////////////////////////////////////////////// FuncCallNode
+
+
+/// @details
+/// 
+FuncCallNode::FuncCallNode(void)
+    : SimpleNode<Identifier>()
+{}
+
+
+//..............................................................................
 /////////////////////////////////////////////////////////////////////// ExprNode
 
 
@@ -453,6 +470,8 @@ ExprNode::str(void) const
         s.append("*"); break;
     case ExprNode::div_expr:
         s.append("/"); break;
+    case ExprNode::concat_expr:
+        s.append("||"); break;
     };
     return s;
 }

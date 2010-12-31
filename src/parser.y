@@ -317,6 +317,7 @@ logCmd(X) ::= LOG(Y) logArgs(A) SEP(Z). {
     X = node;
 }
 
+/*
 logArgs(A) ::= logArgs(B) logArg(C). {
    A = B;
    assert(A);
@@ -324,6 +325,13 @@ logArgs(A) ::= logArgs(B) logArg(C). {
 }
 
 logArgs(A) ::= . { A = tree->newNodeList(); }
+*/
+
+logArgs(A) ::= logArg(B). {
+	NodeList *list = tree->newNodeList();
+	list->push_back(B);
+	A = list;
+}
 
 /*
 logArg(A) ::= id(B).      { A = B; }
@@ -402,6 +410,19 @@ declArgItem(A) ::= id(B). { A = B; }
 
 
 //..............................................................................
+////////////////////////////////////////////////////////////////// Function call
+
+%type funcCall { FuncCallNode* }
+funcCall(A) ::= ID(B) LP callArgList(C) RP. {
+	CREATE_NODE(FuncCallNode);
+	node->init(Identifier(B->data()));
+	node->addChild(C);
+	ADD_TOKEN(node, B);
+	A = node;
+}
+
+
+//..............................................................................
 ///////////////////////////////////////////////////////////////////// Identifier
 
 %type id { IdNode* }
@@ -411,6 +432,8 @@ id(A) ::= ID(B). {
 					ADD_TOKEN(node, B);
                A = node;
 }
+
+
 
 
 //..............................................................................
@@ -502,6 +525,12 @@ expr(A) ::= expr(B) PLUS term(C). {
 		  A = node;
 }
 
+expr(A) ::= expr(B) CONCAT term(C). {
+		  CREATE_NODE(ExprNode);
+		  node->init(ExprNode::concat_expr, B, C);
+		  A = node;
+}
+
 expr(A) ::= expr(B) MINUS term(C). {
 		  CREATE_NODE(ExprNode);
 		  node->init(ExprNode::minus_expr, B, C);
@@ -530,4 +559,5 @@ op(A) ::= number(B).   { A = B; }
 op(A) ::= id(B).       { A = B; }
 op(A) ::= literal(B).  { A = B; }
 op(A) ::= column(B).   { A = B; }
+op(A) ::= funcCall(B). { A = B; }
 
