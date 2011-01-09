@@ -109,7 +109,7 @@ Function::getSourceInfo(void) const
 /// @details
 /// 
 Value
-Function::resolve(const Column &col)
+Function::resolveColumn(const Column &col)
 {
     throw std::runtime_error("resolve() not allowed on functions");
 }
@@ -143,6 +143,42 @@ Function::getDestObject(void)
     ARGON_ICERR(false, *this,
                 "An object does not contains a destination object.");
 }
+
+
+
+/// @details
+/// 
+Value
+Function::_value(void) const
+{
+    return String("FUNCTION"); /// @todo return function name
+}
+
+/// @details
+/// 
+String
+Function::_string(void) const
+{
+    return this->_value().data().asStr();
+}
+
+/// @details
+/// 
+String
+Function::_name(void) const
+{
+    return String("unknown-id") + String(" (function)");
+    //return this->id().str() + String(" (function)");
+}
+
+/// @details
+/// 
+String
+Function::_type(void) const
+{
+    return "FUNCTION";
+}
+
 
 
 //..............................................................................
@@ -182,7 +218,7 @@ Object::run(const ArgumentList &args)
 /// @details
 /// 
 Value
-Object::resolve(const Column &col)
+Object::resolveColumn(const Column &col)
 {
     throw std::runtime_error("resolve() not allowed on objects");
 }
@@ -333,6 +369,37 @@ ObjectInfo::newInstance(Object::mode mode)
 }
 
 
+/// @details
+/// 
+Value
+ObjectInfo::_value(void) const
+{
+    return this->_name();
+}
+
+/// @details
+/// 
+String
+ObjectInfo::_string(void) const
+{
+    return this->_value().data().asStr();
+}
+
+/// @details
+/// 
+String
+ObjectInfo::_name(void) const
+{
+    return this->id().str() + String(" (object)");
+}
+
+/// @details
+/// 
+String
+ObjectInfo::_type(void) const
+{
+    return "OBJINFO";
+}
 
 
 //..............................................................................
@@ -388,6 +455,41 @@ ValueElement::type(void) const
 {
     return "VALUE";
 }
+
+
+/// @details
+/// 
+Value
+ValueElement::_value(void) const
+{
+    return this->m_value;
+}
+
+/// @details
+/// 
+String
+ValueElement::_string(void) const
+{
+    return this->_value().data().asStr();
+}
+
+/// @details
+/// 
+String
+ValueElement::_name(void) const
+{
+    //return String("unknown-id") + String(" (function)");
+    return "VALUE";
+}
+
+/// @details
+/// 
+String
+ValueElement::_type(void) const
+{
+    return "VALUE";
+}
+
 
 
 

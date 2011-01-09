@@ -119,6 +119,39 @@ Connection::getDbc(void)
 }
 
 
+/// @details
+/// 
+Value
+Connection::_value(void) const
+{
+    return this->_name();
+}
+
+/// @details
+/// 
+String
+Connection::_string(void) const
+{
+    return this->_value().data().asStr();
+}
+
+/// @details
+/// 
+String
+Connection::_name(void) const
+{
+    return this->id().str() + String(" (connection)");
+}
+
+/// @details
+/// 
+String
+Connection::_type(void) const
+{
+    return "CONNECTION";
+}
+
+
 
 ARGON_NAMESPACE_END
 

@@ -137,6 +137,41 @@ LogCmd::run(const ArgumentList &args)
 
 
 
+
+/// @details
+/// 
+Value
+LogCmd::_value(void) const
+{
+    return String("LOGCMD");
+}
+
+/// @details
+/// 
+String
+LogCmd::_string(void) const
+{
+    return "LOGCMD";
+}
+
+/// @details
+/// 
+String
+LogCmd::_name(void) const
+{
+    return "LOGCMD";
+}
+
+/// @details
+/// 
+String
+LogCmd::_type(void) const
+{
+    return "LOGCMD";
+}
+
+
+
 ARGON_NAMESPACE_END
 
 

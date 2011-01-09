@@ -52,7 +52,7 @@ VoidTask::VoidTask(Processor &proc, TaskNode *node)
 /// @details
 /// 
 Value
-VoidTask::resolve(const Column &col)
+VoidTask::resolveColumn(const Column &col)
 {
     throw std::runtime_error("resolve() not allowed on void tasks");
 }
@@ -100,6 +100,42 @@ VoidTask::run(const ArgumentList &args)
 
     return Value();
 }
+
+
+
+
+/// @details
+/// 
+Value
+VoidTask::_value(void) const
+{
+    return this->_name();
+}
+
+/// @details
+/// 
+String
+VoidTask::_string(void) const
+{
+    return this->_value().data().asStr();
+}
+
+/// @details
+/// 
+String
+VoidTask::_name(void) const
+{
+    return this->id().str() + String(" (task:void)");
+}
+
+/// @details
+/// 
+String
+VoidTask::_type(void) const
+{
+    return "VOIDTASK";
+}
+
 
 
 

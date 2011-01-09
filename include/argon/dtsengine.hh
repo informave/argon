@@ -237,6 +237,11 @@ public:
 
     virtual SourceInfo getSourceInfo(void) const = 0;
 
+    virtual Value    _value(void) const = 0;
+    virtual String   _string(void) const = 0;
+    virtual String   _name(void) const = 0;
+    virtual String   _type(void) const = 0;
+
 protected:
     /// @brief Constructs a new element
     Element(Processor &proc);
@@ -309,6 +314,11 @@ public:
     virtual SourceInfo getSourceInfo(void) const;
 
 
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
 protected:
     ConnNode             *m_node;
     db::Connection       *m_dbc;
@@ -342,6 +352,13 @@ public:
 
     virtual const SymbolTable& getSymbols(void) const;
 
+
+    template<typename T>
+    T* resolve(const Identifier &id);
+
+    template<typename T>
+    T* resolve(const String &name);
+
     /// @brief Returns the main object or raises an exception if
     /// there is no main object in this context.
     virtual Object* getMainObject(void) = 0;
@@ -357,7 +374,7 @@ public:
     /// @brief Resolved the value of the given column
     /// or throws an exception if this context does not
     /// have a main object and/or open resultset.
-    virtual Value resolve(const Column &col) = 0;
+    virtual Value resolveColumn(const Column &col) = 0;
 
 
 protected:
@@ -399,11 +416,16 @@ public:
     virtual SourceInfo getSourceInfo(void) const;
 
 
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
     virtual Object* getMainObject(void);
     virtual Object* getResultObject(void);
     virtual Object* getDestObject(void);
 
-    virtual Value resolve(const Column &col);
+    virtual Value resolveColumn(const Column &col);
 
 
 protected:
@@ -442,6 +464,7 @@ public:
 
     virtual SourceInfo getSourceInfo(void) const;
 
+
 protected:
     /// Tasks must be runnable
     virtual Value run(const ArgumentList &args);
@@ -471,7 +494,14 @@ public:
     virtual Object* getResultObject(void);
     virtual Object* getDestObject(void);
 
-    virtual Value resolve(const Column &col);
+    virtual Value resolveColumn(const Column &col);
+
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
 
 protected:
     virtual Value run(const ArgumentList &args);
@@ -499,7 +529,12 @@ public:
     virtual Object* getResultObject(void);
     virtual Object* getDestObject(void);
 
-    virtual Value resolve(const Column &col);
+    virtual Value resolveColumn(const Column &col);
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
 
 protected:
     virtual Value run(const ArgumentList &args);
@@ -536,7 +571,7 @@ public:
 
     virtual const db::Value& getColumn(Column col) = 0;
 
-    virtual Value resolve(const Column &col);
+    virtual Value resolveColumn(const Column &col);
 
     virtual Object* getMainObject(void);
     virtual Object* getResultObject(void);
@@ -578,6 +613,11 @@ public:
 
     virtual String type(void) const;
 
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
     virtual SourceInfo getSourceInfo(void) const;
 
     /// @brief Creates a new object based on the object information
@@ -615,6 +655,12 @@ public:
     virtual String name(void) const;
 
     virtual String type(void) const;
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
 
     virtual void setColumn(Column col, Value v);
 
@@ -659,6 +705,11 @@ public:
 
     virtual String type(void) const;
 
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
     virtual void setColumn(Column col, Value v);
 
     virtual const db::Value& getColumn(Column col);
@@ -701,6 +752,12 @@ public:
 
     virtual String type(void) const;
 
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
 protected:
     virtual Value run(const ArgumentList &args);
 
@@ -734,6 +791,11 @@ public:
     virtual String name(void) const;
 
     virtual String type(void) const;
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
 
     void bindParam(int pnum, Value value);
 
@@ -776,6 +838,11 @@ public:
     virtual String name(void) const;
 
     virtual String type(void) const;
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
 
 protected:
     Value m_value;
@@ -971,6 +1038,40 @@ SymbolTable::find(Identifier name)
         throw std::runtime_error("found element, but it has a different type");
     else
         return ptr;
+}
+
+
+/// @details
+/// resolve<T> returns an element of type T* if the given id
+/// is an element of type T or a ValueElement that contains the name
+/// of an element of type T.
+template<typename T>
+T* Context::resolve(const Identifier &id)
+{
+    Element* elem = this->getSymbols().find<Element>(id);
+
+    T* ret = dynamic_cast<T*>(elem);
+    if(ret)
+        return ret;
+    else
+    {
+        ValueElement* val = dynamic_cast<ValueElement*>(elem);
+        if(val)
+        {
+            return this->getSymbols().find<T>(val->_string());
+        }
+    }
+    // fallback
+    throw std::runtime_error("found element, but it has a different type");
+}
+
+
+
+
+template<typename T>
+T* Context::resolve(const String &name)
+{
+    return this->resolve<T>(Identifier(name));
 }
 
 

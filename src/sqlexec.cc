@@ -135,6 +135,7 @@ SqlExecCmd::bindParam(int pnum, Value value)
 }
 
 
+
 /// @details
 /// 
 Value
@@ -142,12 +143,12 @@ SqlExecCmd::run(const ArgumentList &args)
 {
     assert(! this->m_node->sql().empty());
 
-    Connection* con = this->proc().getSymbols().find<Connection>(this->m_node->connid());
-    
+    assert(args.size() == 0);
+
+    Connection *con = this->m_context.resolve<Connection>(this->m_node->connid());
     db::Connection& dbc = con->getDbc();
 
     this->m_stmt.reset( dbc.newStatement() );
-
     this->m_stmt->prepare(this->m_node->sql());
 
     //foreach_node(this->m_node->getChilds(), PrintTreeVisitor(this->proc(), std::wcout));
@@ -163,6 +164,40 @@ SqlExecCmd::run(const ArgumentList &args)
     this->m_stmt.reset(0);
 
     return Value();
+}
+
+
+
+/// @details
+/// 
+Value
+SqlExecCmd::_value(void) const
+{
+    return String("EXECSQL");
+}
+
+/// @details
+/// 
+String
+SqlExecCmd::_string(void) const
+{
+    return "EXECSQL";
+}
+
+/// @details
+/// 
+String
+SqlExecCmd::_name(void) const
+{
+    return "EXECSQL";
+}
+
+/// @details
+/// 
+String
+SqlExecCmd::_type(void) const
+{
+    return "EXECSQL";
 }
 
 

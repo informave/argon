@@ -279,9 +279,42 @@ y->post();
 /// @details
 /// 
 Value
-FetchTask::resolve(const Column &col)
+FetchTask::resolveColumn(const Column &col)
 {
     return Value(this->getMainObject()->getColumn(col));
+}
+
+
+/// @details
+/// 
+Value
+FetchTask::_value(void) const
+{
+    return this->_name();
+}
+
+/// @details
+/// 
+String
+FetchTask::_string(void) const
+{
+    return this->_value().data().asStr();
+}
+
+/// @details
+/// 
+String
+FetchTask::_name(void) const
+{
+    return this->id().str() + String(" (task:fetch)");
+}
+
+/// @details
+/// 
+String
+FetchTask::_type(void) const
+{
+    return "FETCHTASK";
 }
 
 

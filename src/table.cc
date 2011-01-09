@@ -268,6 +268,40 @@ SourceTable::getSourceInfo(void) const
 }
 
 
+/// @details
+/// 
+Value
+SourceTable::_value(void) const
+{
+    return String("TABLE");
+}
+
+/// @details
+/// 
+String
+SourceTable::_string(void) const
+{
+    return this->_value().data().asStr();
+}
+
+/// @details
+/// 
+String
+SourceTable::_name(void) const
+{
+    return this->id().str() + String(" (table)");
+}
+
+/// @details
+/// 
+String
+SourceTable::_type(void) const
+{
+    return "TABLE";
+}
+
+
+
 
 
 
@@ -372,6 +406,41 @@ DestTable::getSourceInfo(void) const
     assert(this->m_node);
     return this->m_node->getSourceInfo();
 }
+
+
+
+/// @details
+/// 
+Value
+DestTable::_value(void) const
+{
+    return String("TABLE");
+}
+
+/// @details
+/// 
+String
+DestTable::_string(void) const
+{
+    return this->_value().data().asStr();
+}
+
+/// @details
+/// 
+String
+DestTable::_name(void) const
+{
+    return this->id().str() + String(" (table)");
+}
+
+/// @details
+/// 
+String
+DestTable::_type(void) const
+{
+    return "TABLE";
+}
+
 
 ARGON_NAMESPACE_END
 

@@ -111,8 +111,9 @@ void
 EvalExprVisitor::visit(IdNode *node)
 {
     Identifier id = node->data();
-    ValueElement* elem = m_context.getSymbols().find<ValueElement>(id);
-    m_value.data() = elem->getValue().data();
+
+    Element *elem = m_context.resolve<Element>(id);
+    m_value.data() = elem->_value().data();
 }
 
 
@@ -126,6 +127,8 @@ EvalExprVisitor::visit(FuncCallNode *node)
     Identifier id = node->data();
     ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
     assert(argsnode);
+
+    // Fill argument list with the result of each argument node
     foreach_node(argsnode->getChilds(), ArgumentsVisitor(m_proc, m_context, al), 1);
 
     // create new function in current context
@@ -151,7 +154,7 @@ EvalExprVisitor::visit(ColumnNode *node)
 {
     try
     {
-        Value val = this->m_context.resolve(Column(node));
+        Value val = this->m_context.resolveColumn(Column(node));
         m_value.data() = val.data();
     }
     catch(RuntimeError &err)
@@ -171,7 +174,7 @@ EvalExprVisitor::visit(ColumnNumNode *node)
 {
     try
     {
-        Value val = this->m_context.resolve(Column(node));
+        Value val = this->m_context.resolveColumn(Column(node));
         m_value.data() = val.data();
     }
     catch(RuntimeError &err)

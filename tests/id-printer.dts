@@ -1,0 +1,37 @@
+
+CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
+
+
+DECLARE table1 AS TABLE(c1, "foo");
+
+PROGRAM.
+
+
+TASK t_1 AS FETCH [ Table(c1, "test") ]
+BEGIN
+END;
+
+
+TASK print(arg1) AS VOID
+BEGIN
+	LOG "From task: " || print || " Argument1: " || arg1;
+	
+END;
+
+
+TASK main AS VOID
+BEGIN
+
+	LOG "Hello World";
+
+	LOG "From task: " || main;
+	LOG "From task: " || t_1;
+
+	LOG "Connection: " || c1;
+
+	LOG "Table: " || table1;
+
+	EXEC TASK print(23);
+END;
+
+
