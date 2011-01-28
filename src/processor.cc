@@ -28,6 +28,7 @@
 #include "argon/dtsengine.hh"
 #include "argon/exceptions.hh"
 #include "semantic.hh"
+#include "helpers.hh"
 #include "debug.hh"
 #include "visitors.hh"
 
@@ -91,6 +92,7 @@ ProcTreeWalker::visit(ConnNode *node)
 }
 
 
+
 /// @details
 /// 
 void
@@ -106,9 +108,12 @@ ProcTreeWalker::visit(TableNode *node)
     }
 */
 
+    safe_ptr<Element> elem = SYMBOL_CREATE_ON(this->proc(), node->id, new Table::Spec(this->proc(), node) );
 
-    ObjectInfo *elem = this->proc().getSymbols().addPtr( new ObjectInfo(this->proc(), node) );
-    this->proc().getSymbols().add(node->id, elem);
+//    ObjectSepc *elem = this->proc().getSymbols().addPtr( new Table::Specification(this->proc(), node) );
+
+//    ObjectInfo *elem = this->proc().getSymbols().addPtr( new ObjectInfo(this->proc(), node) );
+//    this->proc().getSymbols().add(node->id, elem);
 
     this->m_proc.getSymbols().find<Element>(node->id);
 
@@ -137,6 +142,11 @@ ProcTreeWalker::visit(TaskNode *node)
     {
         Task *elem = this->proc().getSymbols().addPtr( new FetchTask(this->proc(), node) );
         this->proc().getSymbols().add(node->id, elem);
+    }
+    else if(node->type == "STORE")
+    {
+    	Task *elem = this->proc().getSymbols().addPtr( new StoreTask(this->proc(), node) );
+	this->proc().getSymbols().add(node->id, elem);
     }
     else
     {
@@ -231,7 +241,7 @@ Processor::compile(ParseTree *tree)
     #endif
 
 
-    SemanticCheck sc(this->m_tree);
+    SemanticCheck sc(this->m_tree, *this);
 
     sc.check();
 

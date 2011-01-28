@@ -11,8 +11,8 @@ PROGRAM.
 TASK copytable AS FETCH [ srcTable ]
 BEGIN
 	LOG "Copy row...";
-	//LOG "VALUE: " $name " END";
-	$bla <- $foo;
+	LOG "VALUE: " || $name;
+	//$bla <- $foo;
 END;
 
 

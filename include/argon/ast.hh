@@ -58,6 +58,9 @@ struct ColumnNumNode;
 struct NumberNode;
 struct ExprNode;
 struct FuncCallNode;
+struct ResColumnNode;
+struct ResColumnNumNode;
+struct ResIdNode;
 
 class Visitor;
 class ParseTree;
@@ -148,6 +151,9 @@ public:
     virtual void visit(NumberNode *node);
     virtual void visit(ExprNode *node);
     virtual void visit(FuncCallNode *node);
+    virtual void visit(ResColumnNode *node);
+    virtual void visit(ResColumnNumNode *node);
+    virtual void visit(ResIdNode *node);
 
     void operator()(Node *node);
 
@@ -462,6 +468,35 @@ protected:
 
 
 //..............................................................................
+////////////////////////////////////////////////////////////////// ResColumnNode
+///
+/// @since 0.0.1
+/// @brief Node for result column names
+struct ResColumnNode : public Node
+{
+    ResColumnNode(void);
+
+    virtual ~ResColumnNode(void) {}
+
+    void init(String data);
+
+    virtual void accept(Visitor &visitor);
+
+    virtual String str(void) const;
+
+    virtual String data(void) const;
+
+    virtual String nodetype(void) const;
+
+    static String name(void) { return "ResColumn"; }
+
+protected:
+    String m_data;
+};
+
+
+
+//..............................................................................
 ////////////////////////////////////////////////////////////////// ColumnNumNode
 ///
 /// @since 0.0.1
@@ -489,6 +524,61 @@ protected:
 };
 
 
+//..............................................................................
+/////////////////////////////////////////////////////////////// ResColumnNumNode
+///
+/// @since 0.0.1
+/// @brief Node for result column numbers
+struct ResColumnNumNode : public Node
+{
+    ResColumnNumNode(void);
+
+    virtual ~ResColumnNumNode(void) {}
+
+    void init(String data);
+
+    virtual void accept(Visitor &visitor);
+
+    virtual String str(void) const;
+
+    virtual int data(void) const;
+
+    virtual String nodetype(void) const;
+
+    static String name(void) { return "ResColumn"; }
+
+protected:
+    int m_data;
+};
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// ResIdNode
+///
+/// @since 0.0.1
+/// @brief Node for result IDs
+struct ResIdNode : public Node
+{
+    ResIdNode(void);
+
+    virtual ~ResIdNode(void) {}
+
+    void init(String data);
+
+    virtual void accept(Visitor &visitor);
+
+    virtual String str(void) const;
+
+    virtual String data(void) const;
+
+    virtual String nodetype(void) const;
+
+    static String name(void) { return "ResId"; }
+
+protected:
+    String m_data;
+};
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////// ConnNode
@@ -955,6 +1045,15 @@ T* node_cast(Node *node)
 		throw std::runtime_error(s);
 	}
     return tmp;
+}
+
+
+/// @details
+///
+template<typename T>
+inline bool is_nodetype(Node *node)
+{
+    return dynamic_cast<T>(node) != 0 ? true : false;
 }
 
 

@@ -26,6 +26,7 @@
 
 
 #include "argon/fwd.hh"
+#include "argon/exceptions.hh"
 #include "semantic.hh"
 #include "debug.hh"
 
@@ -33,6 +34,7 @@
 #include <list>
 
 ARGON_NAMESPACE_BEGIN
+
 
 
 //..............................................................................
@@ -43,10 +45,11 @@ ARGON_NAMESPACE_BEGIN
 class SemanticWalker : public Visitor
 {
 public:
-    SemanticWalker(SemanticCheck &check)
+    SemanticWalker(SemanticCheck &check) : m_check(check)
     {
     }
 
+    SemanticCheck &m_check;
 
     virtual void visit(ConnNode *node)
     {
@@ -56,6 +59,53 @@ public:
     virtual void visit(TaskNode *node)
     {
         ARGON_DPRINT(ARGON_MOD_SEM, "checking task node");
+        foreach_node(node, PrintTreeVisitor(this->m_check.proc(), std::wcout), 1);
+
+        NodeList childs = node->getChilds();
+        
+
+        ARGON_ICERR(childs.size() >= 2,
+                    "Task node requires at least 2 child nodes");
+
+        ARGON_ICERR(is_nodetype<ArgumentsSpecNode*>(childs[0]),
+                    "Task node requires that the first child node is a ArgumentsSpecNode");
+
+        ARGON_ICERR(is_nodetype<TmplArgumentsNode*>(childs[1]),
+                    "Task node requires that the second child node is a TmplArgumentsNode");
+
+        
+        size_t c = 3;
+
+        while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+        {
+            /// @todo check that there is no % operator node, but only in STORE and TRANSFER if there
+            /// are no colassign expressions.
+            ++c;
+        }
+
+        while(c <= childs.size() && is_nodetype<ColumnAssignNode*>(childs[c-1]))
+        {
+            /// @todo check that there is no % operator node
+            ++c;
+        }
+
+        while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+            ++c;
+
+        if(c <= childs.size())
+            throw std::runtime_error(String("Column assignment not allowed here: ")
+                                     .append(childs[c-1]->getSourceInfo().str()));
+        // TODO: don't throw, add error to semantic check result list
+
+        
+
+           
+        
+
+        //if(! dynamic_cast<ArgumentsSpecNode*>(childs[0]))
+
+
+
     }
 
     virtual void visit(ParseTree *node)
@@ -93,8 +143,9 @@ public:
 
 /// @details
 /// 
-SemanticCheck::SemanticCheck(ParseTree *tree)
-    : m_tree(tree)
+SemanticCheck::SemanticCheck(ParseTree *tree, Processor &proc)
+    : m_tree(tree),
+      m_proc(proc)
 {
 }
 

@@ -1,0 +1,64 @@
+
+CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
+
+DECLARE testTable 	AS TABLE(c1, "testTable");
+
+PROGRAM.
+
+
+
+TASK print AS FETCH [ testTable ]
+BEGIN
+	LOG "Data: " || $id || " is -> " || $name;
+
+	//EXEC TASK addto($id, $name);
+END;
+
+TASK showid(id) AS VOID
+BEGIN
+	LOG "ID: " || id;
+END;
+
+
+TASK addto(num, value) AS STORE [ testTable ]
+BEGIN
+	$name <- string.concat(value, " <text>");
+	$id <- num + 1;
+	EXEC TASK showid(%%);
+END;
+
+TASK foo AS VOID
+BEGIN
+	LOG "foo";
+	$x <- $y;
+	LOG "foo";
+	//$y <- $x;
+END;
+
+
+TASK read() AS FETCH [ Table(c1, "secTable") ]
+BEGIN
+	EXEC TASK addto($num + 50, string.concat($val, " - new"));
+END;
+
+TASK main() AS VOID
+BEGIN
+	LOG "Creating test data...";
+
+	EXEC SQL "CREATE TABLE testTable (id INTEGER PRIMARY KEY, name TEXT);" ON c1;
+
+	EXEC TASK addto(1, "Donald");
+	EXEC TASK addto(2, "Dagobert");
+	EXEC TASK addto(3, "Daisy");
+
+	EXEC SQL "CREATE TABLE secTable (num INT, val TEXT, other INT);" ON c1;
+
+	EXEC SQL "INSERT INTO secTable VALUES(?, ?, NULL)" ON c1 WITH PARAMS(100, "Gustav");
+
+	EXEC TASK read();
+
+	EXEC TASK print;
+
+	LOG "print done";
+END;
+

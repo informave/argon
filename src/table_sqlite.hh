@@ -1,5 +1,5 @@
 //
-// semantic.hh - Semantic checker
+// table_sqlite.hh - SQLite table
 //
 // Copyright (C)         informave.org
 //   2010,               Daniel Vogelbacher <daniel@vogelbacher.name>
@@ -20,44 +20,57 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /// @file
-/// @brief Semantic checker
+/// @brief SQLite table
 /// @author Daniel Vogelbacher
 /// @since 0.1
 
+#ifndef INFORMAVE_ARGON_TABLE_SQLITE_HH
+#define INFORMAVE_ARGON_TABLE_SQLITE_HH
 
-#ifndef INFORMAVE_ARGON_SEMANTIC_HH
-#define INFORMAVE_ARGON_SEMANTIC_HH
-
+#include "argon/dtsengine.hh"
 #include "argon/fwd.hh"
-#include "argon/token.hh"
 #include "argon/ast.hh"
+#include "argon/token.hh"
 
+#include <iterator>
+#include <map>
+#include <deque>
+#include <vector>
 #include <list>
+#include <set>
+
+#include <dbwtl/dbobjects>
+#include <dbwtl/dal/engines/sqlite>
+
+
 
 
 ARGON_NAMESPACE_BEGIN
 
 
-//..............................................................................
-////////////////////////////////////////////////////////////////// SemanticCheck
-///
-/// @since 0.0.1
-/// @brief Semantic check
-class SemanticCheck
+
+class TableSqlite : public Table
 {
 public:
-    SemanticCheck(ParseTree *tree, Processor &proc);
+    TableSqlite(Processor &proc, ObjectNode *node, Object::mode mode); // change node
 
-    void check(void);
+    virtual ~TableSqlite(void)
+    {}
 
-    Processor& proc(void) { return this->m_proc; }
+    virtual Value run(const ArgumentList &args);
+
+
+    virtual void execute(void);
+
+
+    virtual const db::Value& getColumn(Column col);
 
 protected:
+    
 
-    ParseTree *m_tree;
-    Processor &m_proc;
+    db::Stmt::ptr  m_result_stmt;
+
 };
-
 
 
 ARGON_NAMESPACE_END

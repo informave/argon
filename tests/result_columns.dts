@@ -1,0 +1,50 @@
+
+CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
+
+DECLARE testTable 	AS TABLE(c1, "testTable");
+
+PROGRAM.
+
+
+
+TASK print AS FETCH [ testTable ]
+BEGIN
+	LOG "Data: " || $id || " is -> " || $name;
+END;
+
+
+
+TASK showid(id) AS VOID
+BEGIN
+	LOG "ID: " || id;
+END;
+
+
+
+TASK addto(num, value) AS STORE [ testTable ]
+BEGIN
+	$name <- value;
+	$id <- num + 1;
+	EXEC TASK showid(%%);
+	LOG "Added data: " || %name || %id || %2;
+END;
+
+
+
+TASK main() AS VOID
+BEGIN
+	LOG "Creating test data...";
+
+	EXEC SQL "CREATE TABLE testTable (id INTEGER PRIMARY KEY, name TEXT);" ON c1;
+
+	EXEC TASK addto(1, "Donald");
+	EXEC TASK addto(2, "Dagobert");
+	EXEC TASK addto(3, "Daisy");
+
+	EXEC SQL "CREATE TABLE secTable (num INT, val TEXT, other INT);" ON c1;
+
+	EXEC TASK print;
+
+	LOG "print done";
+END;
+

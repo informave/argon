@@ -363,9 +363,10 @@ taskExecCmd(A) ::= EXEC(Y) TASK ID(B) callArgs(C) SEP(Z). {
 
 %type colAssignCmd { ColumnAssignNode* }
 
-colAssignCmd(A) ::= column(B) ASSIGNOP value SEP. {
+colAssignCmd(A) ::= column(B) ASSIGNOP value(C) SEP. {
 	CREATE_NODE(ColumnAssignNode);
 	node->addChild(B);
+	node->addChild(C);
 	A = node;
 }
 
@@ -480,6 +481,33 @@ column(A) ::= COLUMN_NUM(B). {
 
 
 
+//..............................................................................
+////////////////////////////////////////////////////////////////////// ResColumn
+
+// %type column { ColumnNode* }
+rescolumn(A) ::= RESCOLUMN(B). {
+               CREATE_NODE(ResColumnNode);
+               node->init(B->data());
+               ADD_TOKEN(node, B);
+               A = node;
+}
+
+rescolumn(A) ::= RESCOLUMN_NUM(B). {
+               CREATE_NODE(ResColumnNumNode);
+               node->init(B->data());
+               ADD_TOKEN(node, B);
+               A = node;
+}
+
+rescolumn(A) ::= RESID(B). {
+               CREATE_NODE(ResIdNode);
+	       node->init(B->data());
+               ADD_TOKEN(node, B);
+               A = node;
+}
+
+
+
 
 //..............................................................................
 ///////////////////////////////////////////////////////////// Call Argument list
@@ -555,9 +583,10 @@ term(A) ::= op(B). { A = B; }
 
 op(A) ::= LP expr(B) RP. { A = B; }
 
-op(A) ::= number(B).   { A = B; }
-op(A) ::= id(B).       { A = B; }
-op(A) ::= literal(B).  { A = B; }
-op(A) ::= column(B).   { A = B; }
-op(A) ::= funcCall(B). { A = B; }
+op(A) ::= number(B).    { A = B; }
+op(A) ::= id(B).        { A = B; }
+op(A) ::= literal(B).   { A = B; }
+op(A) ::= column(B).    { A = B; }
+op(A) ::= rescolumn(B). { A = B; }
+op(A) ::= funcCall(B).  { A = B; }
 

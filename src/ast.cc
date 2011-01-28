@@ -69,7 +69,9 @@ void ColumnNumNode::accept(Visitor &visitor)      { visitor.visit(this); }
 void NumberNode::accept(Visitor &visitor)         { visitor.visit(this); }
 void ExprNode::accept(Visitor &visitor)           { visitor.visit(this); }
 void FuncCallNode::accept(Visitor &visitor)       { visitor.visit(this); }
-
+void ResColumnNode::accept(Visitor &visitor)      { visitor.visit(this); }
+void ResColumnNumNode::accept(Visitor &visitor)   { visitor.visit(this); }
+void ResIdNode::accept(Visitor &visitor)          { visitor.visit(this); }
 
 String ConnNode::str(void) const              { return "ConnNode"; }
 String ConnSpec::str(void) const              { return "ConnSpec"; }
@@ -90,6 +92,9 @@ String IdCallNode::str(void) const            { return "IdCallNode"; }
 String ColumnAssignNode::str(void) const      { return "ColumnAssignNode"; }
 String ColumnNumNode::str(void) const         { return "ColumnNumNode"; }
 String FuncCallNode::str(void) const          { return "FuncCallNode"; }
+String ResColumnNode::str(void) const         { return "ResColumnNode"; }
+String ResColumnNumNode::str(void) const      { return "ResColumnNumNode"; }
+String ResIdNode::str(void) const             { return "ResIdNode"; }
 
 String NumberNode::str(void) const
 {
@@ -120,7 +125,9 @@ String ColumnNumNode::nodetype(void) const           { return ColumnNumNode::nam
 String NumberNode::nodetype(void) const              { return NumberNode::name();          }
 String ExprNode::nodetype(void) const                { return ExprNode::name();            }
 String FuncCallNode::nodetype(void) const            { return FuncCallNode::name();            }
-
+String ResColumnNode::nodetype(void) const            { return ResColumnNode::name();            }
+String ResColumnNumNode::nodetype(void) const            { return ResColumnNumNode::name();            }
+String ResIdNode::nodetype(void) const            { return ResIdNode::name();            }
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////////// Node
@@ -171,7 +178,7 @@ void
 Node::addChild(Node *child)
 {
     if(!child)
-        return; /// @bug replace with ARGON_ICERR
+        return; /// @bug replace with ARGON_ICERR_CTX
     this->m_childs.push_back(child);
     this->updateSourceInfo(child->getSourceInfo());
 }
@@ -235,6 +242,9 @@ DEFAULT_VISIT(ColumnNumNode)
 DEFAULT_VISIT(NumberNode)
 DEFAULT_VISIT(ExprNode)
 DEFAULT_VISIT(FuncCallNode)
+DEFAULT_VISIT(ResColumnNode)
+DEFAULT_VISIT(ResColumnNumNode)
+DEFAULT_VISIT(ResIdNode)
 
 /// @details
 /// 
@@ -286,6 +296,34 @@ ColumnNode::data(void) const
     return this->m_data;
 }
 
+//..............................................................................
+////////////////////////////////////////////////////////////////// ResColumnNode
+
+/// @details
+///
+ResColumnNode::ResColumnNode(void)
+    : m_data()
+{}
+
+
+/// @details
+///
+void
+ResColumnNode::init(String name)
+{
+    this->m_data = name;
+}
+
+
+/// @details
+///
+String
+ResColumnNode::data(void) const
+{
+    return this->m_data;
+}
+
+
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////// ColumnNumNode
@@ -317,6 +355,63 @@ ColumnNumNode::data(void) const
 }
 
 
+//..............................................................................
+/////////////////////////////////////////////////////////////// ResColumnNumNode
+
+/// @details
+///
+ResColumnNumNode::ResColumnNumNode(void)
+    : m_data()
+{}
+
+
+/// @details
+///
+void
+ResColumnNumNode::init(String name)
+{
+    assert(name.length() > 0);
+    db::Variant v(name);
+    this->m_data = v.asInt();
+}
+
+
+/// @details
+///
+int
+ResColumnNumNode::data(void) const
+{
+    return this->m_data;
+}
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// ResIdNode
+
+/// @details
+///
+ResIdNode::ResIdNode(void)
+    : m_data()
+{}
+
+
+/// @details
+///
+void
+ResIdNode::init(String name)
+{
+    assert(name.length() > 0);
+    db::Variant v(name);
+    this->m_data = v;
+}
+
+
+/// @details
+///
+String
+ResIdNode::data(void) const
+{
+    return this->m_data;
+}
 
 
 //..............................................................................

@@ -85,6 +85,9 @@ struct EvalExprVisitor : public Visitor
     virtual void visit(ColumnNode *node);
     virtual void visit(ColumnNumNode *node);
     virtual void visit(FuncCallNode *node);
+    virtual void visit(ResColumnNode *node);
+    virtual void visit(ResColumnNumNode *node);
+    virtual void visit(ResIdNode *node);
 
 protected:
     Processor &m_proc;

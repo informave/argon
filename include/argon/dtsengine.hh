@@ -36,21 +36,31 @@
 #include <deque>
 #include <vector>
 #include <list>
+#include <set>
 
 #include <dbwtl/dbobjects>
 #include <dbwtl/dal/engines/generic>
 
 
-class RuntimeError;
+
 
 ARGON_NAMESPACE_BEGIN
 
+class RuntimeError;
+
+typedef std::set<Column> ColumnList;
 
 
-#define ARGON_ICERR(checkExpr, context, msg)                            \
+#define ARGON_ICERR_CTX(checkExpr, context, msg)                        \
     if(!( checkExpr ))                                                  \
     {                                                                   \
         throw InternalError(context, #checkExpr, msg, __FILE__, __LINE__); \
+    }
+
+#define ARGON_ICERR(checkExpr, msg)                                     \
+    if(!( checkExpr ))                                                  \
+    {                                                                   \
+        throw InternalError(#checkExpr, msg, __FILE__, __LINE__);       \
     }
 
 
@@ -85,7 +95,7 @@ public:
         m_var.assign(val.m_var);
     }
 
-    Value& operator=(Value &val)
+    Value& operator=(const Value &val)
     {
         m_var.assign(val.m_var);
         return *this;
@@ -470,6 +480,9 @@ protected:
     virtual Value run(const ArgumentList &args);
 
     TaskNode *m_node;
+    NodeList  m_pre_nodes;
+    NodeList  m_colassign_nodes;
+    NodeList  m_post_nodes;
 
 private:
     Task(const Task&);
@@ -510,6 +523,43 @@ protected:
     /// This object only exists while task is running
     std::auto_ptr<Object> m_mainobject;
 };
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// STORE Task
+///
+/// @since 0.0.1
+/// @brief STORE Task
+class StoreTask : public Task
+{
+public:
+    StoreTask(Processor &proc, TaskNode *node);
+
+    virtual ~StoreTask(void)
+    {}
+
+    virtual Object* getMainObject(void);
+    virtual Object* getResultObject(void);
+    virtual Object* getDestObject(void);
+
+    virtual Value resolveColumn(const Column &col);
+
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
+
+protected:
+    virtual Value run(const ArgumentList &args);
+
+    /// @brief Main object
+    /// This object only exists while task is running
+    std::auto_ptr<Object> m_mainobject;
+};
+
 
 
 //..............................................................................
@@ -562,6 +612,9 @@ public:
     virtual ~Object(void) 
     {}
     
+
+    virtual void execute(void) = 0;
+
     /// @brief Fetches the next record
     /// @return true if there was a new record
     virtual bool next(void) = 0;
@@ -569,18 +622,33 @@ public:
     /// @return true if end of resultset is reached
     virtual bool eof(void) const = 0;
 
+    virtual void setColumn(const Column &col, const Value &v) = 0;
+
     virtual const db::Value& getColumn(Column col) = 0;
 
-    virtual Value resolveColumn(const Column &col);
+    virtual Value resolveColumn(const Column &col); /// @bug remove me
 
+    virtual Value lastInsertRowId(void) = 0;
+
+    // only dummies, because an object can itself be a context
     virtual Object* getMainObject(void);
     virtual Object* getResultObject(void);
     virtual Object* getDestObject(void);
 
+    virtual void setColumnList(const ColumnList &list) = 0;
+
+    virtual void setResultList(const ColumnList &list) = 0;
 
 protected:
     /// Objects must be runnable
     virtual Value run(const ArgumentList &args);
+
+    int getBindPosition(const Column &col);
+
+    void addBindPosition(const Column &col, int pos);
+
+    std::map<Column, int> m_column_mappings;
+
 
     ObjectNode *m_node;
 
@@ -638,12 +706,16 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Source Table
-class SourceTable : public Object
+class Table : public Object
 {
 public:
-    SourceTable(Processor &proc, ObjectNode *node); // change node
+    typedef ObjectInfo Spec;
 
-    virtual ~SourceTable(void) 
+    static Table* newInstance(Processor &proc, TableNode *node, Object::mode mode);
+
+    Table(Processor &proc, ObjectNode *node, Object::mode mode); // change node
+
+    virtual ~Table(void) 
     {}
 
     virtual String str(void) const;
@@ -662,22 +734,43 @@ public:
     virtual String   _type(void) const;
 
 
-    virtual void setColumn(Column col, Value v);
+    virtual void setColumn(const Column &col, const Value &v);
 
     virtual const db::Value& getColumn(Column col);
+
+    virtual void execute(void);
 
     virtual bool next(void);
 
     virtual bool eof(void) const;
 
+    virtual void setColumnList(const ColumnList &list);
+
+    virtual void setResultList(const ColumnList &list);
+
+    virtual Value lastInsertRowId(void);
+
+    String generateSelect(String objname);
+
+    String generateInsert(String objname);
+    
+
 protected:
     virtual Value run(const ArgumentList &args);
 
     db::Stmt::ptr  m_stmt;
+    Connection *m_conn;
+
+    ColumnList m_columns;
+    ColumnList m_result_columns;
+
+    String m_objname;
+
+    Object::mode m_mode;
 
 private:
-    SourceTable(const SourceTable&);
-    SourceTable& operator=(const SourceTable&);
+    Table(const Table&);
+    Table& operator=(const Table&);
 };
 
 
@@ -687,9 +780,12 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Destination Table
+/*
 class DestTable : public Object
 {
 public:
+    typedef std::map<String, Value> ColumnValueList;
+
     DestTable(Processor &proc, ObjectNode *node); // change node
 
     virtual ~DestTable(void) 
@@ -714,21 +810,29 @@ public:
 
     virtual const db::Value& getColumn(Column col);
 
+    virtual void execute(void);
+
     virtual bool next(void);
 
     virtual bool eof(void) const;
+
+    virtual void setColumnList(const ColumnList &list);
 
 protected:
     virtual Value run(const ArgumentList &args);
 
     db::Stmt::ptr   m_stmt;
 
+    ColumnValueList m_column_values;
+
+    ColumnList m_columns;
+
 private:
     DestTable(const DestTable&);
     DestTable& operator=(const DestTable&);
 };
 
-
+*/
 
 
 //..............................................................................
@@ -875,10 +979,23 @@ public:
         m_name = node->data();
     }
 
+    Column(ResColumnNode *node) : m_mode(by_name), m_name(), m_num()
+    {
+        m_name = node->data();
+    }
+    
+
     Column(ColumnNumNode *node) : m_mode(by_number), m_name(), m_num()
     {
         m_num = node->data();
     }
+
+
+    Column(ResColumnNumNode *node) : m_mode(by_number), m_name(), m_num()
+    {
+        m_num = node->data();
+    }
+
 
     Column(int num) : m_mode(by_number), m_name(), m_num(num)
     {}
@@ -893,6 +1010,22 @@ public:
     inline int getNum(void) const { return this->m_num; }
 
     const db::Value& getFrom(db::Resultset &rs, Context &context);
+
+    bool operator<(const Column &col) const
+    {
+        switch(m_mode)
+        {
+        case by_number:
+            return m_num < col.m_num;
+        case by_name:
+            return m_name < col.m_name;
+        }
+    }
+
+    bool operator==(const Column &col) const
+    {
+        return (m_mode == col.m_mode) && (m_name == col.m_name) && (m_num == col.m_num);
+    }
 
 protected:
     enum selection_mode  m_mode;

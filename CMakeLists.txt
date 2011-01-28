@@ -234,11 +234,13 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/symboltable.cc
 	${ARGON_MAIN_SRC_DIR}/task.cc
 	${ARGON_MAIN_SRC_DIR}/voidtask.cc
+	${ARGON_MAIN_SRC_DIR}/storetask.cc
 	${ARGON_MAIN_SRC_DIR}/visitors.cc
 	${ARGON_MAIN_SRC_DIR}/logcmd.cc
 	${ARGON_MAIN_SRC_DIR}/sqlexec.cc
 	${ARGON_MAIN_SRC_DIR}/connection.cc
 	${ARGON_MAIN_SRC_DIR}/table.cc
+	${ARGON_MAIN_SRC_DIR}/table_sqlite.cc
 	${ARGON_MAIN_SRC_DIR}/fetchtask.cc
 	${ARGON_MAIN_SRC_DIR}/semantic.cc
 	${ARGON_MAIN_SRC_DIR}/processor.cc

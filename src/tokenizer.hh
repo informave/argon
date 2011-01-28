@@ -260,6 +260,8 @@ public:
         case '$':
             return this->readColumn(start, len, line);
 
+        case '%':
+            return this->readResultColumn(start, len, line);
 
         case '/':
             consume();
@@ -275,8 +277,6 @@ public:
             }
             //return ARGON_TOK_DIV;
 
-            // case '%':
-            //     return Token(ARGON_TOK_TERM, start, len, line);
         default:
             return this->readMulti(start, len, line);
         };
@@ -388,6 +388,70 @@ public:
         {
             bool b = isnumber(s);
             Token tok(b ? ARGON_TOK_COLUMN_NUM : ARGON_TOK_COLUMN, SourceInfo(m_srcname, start, len, line));
+            tok.setData(s);
+            return tok;            
+        }
+    }
+
+
+
+
+
+    Token readResultColumn(std::streamsize start, size_t len, size_t line)
+    {
+        std::vector<char_type> v;
+            
+        char_type c;
+        bool par = false;
+
+        c = getnc();
+        if(c == '(')
+        {
+            c = getnc();
+            par = true;
+        }
+        else if(c == '%')
+        {
+            consume();
+            Token tok(ARGON_TOK_RESID, SourceInfo(m_srcname, start, len, line));
+            std::cout << "FOUND " << std::endl;
+            tok.setData(String("resid-op"));
+            return tok;
+        }
+                
+            
+        for(;
+            traits_type::to_int_type(c) != traits_type::eof();
+            c = getnc())
+        {
+            if(par)
+            {
+                if(c != ')')
+                    v.push_back(c);
+                else
+                    break;
+            }
+            else if(isalnum(c) || c == '_')
+            {
+                v.push_back(c);
+            }
+            else
+                break;
+        };
+
+        if(par && c == ')')
+            consume(); // skip )
+        std::basic_string<char_type> s(v.begin(), v.end());
+        if(par)
+        {
+            Token tok(ARGON_TOK_RESCOLUMN, SourceInfo(m_srcname, start, len, line));
+            tok.setData(s);
+            return tok;
+        }
+        else
+        {
+            bool b = isnumber(s);
+            Token tok(b ? ARGON_TOK_RESCOLUMN_NUM : ARGON_TOK_RESCOLUMN, SourceInfo(m_srcname, start, len, line));
             tok.setData(s);
             return tok;            
         }

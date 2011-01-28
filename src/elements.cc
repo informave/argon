@@ -101,6 +101,8 @@ Function::type(void) const
 SourceInfo
 Function::getSourceInfo(void) const
 {
+    /// @bug implement me
+    throw std::runtime_error("Function::getSourceInfo");
     //return this->m_node->getSourceInfo();
 }
 
@@ -120,6 +122,9 @@ Function::resolveColumn(const Column &col)
 Object*
 Function::getMainObject(void)
 {
+    /// @bug implement me
+    throw std::runtime_error("Function::getMainObject");
+
     //return this; /// @bug is this ok? maybe we need this for query() calls from object bodies
     // we should check the object mode
 }
@@ -130,7 +135,7 @@ Function::getMainObject(void)
 Object*
 Function::getResultObject(void) 
 { 
-    ARGON_ICERR(false, *this,
+    ARGON_ICERR_CTX(false, *this,
                 "An object does not contains a result object.");
 }
 
@@ -140,7 +145,7 @@ Function::getResultObject(void)
 Object*
 Function::getDestObject(void)
 {
-    ARGON_ICERR(false, *this,
+    ARGON_ICERR_CTX(false, *this,
                 "An object does not contains a destination object.");
 }
 
@@ -188,6 +193,7 @@ Function::_type(void) const
 /// 
 Object::Object(Processor &proc, ObjectNode *node)
     : Context(proc),
+      m_column_mappings(),
       m_node(node)
 {}
 
@@ -201,10 +207,10 @@ Object::run(const ArgumentList &args)
     this->getSymbols().reset();
     safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
 
-    ARGON_ICERR(argsSpecNode.get() != 0, *this,
+    ARGON_ICERR_CTX(argsSpecNode.get() != 0, *this,
                 "no argument specification");
     
-    ARGON_ICERR(argsSpecNode->getChilds().size() == args.size(), *this,
+    ARGON_ICERR_CTX(argsSpecNode->getChilds().size() == args.size(), *this,
                 "Argument count mismatch");
     
     ArgumentList::const_iterator i = args.begin();
@@ -239,7 +245,7 @@ Object::getMainObject(void)
 Object*
 Object::getResultObject(void) 
 { 
-    ARGON_ICERR(false, *this,
+    ARGON_ICERR_CTX(false, *this,
                 "An object does not contains a result object.");
 }
 
@@ -249,7 +255,7 @@ Object::getResultObject(void)
 Object*
 Object::getDestObject(void)
 {
-    ARGON_ICERR(false, *this,
+    ARGON_ICERR_CTX(false, *this,
                 "An object does not contains a destination object.");
 }
 
@@ -354,18 +360,34 @@ ObjectInfo::getSourceInfo(void) const
 
 /// @details
 /// 
+/// @bug Check object type
 Object*
 ObjectInfo::newInstance(Object::mode mode)
 {
+    //if table...
+
+    //return new Table(this->proc(), this->m_node, mode);
+
+    TableNode *n = dynamic_cast<TableNode*>(this->m_node);
+    assert(n);
+
+    return Table::newInstance(this->proc(), n, mode);
+
+    
+
+/*
     switch(mode)
     {
     case Object::READ_MODE:
-        return new SourceTable(this->proc(), this->m_node);
+        return new Table(this->proc(), this->m_node, mode);
     case Object::ADD_MODE:
         return new DestTable(this->proc(), this->m_node);
+    //case Object::CHANGE_MODE:
+    	
     default:
         throw std::runtime_error("object mode not handled");
     }
+*/
 }
 
 

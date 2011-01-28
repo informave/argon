@@ -56,6 +56,27 @@ InternalError::InternalError(Context &context, const char* expr, const char *wha
 }
 
 
+InternalError::InternalError(const char* expr, const char *what, const char *file, int line)
+    : RuntimeError()
+{
+    std::wstringstream ss;
+    
+    ss << L"Internal compiler error: "
+       << String(what)
+       << L" at " << String(file) << L":" << line
+       << L" - expr: " << String(expr)
+       << std::endl
+       << L"Please report this BUG on <http://argon.informave.org/bugtracker> or send a PATCH to argon-list@informave.org"
+       << std::endl;
+    
+
+    this->m_what = String(ss.str()) + this->m_what;
+}
+
+
+
+
+
 //..............................................................................
 /////////////////////////////////////////////////////////////////// RuntimeError
 
@@ -66,6 +87,14 @@ RuntimeError::RuntimeError(Context &context)
 {
     LastError e(context.proc().getStack());
     m_what = e.str();
+}
+
+
+RuntimeError::RuntimeError(void)
+	: Exception()
+{
+    //LastError e(context.proc().getStack());
+    //m_what = e.str();
 }
 
 

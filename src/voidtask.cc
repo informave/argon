@@ -63,7 +63,7 @@ VoidTask::resolveColumn(const Column &col)
 Object*
 VoidTask::getMainObject(void)
 {
-    ARGON_ICERR(false, *this,
+    ARGON_ICERR_CTX(false, *this,
                 "A VOID task does not contains a main object.");
 }
 
@@ -73,7 +73,7 @@ VoidTask::getMainObject(void)
 Object*
 VoidTask::getResultObject(void) 
 { 
-    ARGON_ICERR(false, *this,
+    ARGON_ICERR_CTX(false, *this,
                 "A VOID task does not contains a result object.");
 }
 
@@ -83,7 +83,7 @@ VoidTask::getResultObject(void)
 Object*
 VoidTask::getDestObject(void)
 {
-    ARGON_ICERR(false, *this,
+    ARGON_ICERR_CTX(false, *this,
                 "A VOID task does not contains a destination object.");
 }
 

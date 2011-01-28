@@ -51,7 +51,7 @@ EvalExprVisitor::EvalExprVisitor(Processor &proc, Context &context, Value &value
 void
 EvalExprVisitor::visit(ExprNode *node)
 {
-    ARGON_ICERR(node->getChilds().size() == 2, m_context,
+    ARGON_ICERR_CTX(node->getChilds().size() == 2, m_context,
                 "ExprNode must have exactly two childs.");
 
     Value val1, val2;
@@ -78,8 +78,17 @@ EvalExprVisitor::visit(ExprNode *node)
         }
         break;
     case ExprNode::concat_expr:
-        m_value.data() = val1.data().asStr() + val2.data().asStr();
-        break;
+        try
+        {
+            m_value.data() = val1.data().asStr() + val2.data().asStr();
+            break;
+        }
+        catch(informave::db::ex::null_value &err)
+        {
+            m_value.data().setStr( (val1.data().isnull() ? "<null>" : val1.data().asStr()) );
+            m_value.data().setStr( m_value.data().asStr() + (val2.data().isnull() ? "<null>" : val2.data().asStr()) );
+            break;
+        }
     case ExprNode::minus_expr:
         m_value.data() = val1.data().asInt() - val2.data().asInt();
         break;
@@ -154,7 +163,7 @@ EvalExprVisitor::visit(ColumnNode *node)
 {
     try
     {
-        Value val = this->m_context.resolveColumn(Column(node));
+        Value val = this->m_context.getMainObject()->getColumn(Column(node));
         m_value.data() = val.data();
     }
     catch(RuntimeError &err)
@@ -162,9 +171,63 @@ EvalExprVisitor::visit(ColumnNode *node)
         err.addSourceInfo(node->getSourceInfo());
         throw;
     }
-
-
 }
+
+
+/// @details
+///
+void
+EvalExprVisitor::visit(ResColumnNode *node)
+{
+    try
+    {
+        Value val = this->m_context.getResultObject()->getColumn(Column(node));
+        m_value.data() = val.data();
+    }
+    catch(RuntimeError &err)
+    {
+        err.addSourceInfo(node->getSourceInfo());
+        throw;
+    }
+}
+   
+
+/// @details
+///
+void
+EvalExprVisitor::visit(ResColumnNumNode *node)
+{
+    try
+    {
+	//ResolveColumn ist unsinn, das muss mit context.getMainObject und ResultObject() gehen.
+        Value val = this->m_context.getResultObject()->getColumn(Column(node));
+        m_value.data() = val.data();
+    }
+    catch(RuntimeError &err)
+    {
+        err.addSourceInfo(node->getSourceInfo());
+        throw;
+    }
+}
+
+
+/// @details
+///
+void
+EvalExprVisitor::visit(ResIdNode *node)
+{
+    try
+    {
+        Value val = this->m_context.getMainObject()->lastInsertRowId();
+        m_value.data() = val.data();
+    }
+    catch(RuntimeError &err)
+    {
+        err.addSourceInfo(node->getSourceInfo());
+        throw;
+    }
+}
+
 
 
 /// @details
@@ -174,7 +237,7 @@ EvalExprVisitor::visit(ColumnNumNode *node)
 {
     try
     {
-        Value val = this->m_context.resolveColumn(Column(node));
+        Value val = this->m_context.getMainObject()->getColumn(Column(node));
         m_value.data() = val.data();
     }
     catch(RuntimeError &err)

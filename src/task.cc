@@ -57,7 +57,24 @@ TaskChildVisitor::visit(LogNode *node)
 void
 TaskChildVisitor::visit(ColumnAssignNode *node)
 {
-    // ARGON_ICERR.., assign not allowed?
+    assert(node->getChilds().size() == 2);
+
+    //ColumnAssignOp op(this->m_proc, m_context, node);
+    //this->m_proc.call(op);
+
+    Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
+
+    Value val;
+    EvalExprVisitor eval(this->m_proc, this->m_context, val);
+    eval(node->getChilds()[1]);
+
+    this->m_context.getMainObject()->setColumn(col, val);
+
+
+    //this->m_context.getMainObject()->setColumn(Column("id"), Value(23));
+    //this->m_context.getMainObject()->setColumn(Column("name"), Value(23));
+
+    // ARGON_ICERR_CTX.., assign not allowed?
 }
 
 
@@ -73,7 +90,7 @@ TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
     ArgumentList al;
     
     
-    //ARGON_ICERR(node->getChilds().size() >= 1, this->m_proc,
+    //ARGON_ICERR_CTX(node->getChilds().size() >= 1, this->m_proc,
     //"IdCallNode does not contains any subnodes");
         
         //ArgumentsNode *argsnode = node_cast<ArgumentsNode>(node->getChilds().at(1));
@@ -129,10 +146,10 @@ Task::run(const ArgumentList &args)
     this->getSymbols().reset();
     safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
 
-    ARGON_ICERR(argsSpecNode.get() != 0, *this,
+    ARGON_ICERR_CTX(argsSpecNode.get() != 0, *this,
                 "no argument specification");
 
-    ARGON_ICERR(argsSpecNode->getChilds().size() == args.size(), *this,
+    ARGON_ICERR_CTX(argsSpecNode->getChilds().size() == args.size(), *this,
                 "Argument count mismatch");
     
     ArgumentList::const_iterator i = args.begin();
@@ -147,8 +164,38 @@ Task::run(const ArgumentList &args)
 /// 
 Task::Task(Processor &proc, TaskNode *node)
     : Context(proc),
-      m_node(node)
+      m_node(node),
+      m_pre_nodes(),
+      m_colassign_nodes(),
+      m_post_nodes()
 {
+    NodeList childs = node->getChilds();
+
+    assert(childs.size() >= 2);
+
+    // Skip first two arguments. Checked by semantic checker, too.
+    size_t c = 3;
+    
+    while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+    {
+        m_pre_nodes.push_back(childs[c-1]);
+        ++c;
+    }
+    
+    while(c <= childs.size() && is_nodetype<ColumnAssignNode*>(childs[c-1]))
+    {
+        m_colassign_nodes.push_back(childs[c-1]);
+        ++c;
+    }
+    
+    while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+    {
+        m_post_nodes.push_back(childs[c-1]);
+        ++c;
+    }
+    
+    // All childs must been processed.
+    assert(c > childs.size());
 }
 
 

@@ -62,7 +62,7 @@ public:
     
     virtual void visit(IdCallNode *node)
     {
-        ARGON_ICERR(node->getChilds().size() >= 1, this->m_context,
+        ARGON_ICERR_CTX(node->getChilds().size() >= 1, this->m_context,
                     "IdCallNode does not contains any subnodes");
 
         IdNode *idnode = node_cast<IdNode>(node->getChilds().at(0));
@@ -113,7 +113,7 @@ public:
     
     virtual void visit(IdCallNode *node)
     {
-        ARGON_ICERR(node->getChilds().size() >= 1, this->m_context,
+        ARGON_ICERR_CTX(node->getChilds().size() >= 1, this->m_context,
                     "IdCallNode does not contains any subnodes");
 
         ArgumentsNode *argsnode = node_cast<ArgumentsNode>(node->getChilds().at(1));
@@ -162,7 +162,7 @@ FetchTask::getMainObject(void)
 Object*
 FetchTask::getResultObject(void) 
 { 
-    ARGON_ICERR(false, *this,
+    ARGON_ICERR_CTX(false, *this,
                 "A FETCH task does not contains a result object.");
 }
 
@@ -172,7 +172,7 @@ FetchTask::getResultObject(void)
 Object*
 FetchTask::getDestObject(void)
 {
-    ARGON_ICERR(false, *this,
+    ARGON_ICERR_CTX(false, *this,
                 "A FETCH task does not contains a destination object.");
 }
 
@@ -189,10 +189,10 @@ FetchTask::run(const ArgumentList &args)
     // Get template arguments
     safe_ptr<TmplArgumentsNode> tmplArgNode = find_node<TmplArgumentsNode>(this->m_node);
 
-    ARGON_ICERR(!!tmplArgNode, *this,
+    ARGON_ICERR_CTX(!!tmplArgNode, *this,
                 "TASK does not have any template arguments");
 
-    ARGON_ICERR(tmplArgNode->getChilds().size() == 1, *this,
+    ARGON_ICERR_CTX(tmplArgNode->getChilds().size() == 1, *this,
                 "wrong template argument count");
         
     //Node *destArgNode = tmplArgNode->getChilds().at(0);
@@ -204,14 +204,14 @@ FetchTask::run(const ArgumentList &args)
     foreach_node(sourceArgNode, FetchTaskVisitor(this->proc(), *this, sourceInfoObj), 1);
     //foreach_node(destArgNode, FetchTaskVisitor(this->proc(), destInfoObj), 1);
 
-    ARGON_ICERR(sourceInfoObj != 0, *this,
+    ARGON_ICERR_CTX(sourceInfoObj != 0, *this,
                 "source information is not valid");
 
 
     //std::auto_ptr<Object> x(sourceInfoObj->newInstance(Object::READ_MODE));
     this->m_mainobject.reset(sourceInfoObj->newInstance(Object::READ_MODE));
 
-    ARGON_ICERR(this->m_mainobject.get() != 0, *this,
+    ARGON_ICERR_CTX(this->m_mainobject.get() != 0, *this,
                 "Main object allocation failed");
 
     //std::cout << x->getSourceInfo() << std::endl;
@@ -228,7 +228,8 @@ FetchTask::run(const ArgumentList &args)
 
 
 
-    this->proc().call(this->getMainObject(), sourceArgs); // now sql is prepared and executed
+    this->proc().call(this->getMainObject(), sourceArgs); // now sql is prepared
+    this->getMainObject()->execute(); // and executed
 
     while(! this->m_mainobject->eof())
     {

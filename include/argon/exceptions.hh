@@ -124,6 +124,8 @@ class RuntimeError : public Exception
 public:
     RuntimeError(Context &context);
 
+    RuntimeError(void);
+
     //RuntimeError(void) { }
     
     void addSourceInfo(const SourceInfo &info);
@@ -158,6 +160,8 @@ class InternalError : public RuntimeError
 {
 public:
     InternalError(Context &context, const char* expr, const char *what, const char *file, int line);
+
+    InternalError(const char* expr, const char *what, const char *file, int line);
 
     virtual ~InternalError(void) throw()
     {}
