@@ -38,101 +38,8 @@ ARGON_NAMESPACE_BEGIN
 
 
 
-//..............................................................................
-/////////////////////////////////////////////////////////////// FetchTaskVisitor
-///
-/// @since 0.0.1
-/// @brief Visitor
-struct FetchTaskVisitor : public Visitor
-{
-public:
-    FetchTaskVisitor(Processor &proc, Context &context, ObjectInfo *&obj)
-        : Visitor(Visitor::ignore_none),
-          m_proc(proc),
-          m_context(context),
-          m_objinfo(obj)
-    {}
-
-    virtual void visit(IdNode *node)
-    {
-        Identifier id = node->data();
-        this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id); /// @bug replace with context?
-    }
-    
-    
-    virtual void visit(IdCallNode *node)
-    {
-        ARGON_ICERR_CTX(node->getChilds().size() >= 1, this->m_context,
-                    "IdCallNode does not contains any subnodes");
-
-        IdNode *idnode = node_cast<IdNode>(node->getChilds().at(0));
-
-        Identifier id = idnode->data();
-
-        this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id);
-    }
-
-    virtual void visit(TableNode *node)
-    {
-        ObjectInfo *elem = this->m_context.getSymbols().addPtr( new ObjectInfo(this->m_proc, node) );
-        this->m_context.getSymbols().add(node->id, elem); // using anonymous id
-
-        m_objinfo = elem;
-    }
-
-
-protected:
-    Processor &m_proc;
-    Context &m_context;
-    ObjectInfo *&m_objinfo;
-        
-};
-
-
-
-//..............................................................................
-//////////////////////////////////////////////////////////// FetchTaskArgVisitor
-///
-/// @since 0.0.1
-/// @brief Visitor
-struct FetchTaskArgVisitor : public Visitor
-{
-public:
-    FetchTaskArgVisitor(Processor &proc, Context &context, ArgumentList &list)
-        : Visitor(Visitor::ignore_none),
-          m_proc(proc),
-          m_context(context),
-          m_list(list)
-    {
-    }
-
-    virtual void visit(IdNode *node)
-    {
-        // no args
-    }
-    
-    virtual void visit(IdCallNode *node)
-    {
-        ARGON_ICERR_CTX(node->getChilds().size() >= 1, this->m_context,
-                    "IdCallNode does not contains any subnodes");
-
-        ArgumentsNode *argsnode = node_cast<ArgumentsNode>(node->getChilds().at(1));
-
-        foreach_node(argsnode->getChilds(), ArgumentsVisitor(this->m_proc, m_context, this->m_list), 1);
-    }
-
-    virtual void visit(TableNode *node)
-    {
-        // no args
-    }
-
-
-protected:
-    Processor &m_proc;
-    Context &m_context;
-    ArgumentList &m_list;
-        
-};
+typedef TemplateVisitor       FetchTemplateVisitor;
+typedef TemplateArgVisitor    FetchTemplateArgVisitor;
 
 
 
@@ -195,83 +102,54 @@ FetchTask::run(const ArgumentList &args)
     ARGON_ICERR_CTX(tmplArgNode->getChilds().size() == 1, *this,
                 "wrong template argument count");
         
-    //Node *destArgNode = tmplArgNode->getChilds().at(0);
-    Node *sourceArgNode = tmplArgNode->getChilds().at(0);
 
     ObjectInfo *sourceInfoObj = 0;
-    //ObjectInfo *destInfoObj = 0;
 
-    foreach_node(sourceArgNode, FetchTaskVisitor(this->proc(), *this, sourceInfoObj), 1);
-    //foreach_node(destArgNode, FetchTaskVisitor(this->proc(), destInfoObj), 1);
 
+    // Create source object
+    Node *sourceArgNode = tmplArgNode->getChilds().at(0);
+    foreach_node(sourceArgNode, FetchTemplateVisitor(this->proc(), *this, sourceInfoObj), 1);
     ARGON_ICERR_CTX(sourceInfoObj != 0, *this,
                 "source information is not valid");
 
-
-    //std::auto_ptr<Object> x(sourceInfoObj->newInstance(Object::READ_MODE));
     this->m_mainobject.reset(sourceInfoObj->newInstance(Object::READ_MODE));
-
     ARGON_ICERR_CTX(this->m_mainobject.get() != 0, *this,
-                "Main object allocation failed");
+                "Source object allocation failed");
 
-    //std::cout << x->getSourceInfo() << std::endl;
 
-    // Prepare arguments
-
+    // Handle source object arguments
     ArgumentList sourceArgs;
-    //ArgumentList destArgs;
-
-    //this->getSymbols().add(Identifier("blabla"), new ValueElement(this->proc(), Value(String("myvalue"))));
-
-    foreach_node(sourceArgNode, FetchTaskArgVisitor(this->proc(), *this, sourceArgs), 1);
-    //foreach_node(destArgNode, FetchTaskArgVisitor(this->proc(), this->getSymbols(), destArgs), 1);
+    foreach_node(sourceArgNode, FetchTemplateArgVisitor(this->proc(), *this, sourceArgs), 1);
 
 
+    // Get a list of the left and right columns
+    ColumnList lclist, rclist;
+    foreach_node( this->m_node->getChilds(), ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
+    this->m_mainobject->setColumnList(rclist);
 
-    this->proc().call(this->getMainObject(), sourceArgs); // now sql is prepared
-    this->getMainObject()->execute(); // and executed
+    assert(lclist.size() == 0); // FETCH tasks can't contain any column identifiers on left side.
+
+
+    // Get result columns
+    ColumnList reslist;
+    foreach_node( this->m_node->getChilds(), ResColumnVisitor(this->proc(), *this, reslist));
+    
+    assert(reslist.size() == 0); // FETCH tasks can't contain any result columns
+
+
+    // Call object to setup initial environment
+    // This prepares the SQL statement etc.
+    this->proc().call(this->getMainObject(), sourceArgs);
+    this->getMainObject()->execute();
+
 
     while(! this->m_mainobject->eof())
     {
         foreach_node( this->m_node->getChilds(), TaskChildVisitor(this->proc(), *this), 1);
-
-#ifdef ARGON_DEV_DEBUG
-        std::cout << "FOUND ROW" << std::endl;
-        std::cout << this->m_mainobject->getColumn(Column(1)) << std::endl;
-        std::cout << this->m_mainobject->getColumn(Column(2)) << std::endl;
-#endif
-
         this->m_mainobject->next();
     }
 
-    
     this->m_mainobject.reset(0); // workaround
-
-
-/*
-// Source
-x->addColumn(Column("foo"));
-// prepare query and open it
-this->proc().call(&*x, ls); // add dest params
-
-// Destination
-y->addColumn(Column("bar"));
-this->proc().call(&*y, ls);
-
-
-while(x->next())
-{
-// handle pre-insert-expressions.. are there any - yes, set options?
-        
-
-// column expr eval can be moved to ColumnAssignNode-Visitor
-y->setColumn(Column("bar"), x->getColumn(Column("foo")));
-
-y->post();
-
-// handle post-insert-expressions
-}
-*/
 
     return Value();
 }

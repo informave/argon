@@ -97,7 +97,6 @@ VoidTask::run(const ArgumentList &args)
 
     foreach_node( this->m_node->getChilds(), TaskChildVisitor(this->proc(), *this), 1);
 
-
     return Value();
 }
 

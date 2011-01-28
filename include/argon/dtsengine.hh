@@ -557,8 +557,46 @@ protected:
 
     /// @brief Main object
     /// This object only exists while task is running
-    std::auto_ptr<Object> m_mainobject;
+    std::auto_ptr<Object> m_destobject;
 };
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// TRANSFER Task
+///
+/// @since 0.0.1
+/// @brief TRANSFER Task
+class TransferTask : public Task
+{
+public:
+    TransferTask(Processor &proc, TaskNode *node);
+    
+    virtual ~TransferTask(void)
+    {}
+
+    virtual Object* getMainObject(void);
+    virtual Object* getResultObject(void);
+    virtual Object* getDestObject(void);
+
+    virtual Value resolveColumn(const Column &col);
+
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
+
+protected:
+    virtual Value run(const ArgumentList &args);
+
+    /// This object only exists while task is running
+    std::auto_ptr<Object> m_srcobject;
+
+    std::auto_ptr<Object> m_destobject;
+
+};
+
 
 
 

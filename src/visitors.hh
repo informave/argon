@@ -172,6 +172,141 @@ private:
 
 
 
+//..............................................................................
+/////////////////////////////////////////////////////////////// ResColumnVisitor
+///
+/// @since 0.0.1
+/// @brief Result Column Visitor
+struct ResColumnVisitor : public Visitor
+{
+public:
+    ResColumnVisitor(Processor &proc, Context &context, ColumnList &list);
+    
+    virtual void visit(ResColumnNode *node);
+
+    virtual void visit(ResColumnNumNode *node);
+
+protected:
+    Processor &m_proc;
+    Context &m_context;
+    ColumnList &m_list;
+};
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////// DeepColumnVisitor
+///
+/// @since 0.0.1
+/// @brief Deep Column Visitor
+struct DeepColumnVisitor : public Visitor
+{
+public:
+    DeepColumnVisitor(Processor &proc, Context &context, ColumnList &list);
+
+    
+    virtual void visit(ColumnNode *node);
+
+    virtual void visit(ColumnNumNode *node);
+
+    virtual void visit(ColumnAssignNode *node);
+
+protected:
+    Processor &m_proc;
+    Context &m_context;
+    ColumnList &m_list;
+};
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// ColumnVisitor
+///
+/// @since 0.0.1
+/// @brief Column Visitor
+struct ColumnVisitor : public Visitor
+{
+public:
+    ColumnVisitor(Processor &proc, Context &context, ColumnList &left_list, ColumnList &right_list);
+
+    virtual void visit(ColumnAssignNode *node);
+
+protected:
+
+    virtual void fallback_action(Node *node);
+
+protected:
+    Processor &m_proc;
+    Context &m_context;
+    ColumnList &m_left_list;
+    ColumnList &m_right_list;
+        
+};
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////// TemplateVisitor
+///
+/// @since 0.0.1
+/// @brief Visitor for template arguments
+/// @details
+/// Prepares the task template argument list
+/// 
+/// TASK foo() AS TRANSFER [ obj1(x) ]
+///                          ^^^^
+/// 
+struct TemplateVisitor : public Visitor
+{
+public:
+    TemplateVisitor(Processor &proc, Context &context, ObjectInfo *&obj);
+
+    virtual void visit(IdNode *node);
+    
+    virtual void visit(IdCallNode *node);
+
+    virtual void visit(TableNode *node);
+
+protected:
+    Processor &m_proc;
+    Context &m_context;
+    ObjectInfo *&m_objinfo;
+        
+};
+
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////// TemplateArgVisitor
+///
+/// @since 0.0.1
+/// @brief Visitor for arguments of template arguments
+/// @details
+///
+/// TASK foo() AS TRANSFER [ obj1(x) ]
+///                               ^
+///
+struct TemplateArgVisitor : public Visitor
+{
+public:
+    TemplateArgVisitor(Processor &proc, Context &context, ArgumentList &list);
+
+    virtual void visit(IdNode *node);
+    
+    virtual void visit(IdCallNode *node);
+
+    virtual void visit(TableNode *node);
+
+
+protected:
+    Processor &m_proc;
+    Context &m_context;
+    ArgumentList &m_list;
+        
+};
+
+
 
 
 ARGON_NAMESPACE_END

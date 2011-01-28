@@ -303,6 +303,217 @@ Arg2SymVisitor::visit(IdNode *node)
 }
 
 
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////// ResColumnVisitor
+
+/// @details
+/// 
+ResColumnVisitor::ResColumnVisitor(Processor &proc, Context &context, ColumnList &list)
+    : Visitor(Visitor::ignore_other),
+      m_proc(proc),
+      m_context(context),
+      m_list(list)
+{}
+
+
+/// @details
+/// 
+void
+ResColumnVisitor::visit(ResColumnNode *node)
+{
+    m_list.insert(Column(node));
+}
+
+
+/// @details
+/// 
+void
+ResColumnVisitor::visit(ResColumnNumNode *node)
+{
+    m_list.insert(Column(node));
+}
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////// DeepColumnVisitor
+
+/// @details
+/// 
+DeepColumnVisitor::DeepColumnVisitor(Processor &proc, Context &context, ColumnList &list)
+    : Visitor(Visitor::ignore_other),
+      m_proc(proc),
+      m_context(context),
+      m_list(list)
+{}
+
+
+/// @details
+///     
+void
+DeepColumnVisitor::visit(ColumnNode *node)
+{
+    m_list.insert(Column(node));
+}
+
+
+/// @details
+/// 
+void
+DeepColumnVisitor::visit(ColumnNumNode *node)
+{
+    m_list.insert(Column(node));
+}
+
+
+/// @details
+/// 
+void
+DeepColumnVisitor::visit(ColumnAssignNode *node)
+{
+    ARGON_ICERR_CTX(false, this->m_context,
+                    "Column assign expression is not allowed in DeepColumnVisitor");
+}
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// ColumnVisitor
+
+/// @details
+/// 
+ColumnVisitor::ColumnVisitor(Processor &proc, Context &context, ColumnList &left_list, ColumnList &right_list)
+    : Visitor(Visitor::ignore_none),
+      m_proc(proc),
+      m_context(context),
+      m_left_list(left_list),
+      m_right_list(right_list)
+{}
+
+
+/// @details
+/// 
+void
+ColumnVisitor::visit(ColumnAssignNode *node)
+{
+    ARGON_ICERR_CTX(node->getChilds().size() == 2, this->m_context,
+                    "Column assign expression must contain exactly two childs.");
+        
+    foreach_node( node->getChilds()[0], DeepColumnVisitor(this->m_proc, this->m_context, m_left_list) );
+    foreach_node( node->getChilds()[1], DeepColumnVisitor(this->m_proc, this->m_context, m_right_list) );
+}
+
+
+/// @details
+/// 
+void
+ColumnVisitor::fallback_action(Node *node)
+{
+    foreach_node( node, DeepColumnVisitor(this->m_proc, this->m_context, m_right_list) );
+}
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////// TemplateVisitor
+
+/// @details
+/// 
+TemplateVisitor::TemplateVisitor(Processor &proc, Context &context, ObjectInfo *&obj)
+    : Visitor(Visitor::ignore_none),
+      m_proc(proc),
+      m_context(context),
+      m_objinfo(obj)
+{}
+
+
+/// @details
+/// 
+void
+TemplateVisitor::visit(IdNode *node)
+{
+    Identifier id = node->data();
+    this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id); /// @bug replace with context?
+}
+    
+
+/// @details
+/// 
+void
+TemplateVisitor::visit(IdCallNode *node)
+{
+    ARGON_ICERR_CTX(node->getChilds().size() >= 1, this->m_context,
+                    "IdCallNode does not contains any subnodes");
+
+    IdNode *idnode = node_cast<IdNode>(node->getChilds().at(0));
+
+    Identifier id = idnode->data();
+
+    this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id);
+}
+
+
+/// @details
+/// 
+void
+TemplateVisitor::visit(TableNode *node)
+{
+    ObjectInfo *elem = this->m_context.getSymbols().addPtr( new ObjectInfo(this->m_proc, node) );
+    this->m_context.getSymbols().add(node->id, elem); // @bug using anonymous id
+
+    m_objinfo = elem;
+}
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////// TemplateArgVisitor
+
+/// @details
+/// 
+TemplateArgVisitor::TemplateArgVisitor(Processor &proc, Context &context, ArgumentList &list)
+    : Visitor(Visitor::ignore_none),
+      m_proc(proc),
+      m_context(context),
+      m_list(list)
+{}
+
+
+/// @details
+/// 
+void
+TemplateArgVisitor::visit(IdNode *node)
+{
+    // no args
+}
+
+
+/// @details
+/// 
+void
+TemplateArgVisitor::visit(IdCallNode *node)
+{
+    ARGON_ICERR_CTX(node->getChilds().size() >= 1, this->m_context,
+                    "IdCallNode does not contains any subnodes");
+
+    ArgumentsNode *argsnode = node_cast<ArgumentsNode>(node->getChilds().at(1));
+
+    foreach_node(argsnode->getChilds(), ArgumentsVisitor(this->m_proc, m_context, this->m_list), 1);
+}
+
+
+/// @details
+/// 
+void
+TemplateArgVisitor::visit(TableNode *node)
+{
+    // no args
+}
+
+
+
+
+
 ARGON_NAMESPACE_END
 
 

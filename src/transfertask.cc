@@ -1,8 +1,8 @@
 //
-// storetask.cc - STORE TASK (definition)
+// transfertask.cc - TRANSFER TASK (definition)
 //
 // Copyright (C)         informave.org
-//   2010,               Daniel Vogelbacher <daniel@vogelbacher.name>
+//   2011,               Daniel Vogelbacher <daniel@vogelbacher.name>
 // 
 // Lesser GPL 3.0 License
 // 
@@ -20,7 +20,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /// @file
-/// @brief STORE TASK (definition)
+/// @brief TRANSFER TASK (definition)
 /// @author Daniel Vogelbacher
 /// @since 0.1
 
@@ -38,42 +38,38 @@
 ARGON_NAMESPACE_BEGIN
 
 
-
-typedef TemplateVisitor       StoreTemplateVisitor;
-typedef TemplateArgVisitor    StoreTemplateArgVisitor;
-
+typedef TemplateVisitor       TransferTemplateVisitor;
+typedef TemplateArgVisitor    TransferTemplateArgVisitor;
 
 
 //..............................................................................
-////////////////////////////////////////////////////////////////////// StoreTask
+/////////////////////////////////////////////////////////////////// TransferTask
 
 /// @details
 /// 
-StoreTask::StoreTask(Processor &proc, TaskNode *node)
+TransferTask::TransferTask(Processor &proc, TaskNode *node)
     : Task(proc, node),
+      m_srcobject(),
       m_destobject()
 {}
 
 
 /// @details
 /// 
-/// @bug Store tasks may not have a maoin object, test it!
 Object*
-StoreTask::getMainObject(void) 
+TransferTask::getMainObject(void) 
 { 
-    return this->m_destobject.get(); 
-/*
-    ARGON_ICERR_CTX(false, *this,
-                "A STORE task does not contains a destination object.");
-*/
+    assert(this->m_srcobject.get());
+    return this->m_srcobject.get(); 
 }
 
 
 /// @details
 /// 
 Object*
-StoreTask::getResultObject(void) 
+TransferTask::getResultObject(void) 
 { 
+    assert(this->m_destobject.get());
     return this->m_destobject.get();
 /*
     ARGON_ICERR_CTX(false, *this,
@@ -85,8 +81,9 @@ StoreTask::getResultObject(void)
 /// @details
 /// 
 Object*
-StoreTask::getDestObject(void)
+TransferTask::getDestObject(void)
 {
+    assert(this->m_destobject.get());
     return this->m_destobject.get();
 }
 
@@ -94,7 +91,7 @@ StoreTask::getDestObject(void)
 /// @details
 /// 
 Value
-StoreTask::run(const ArgumentList &args)
+TransferTask::run(const ArgumentList &args)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
 
@@ -106,26 +103,44 @@ StoreTask::run(const ArgumentList &args)
     ARGON_ICERR_CTX(!!tmplArgNode, *this,
                 "TASK does not have any template arguments");
 
-    ARGON_ICERR_CTX(tmplArgNode->getChilds().size() == 1, *this,
+    ARGON_ICERR_CTX(tmplArgNode->getChilds().size() == 2, *this,
                 "wrong template argument count");
-        
 
+
+    ObjectInfo *srcInfoObj = 0;
     ObjectInfo *destInfoObj = 0;
 
 
     // Create destination object
     Node *destArgNode = tmplArgNode->getChilds().at(0);
-    foreach_node(destArgNode, StoreTemplateVisitor(this->proc(), *this, destInfoObj), 1);
+    foreach_node(destArgNode, TransferTemplateVisitor(this->proc(), *this, destInfoObj), 1);
     ARGON_ICERR_CTX(destInfoObj != 0, *this,
                 "destination information is not valid");
 
     this->m_destobject.reset(destInfoObj->newInstance(Object::ADD_MODE));
     ARGON_ICERR_CTX(this->m_destobject.get() != 0, *this,
-                "Main object allocation failed");
+                "Dest object allocation failed");
 
     // Handle destination object arguments
     ArgumentList destArgs;
-    foreach_node(destArgNode, StoreTemplateArgVisitor(this->proc(), *this, destArgs), 1);
+    foreach_node(destArgNode, TransferTemplateArgVisitor(this->proc(), *this, destArgs), 1);
+
+
+
+    // Create source object
+    Node *srcArgNode = tmplArgNode->getChilds().at(1);
+    foreach_node(srcArgNode, TransferTemplateVisitor(this->proc(), *this, srcInfoObj), 1);
+    ARGON_ICERR_CTX(srcInfoObj != 0, *this,
+                "source information is not valid");
+
+    this->m_srcobject.reset(srcInfoObj->newInstance(Object::READ_MODE));
+    ARGON_ICERR_CTX(this->m_srcobject.get() != 0, *this,
+                "Source object allocation failed");
+
+    // Handle source object arguments
+    ArgumentList srcArgs;
+    foreach_node(srcArgNode, TransferTemplateArgVisitor(this->proc(), *this, srcArgs), 1);
+
 
 
 
@@ -133,22 +148,29 @@ StoreTask::run(const ArgumentList &args)
     ColumnList lclist, rclist;
     foreach_node( this->m_node->getChilds(), ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
     this->m_destobject->setColumnList(lclist);
+    this->m_srcobject->setColumnList(rclist);
 
-    assert(rclist.size() == 0); // STORE tasks can't contain any column identifiers on right side.
 
-    
     // Get result columns
     ColumnList reslist;
     foreach_node( this->m_node->getChilds(), ResColumnVisitor(this->proc(), *this, reslist));
     this->m_destobject->setResultList(reslist);
 
+
+    // Call both objects to setup their initial environment
+    // This prepares SQL statements etc.
+    this->proc().call(this->getMainObject(), srcArgs);
+    this->proc().call(this->getDestObject(), destArgs);
+
+    // IMPORTANT: destArgs may be used as values, Too!!
+
+
+    // Execute the main object (mostly this runs the SELECT statement)
+    this->getMainObject()->execute();
+
     
-    // Call object to setup initial environment
-    // This prepares the SQL statement etc.
-    this->proc().call(this->getMainObject(), destArgs);
-
-   // IMPORTANT: destArgs may be used as values, Too!!
-
+    // Iterate over all records in the main object
+    while(! this->getMainObject()->eof())
     {
         // Executes all pre-instructions
         foreach_node( this->m_pre_nodes, TaskChildVisitor(this->proc(), *this), 1);
@@ -158,10 +180,14 @@ StoreTask::run(const ArgumentList &args)
         this->getDestObject()->execute();
         // Executes all post-instructions
         foreach_node( this->m_post_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
+        this->getMainObject()->next();
     }
 
     
     this->m_destobject.reset(0); // workaround
+    this->m_srcobject.reset(0); // workaround
+
     return Value();
 }
 
@@ -169,16 +195,17 @@ StoreTask::run(const ArgumentList &args)
 /// @details
 /// 
 Value
-StoreTask::resolveColumn(const Column &col)
+TransferTask::resolveColumn(const Column &col)
 {
-    return Value(this->getMainObject()->getColumn(col));
+    assert(!"not impl");
+    //return Value(this->getMainObject()->getColumn(col));
 }
 
 
 /// @details
 /// 
 Value
-StoreTask::_value(void) const
+TransferTask::_value(void) const
 {
     return this->_name();
 }
@@ -186,7 +213,7 @@ StoreTask::_value(void) const
 /// @details
 /// 
 String
-StoreTask::_string(void) const
+TransferTask::_string(void) const
 {
     return this->_value().data().asStr();
 }
@@ -194,17 +221,17 @@ StoreTask::_string(void) const
 /// @details
 /// 
 String
-StoreTask::_name(void) const
+TransferTask::_name(void) const
 {
-    return this->id().str() + String(" (task:store)");
+    return this->id().str() + String(" (task:transfer)");
 }
 
 /// @details
 /// 
 String
-StoreTask::_type(void) const
+TransferTask::_type(void) const
 {
-    return "STORETASK";
+    return "TRANSFERTASK";
 }
 
 

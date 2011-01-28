@@ -14,16 +14,12 @@ BEGIN
 	LOG "Table row: " || $value || " / " || $number;
 END;
 
-//TASK copytable AS TRANSFER [ destTable, srcTable ]
+
 TASK copytable AS FETCH [ srcTable ]
 BEGIN
 	LOG "Copy row, value: " || $name || " and " || $1;
 
-	EXEC SQL "INSERT INTO destTable VALUES(?, ?);" ON c1 WITH PARAMS ($1, $2);
-
-	//LOG "VALUE: " $name " END";
-	$bla <- $name;
-	
+	EXEC SQL "INSERT INTO destTable VALUES(?, ?);" ON c1 WITH PARAMS ($1, $2);	
 END;
 
 

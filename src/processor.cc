@@ -148,6 +148,11 @@ ProcTreeWalker::visit(TaskNode *node)
     	Task *elem = this->proc().getSymbols().addPtr( new StoreTask(this->proc(), node) );
 	this->proc().getSymbols().add(node->id, elem);
     }
+    else if(node->type == "TRANSFER")
+    {
+    	Task *elem = this->proc().getSymbols().addPtr( new TransferTask(this->proc(), node) );
+	this->proc().getSymbols().add(node->id, elem);
+    }
     else
     {
         assert(!"unknown task type");

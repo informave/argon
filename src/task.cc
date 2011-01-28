@@ -68,7 +68,7 @@ TaskChildVisitor::visit(ColumnAssignNode *node)
     EvalExprVisitor eval(this->m_proc, this->m_context, val);
     eval(node->getChilds()[1]);
 
-    this->m_context.getMainObject()->setColumn(col, val);
+    this->m_context.getDestObject()->setColumn(col, val);
 
 
     //this->m_context.getMainObject()->setColumn(Column("id"), Value(23));
