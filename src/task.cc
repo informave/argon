@@ -84,7 +84,7 @@ TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
     ARGON_DPRINT(ARGON_MOD_PROC, "Calling task " << node->taskid().str());
     //foreach_node(node->getChilds(), PrintTreeVisitor(this->m_proc, std::wcout), 1);
     
-    Task* task = this->m_proc.getSymbols().find<Task>(node->taskid()); // search task global
+    Task* task = this->m_proc.getSymbols().find<Task>(node->data()); // search task global
     
     /// @bug fix this
     ArgumentList al;

@@ -27,7 +27,7 @@
 
 #include "argon/dtsengine.hh"
 #include "argon/exceptions.hh"
-#include "semantic.hh"
+#include "argon/semantic.hh"
 #include "helpers.hh"
 #include "debug.hh"
 #include "visitors.hh"
@@ -108,14 +108,14 @@ ProcTreeWalker::visit(TableNode *node)
     }
 */
 
-    safe_ptr<Element> elem = SYMBOL_CREATE_ON(this->proc(), node->id, new Table::Spec(this->proc(), node) );
+    safe_ptr<Element> elem = SYMBOL_CREATE_ON(this->proc(), node->data(), new Table::Spec(this->proc(), node) );
 
 //    ObjectSepc *elem = this->proc().getSymbols().addPtr( new Table::Specification(this->proc(), node) );
 
 //    ObjectInfo *elem = this->proc().getSymbols().addPtr( new ObjectInfo(this->proc(), node) );
 //    this->proc().getSymbols().add(node->id, elem);
 
-    this->m_proc.getSymbols().find<Element>(node->id);
+    this->m_proc.getSymbols().find<Element>(node->data());
 
     //this->m_proc.getSymbol<Task>(id).exec(argumentlist);
 }

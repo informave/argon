@@ -459,7 +459,7 @@ void
 TemplateVisitor::visit(TableNode *node)
 {
     ObjectInfo *elem = this->m_context.getSymbols().addPtr( new ObjectInfo(this->m_proc, node) );
-    this->m_context.getSymbols().add(node->id, elem); // @bug using anonymous id
+    this->m_context.getSymbols().add(node->data(), elem); // @bug using anonymous id
 
     m_objinfo = elem;
 }

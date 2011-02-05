@@ -61,6 +61,10 @@ class LastError;
 class Function;
 template<typename T> class safe_ptr;
 
+class SemanticCheckEntry;
+
+
+
 
 typedef std::tr1::shared_ptr<Element> ElementPtr;
 

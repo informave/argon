@@ -27,7 +27,7 @@
 
 #include "argon/fwd.hh"
 #include "argon/exceptions.hh"
-#include "semantic.hh"
+#include "argon/semantic.hh"
 #include "debug.hh"
 
 #include <iostream>
@@ -36,105 +36,133 @@
 ARGON_NAMESPACE_BEGIN
 
 
+#define ARGON_SC_ADD(sc, type, what, srcinfo)                           \
+    sc.addCheckEntry(SemanticCheckEntry(SemanticCheck::type, what, srcinfo))
+
+
 
 //..............................................................................
-//////////////////////////////////////////////////////////////// SemanticChecker
+//////////////////////////////////////////////////////////// SemanticCheckRunner
 ///
 /// @since 0.0.1
 /// @brief Semantic checker
-class SemanticWalker : public Visitor
+class SemanticCheckRunner : public Visitor
 {
 public:
-    SemanticWalker(SemanticCheck &check) : m_check(check)
+    SemanticCheckRunner(SemanticCheck &check)
+        : Visitor(ignore_none),
+          m_check(check)
+    {}
+
+
+protected:
+
+    virtual void fallback_action(Node *node)
     {
+        node->semanticCheck(m_check);
     }
 
     SemanticCheck &m_check;
-
-    virtual void visit(ConnNode *node)
-    {
-        ARGON_DPRINT(ARGON_MOD_SEM, "checking connection node");
-    }
-
-    virtual void visit(TaskNode *node)
-    {
-        ARGON_DPRINT(ARGON_MOD_SEM, "checking task node");
-        foreach_node(node, PrintTreeVisitor(this->m_check.proc(), std::wcout), 1);
-
-        NodeList childs = node->getChilds();
-        
-
-        ARGON_ICERR(childs.size() >= 2,
-                    "Task node requires at least 2 child nodes");
-
-        ARGON_ICERR(is_nodetype<ArgumentsSpecNode*>(childs[0]),
-                    "Task node requires that the first child node is a ArgumentsSpecNode");
-
-        ARGON_ICERR(is_nodetype<TmplArgumentsNode*>(childs[1]),
-                    "Task node requires that the second child node is a TmplArgumentsNode");
-
-        
-        size_t c = 3;
-
-        while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
-        {
-            /// @todo check that there is no % operator node, but only in STORE and TRANSFER if there
-            /// are no colassign expressions.
-            ++c;
-        }
-
-        while(c <= childs.size() && is_nodetype<ColumnAssignNode*>(childs[c-1]))
-        {
-            /// @todo check that there is no % operator node
-            ++c;
-        }
-
-        while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
-            ++c;
-
-        if(c <= childs.size())
-            throw std::runtime_error(String("Column assignment not allowed here: ")
-                                     .append(childs[c-1]->getSourceInfo().str()));
-        // TODO: don't throw, add error to semantic check result list
-
-        
-
-           
-        
-
-        //if(! dynamic_cast<ArgumentsSpecNode*>(childs[0]))
-
-
-
-    }
-
-    virtual void visit(ParseTree *node)
-    {
-        ARGON_DPRINT(ARGON_MOD_SEM, "checking parsetree node");
-    }
-
-
-    virtual void visit(TableNode *node)
-    {
-        ARGON_DPRINT(ARGON_MOD_SEM, "checking table node");
-
-        // Argument nodes check
-        {
-            ArgumentsNode* args = find_node<ArgumentsNode>(node);
-            assert(args);
-            assert(args->getChilds().size() >= 2 && args->getChilds().size() <= 4);
-
-            IdNode      *node1 = node_cast<IdNode>(args->getChilds().at(0));
-            LiteralNode *node2 = node_cast<LiteralNode>(args->getChilds().at(1));
-        }
-
-        //node_cast<LiteralNode>(arg_node->getChilds().at(0));
-
-        //assert(arg_node->getChilds().size() >= 2 && arg_node->getChilds().size() <= 4);
-
-    }
-
 };
+
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////// TaskExecNode
+
+
+/// @details
+/// 
+void
+TaskExecNode::semanticCheck(SemanticCheck &sc)
+{
+    TaskNode *task = find_node_byid<TaskNode>(sc.ast(), Identifier(this->data()));
+
+    if(!task)
+    {
+        ARGON_SC_ADD(sc, SC_ERROR, String("Task not defined: ").append(this->data().str()), this->getSourceInfo());
+        return;
+    }
+
+
+    ArgumentsNode *argsnode = find_node<ArgumentsNode>(this);
+    assert(argsnode);
+
+    if(argsnode->getChilds().size() != node_cast<ArgumentsSpecNode>(task->getChilds()[0])->getChilds().size())
+        ARGON_SC_ADD(sc, SC_ERROR, "Argument count mismatch", this->getSourceInfo());
+
+}
+
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// TaskNode
+
+/// @details
+/// 
+void
+TaskNode::semanticCheck(SemanticCheck &sc)
+{
+    NodeList childs = this->getChilds();       
+
+    ARGON_ICERR(childs.size() >= 2,
+                "Task node requires at least 2 child nodes");
+
+    ARGON_ICERR(is_nodetype<ArgumentsSpecNode*>(childs[0]),
+                "Task node requires that the first child node is a ArgumentsSpecNode");
+
+    ARGON_ICERR(is_nodetype<TmplArgumentsNode*>(childs[1]),
+                "Task node requires that the second child node is a TmplArgumentsNode");
+
+        
+    size_t c = 3; // skip ArgumentSpec and TmpArguments nodes (start with 1)
+
+    while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+    {
+        /// @todo check that there is no % operator node, but only in STORE and TRANSFER if there
+        /// are no colassign expressions.
+        ++c;
+    }
+
+    while(c <= childs.size() && is_nodetype<ColumnAssignNode*>(childs[c-1]))
+    {
+        /// @todo check that there is no % operator node
+        ++c;
+    }
+
+    while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+        ++c;
+
+
+    if(c <= childs.size())
+        ARGON_SC_ADD(sc, SC_ERROR, "Column assignment not allowed here", this->getSourceInfo());
+}
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// TableNode
+
+/// @details
+/// 
+void
+TableNode::semanticCheck(SemanticCheck &sc)
+{
+    ARGON_DPRINT(ARGON_MOD_SEM, "checking table node");
+
+    // Argument nodes check
+    {
+        ArgumentsNode* args = find_node<ArgumentsNode>(this);
+        assert(args);
+        assert(args->getChilds().size() >= 2 && args->getChilds().size() <= 4);
+
+        IdNode      *node1 = node_cast<IdNode>(args->getChilds().at(0));
+        LiteralNode *node2 = node_cast<LiteralNode>(args->getChilds().at(1));
+    }
+}
+
 
 
 //..............................................................................
@@ -145,9 +173,9 @@ public:
 /// 
 SemanticCheck::SemanticCheck(ParseTree *tree, Processor &proc)
     : m_tree(tree),
-      m_proc(proc)
-{
-}
+      m_proc(proc),
+      m_list()
+{}
 
 
 /// @details
@@ -157,9 +185,55 @@ SemanticCheck::check(void)
 {
     ARGON_DPRINT(ARGON_MOD_SEM, "Checking semantic");
 
-    foreach_node( this->m_tree, SemanticWalker(*this), 2); // only deep 1
+    foreach_node( this->m_tree, SemanticCheckRunner(*this)); // for each node
+
+    if(this->m_list.size())
+        throw SemanticError(this->m_list);
 }
 
+
+/// @details
+/// 
+void
+SemanticCheck::addCheckEntry(const SemanticCheckEntry &entry)
+{
+    this->m_list.push_back(entry);
+}
+
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////// SemanticCheckEntry
+
+
+/// @details
+/// 
+SemanticCheckEntry::SemanticCheckEntry(SemanticCheck::sctype type, const String &what, const SourceInfo &info)
+    : m_type(type),
+      m_what(what),
+      m_info(info)
+{}
+
+
+/// @details
+/// 
+SemanticCheck::sctype
+SemanticCheckEntry::getType(void) const
+{
+    return this->m_type;
+}
+
+
+/// @details
+/// 
+String
+SemanticCheckEntry::_str(void) const
+{
+    std::wstringstream ss;
+    ss << "Error: " << this->m_what << " at " << this->m_info.str();
+    return ss.str();
+}
 
 
 

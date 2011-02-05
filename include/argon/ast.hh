@@ -30,6 +30,7 @@
 
 #include "argon/fwd.hh"
 #include "argon/token.hh"
+#include "argon/semantic.hh"
 
 #include <list>
 #include <deque>
@@ -108,7 +109,13 @@ public:
     virtual void accept(Visitor &visitor) = 0;
 
     virtual String nodetype(void) const = 0;
+
     static String name(void) { return "node"; }
+
+    /// @brief Called by the semantic checker
+    /// @details
+    /// Each node may provide their semantic checks.
+    virtual void semanticCheck(SemanticCheck &sc) { }
 
 protected:
     nodelist_type m_childs;
@@ -246,26 +253,21 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Node for EXEC TASK Command
-struct TaskExecNode : public Node
+struct TaskExecNode : public SimpleNode<Identifier>
 {
     TaskExecNode(void);
 
     virtual ~TaskExecNode(void) {}
 
-    void init(Identifier id);
-
     virtual void accept(Visitor &visitor);
 
     virtual String str(void) const;
-
-    Identifier taskid(void) const;
 
     virtual String nodetype(void) const;
 
     static String name(void) { return "EXEC"; }
 
-protected:
-    Identifier m_taskid;
+    virtual void semanticCheck(SemanticCheck &sc);
 };
 
 
@@ -334,26 +336,19 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Node for Identifiers
-struct IdNode : public Node
+struct IdNode : public SimpleNode<Identifier>
 {
     IdNode(void);
 
     virtual ~IdNode(void) {}
 
-    void init(Identifier _id);
-
     virtual void accept(Visitor &visitor);
 
     virtual String str(void) const;
 
-    Identifier data(void) const;
-
     virtual String nodetype(void) const;
 
     static String name(void) { return "Identifier"; }
-
-protected:
-    Identifier m_data;
 };
 
 
@@ -388,26 +383,19 @@ struct FuncCallNode : public SimpleNode<Identifier>
 ///
 /// @since 0.0.1
 /// @brief Node for Literals
-struct LiteralNode : public Node
+struct LiteralNode : public SimpleNode<String>
 {
     LiteralNode(void);
 
     virtual ~LiteralNode(void) {}
 
-    void init(String data);
-
     virtual void accept(Visitor &visitor);
 
     virtual String str(void) const;
 
-    inline String data(void) const { return m_data; }
-
     virtual String nodetype(void) const;
 
     static String name(void) { return "Literal"; }
-
-protected:
-    String m_data;
 };
 
 
@@ -444,26 +432,19 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Node for Column names
-struct ColumnNode : public Node
+struct ColumnNode : public SimpleNode<String>
 {
     ColumnNode(void);
 
     virtual ~ColumnNode(void) {}
 
-    void init(String data);
-
     virtual void accept(Visitor &visitor);
 
     virtual String str(void) const;
 
-    virtual String data(void) const;
-
     virtual String nodetype(void) const;
 
     static String name(void) { return "Column"; }
-
-protected:
-    String m_data;
 };
 
 
@@ -472,26 +453,19 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Node for result column names
-struct ResColumnNode : public Node
+struct ResColumnNode : public SimpleNode<String>
 {
     ResColumnNode(void);
 
     virtual ~ResColumnNode(void) {}
 
-    void init(String data);
-
     virtual void accept(Visitor &visitor);
 
     virtual String str(void) const;
 
-    virtual String data(void) const;
-
     virtual String nodetype(void) const;
 
     static String name(void) { return "ResColumn"; }
-
-protected:
-    String m_data;
 };
 
 
@@ -768,6 +742,8 @@ struct TaskNode : public Node
 
     static String name(void) { return "Task"; }
 
+    virtual void semanticCheck(SemanticCheck &sc);
+
     Identifier id;
     String type;
 };
@@ -812,18 +788,15 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Node for Object (base class)
-struct ObjectNode : public Node
+struct ObjectNode : public SimpleNode<Identifier>
 {
     ObjectNode(void);
 
     virtual ~ObjectNode(void)
     {}
 
-    void init(Identifier _id);
 
     static String name(void) { return "Object"; }
-
-    Identifier id;
 };
 
 
@@ -849,6 +822,8 @@ struct TableNode : public ObjectNode
     virtual String nodetype(void) const;
 
     static String name(void) { return "Table"; }
+
+    virtual void semanticCheck(SemanticCheck &sc);
 };
 
 
@@ -1048,6 +1023,31 @@ T* node_cast(Node *node)
 }
 
 
+
+
+/// @details
+/// 
+template<typename T>
+inline T*
+find_node_byid(Node* node, Identifier id, int deep = -1)
+{
+    for(Node::nodelist_type::iterator i = node->getChilds().begin();
+        i != node->getChilds().end();
+        ++i)
+    {
+        T* tmp = dynamic_cast<T*>(*i);
+        if(tmp)
+        {
+            if(tmp->id == id)
+                return tmp;
+        }
+    }
+    return 0;
+}
+
+
+
+
 /// @details
 ///
 template<typename T>
@@ -1077,18 +1077,6 @@ public:
     void next(Node *node);
        
     virtual void fallback_action(Node *node);
-
-    /// @bug remove all specific visitors an use fallback_action()
-    virtual void visit(ConnNode *node);
-    virtual void visit(TaskNode *node);
-    virtual void visit(ParseTree *node);
-    virtual void visit(LiteralNode *node);
-    virtual void visit(LogNode *node);
-    virtual void visit(TaskExecNode *node);
-    virtual void visit(ColumnNode *node);
-    virtual void visit(SqlExecNode *node);
-    virtual void visit(TableNode *node);
-
 };
 
 

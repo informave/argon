@@ -43,6 +43,7 @@ ARGON_NAMESPACE_BEGIN
 
 
 
+
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// Exception
 ///
@@ -110,6 +111,31 @@ public:
 /// @brief parse-error exception
 class ParseError : public Exception
 {
+};
+
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// SemanticError
+///
+/// @since 0.0.1
+/// @brief Semantic error
+/// @details
+/// This exception is raised if the semantic checker founds at least one error.
+/// If there are only warnings, no exceptions is raised.
+class SemanticError : public Exception
+{
+public:
+    SemanticError(const SemanticCheckList &sclist);
+
+    virtual ~SemanticError(void) throw()
+    {}
+
+    const SemanticCheckList& getCheckResults(void) const;
+
+protected:
+    const SemanticCheckList m_sclist;
 };
 
 

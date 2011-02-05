@@ -159,6 +159,44 @@ Exception::what(void) const throw()
 }
 
 
+
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// SemanticError
+
+/// @details
+/// 
+SemanticError::SemanticError(const SemanticCheckList &sclist)
+    : Exception(),
+      m_sclist(sclist)
+{
+    std::wstringstream ss;
+
+    for(SemanticCheckList::const_iterator i = sclist.begin();
+        i != sclist.end();
+        ++i)
+    {
+        ss << i->_str() << std::endl;
+    }
+
+    this->m_what = ss.str();
+}
+
+
+
+/// @details
+/// 
+const SemanticCheckList&
+SemanticError::getCheckResults(void) const
+{
+    return this->m_sclist;
+}
+
+
+
+
 ARGON_NAMESPACE_END
 
 

@@ -84,7 +84,7 @@ String TaskExecNode::str(void) const          { return "taskexecnode"; }
 String ColumnNode::str(void) const            { return "columnnode"; }
 String TokenNode::str(void) const             { return "tokennode"; }
 String SqlExecNode::str(void) const           { return "sqlexecnode"; }
-String TableNode::str(void) const             { return String("tablenode ") + this->id.str(); }
+String TableNode::str(void) const             { return String("tablenode ") + this->data().str(); }
 String ArgumentsNode::str(void) const         { return "ArgumentsNode"; }
 String ArgumentsSpecNode::str(void) const     { return "ArgumentsSpecNode"; }
 String TmplArgumentsNode::str(void) const     { return "TmplArgumentsNode"; }
@@ -216,11 +216,11 @@ Visitor::fallback_action(Node *node)
     }
 }
 
-#define DEFAULT_VISIT(type)                                         \
-    void                                                            \
-    Visitor::visit(type *node)                                      \
-    {                                                               \
-        this->fallback_action(node);                                \
+#define DEFAULT_VISIT(type)                     \
+    void                                        \
+    Visitor::visit(type *node)                  \
+    {                                           \
+        this->fallback_action(node);            \
     }
 
 DEFAULT_VISIT(ConnNode)
@@ -275,26 +275,9 @@ TokenNode::TokenNode(Token *tok)
 /// @details
 /// 
 ColumnNode::ColumnNode(void)
-    : m_data()
+    : SimpleNode<String>()
 {}
 
-
-/// @details
-/// 
-void
-ColumnNode::init(String name)
-{
-    this->m_data = name;
-}
-
-
-/// @details
-/// 
-String
-ColumnNode::data(void) const
-{
-    return this->m_data;
-}
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////// ResColumnNode
@@ -302,26 +285,8 @@ ColumnNode::data(void) const
 /// @details
 ///
 ResColumnNode::ResColumnNode(void)
-    : m_data()
+    : SimpleNode<String>()
 {}
-
-
-/// @details
-///
-void
-ResColumnNode::init(String name)
-{
-    this->m_data = name;
-}
-
-
-/// @details
-///
-String
-ResColumnNode::data(void) const
-{
-    return this->m_data;
-}
 
 
 
@@ -420,27 +385,9 @@ ResIdNode::data(void) const
 /// @details
 /// 
 TaskExecNode::TaskExecNode(void)
-    : Node(),
-      m_taskid()
+    : SimpleNode<Identifier>()
 {}
 
-
-/// @details
-/// 
-void
-TaskExecNode::init(Identifier id)
-{
-    this->m_taskid = id;
-}
-
-
-/// @details
-/// 
-Identifier
-TaskExecNode::taskid(void) const
-{
-    return this->m_taskid;
-}
 
 
 //..............................................................................
@@ -492,9 +439,9 @@ TmplArgumentsNode::TmplArgumentsNode(void)
 /// @details
 /// 
 /*
-ArgumentItemNode::ArgumentItemNode(void)
-    : Node()
-{}
+  ArgumentItemNode::ArgumentItemNode(void)
+  : Node()
+  {}
 */
 
 
@@ -578,17 +525,9 @@ ExprNode::str(void) const
 /// @details
 /// 
 ObjectNode::ObjectNode(void)
-    : Node(),
-      id()
+    : SimpleNode<Identifier>()
 {}
 
-/// @details
-/// 
-void
-ObjectNode::init(Identifier _id)
-{
-    this->id = _id;
-}
 
 
 //..............................................................................
@@ -661,18 +600,9 @@ SqlExecNode::sql(void) const
 /// @details
 /// 
 LiteralNode::LiteralNode(void)
-    : Node(),
-      m_data()
+    : SimpleNode<String>()
 {}
 
-
-/// @details
-/// 
-void
-LiteralNode::init(String data)
-{
-    this->m_data = data;
-}
 
 
 //..............................................................................
@@ -703,27 +633,9 @@ NumberNode::init(String data)
 /// @details
 /// 
 IdNode::IdNode(void)
-    : Node(),
-      m_data()
+    : SimpleNode<Identifier>()
 {}
 
-
-/// @details
-/// 
-void
-IdNode::init(Identifier _id)
-{
-    m_data = _id;
-}
-
-
-/// @details
-/// 
-Identifier
-IdNode::data(void) const
-{
-    return m_data;
-}
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////// TaskNode
@@ -879,87 +791,16 @@ PrintTreeVisitor::next(Node *node)
     foreach_node(node->getChilds(), PrintTreeVisitor(*this), 1);
 }
 
-       
 
 
-void
-PrintTreeVisitor::visit(ConnNode *node)
-{
-    m_stream << this->m_indent << "ConnNode: " << node->str() << std::endl;
-    next(node);
-}
-
-
-void
-PrintTreeVisitor::visit(TaskNode *node)
-{
-    m_stream << this->m_indent << "TaskNode: " << node->str() << std::endl;
-    next(node);
-}
-
-void
-PrintTreeVisitor::visit(ParseTree *node)
-{
-    m_stream << this->m_indent << "ROOT NODE" << std::endl;
-    next(node);
-}
-
-
-void
-PrintTreeVisitor::visit(LogNode *node)
-{
-    m_stream << this->m_indent << "LogNode: " << node->str() << std::endl;
-    next(node);
-}
-
-void
-PrintTreeVisitor::visit(TaskExecNode *node)
-{
-    m_stream << this->m_indent << "TaskExecNode: " << node->str() << std::endl;
-    next(node);
-}
-
-
-void
-PrintTreeVisitor::visit(ColumnNode *node)
-{
-    m_stream << this->m_indent << "ColumnNode: " << node->data() << std::endl;
-    next(node);
-}
-
-void
-PrintTreeVisitor::visit(LiteralNode *node)
-{
-    m_stream << this->m_indent << "LiteralNode: " << node->str() << std::endl;
-    next(node);
-}
-
-
-void
-PrintTreeVisitor::visit(SqlExecNode *node)
-{
-    m_stream << this->m_indent << "SqlExecNode: " << node->str() << std::endl;
-    next(node);
-}
-
-
-
-void
-PrintTreeVisitor::visit(TableNode *node)
-{
-    m_stream << this->m_indent << "TableNode: " << node->str()  << std::endl;
-    next(node);
-}
-
-
-
+/// @details
+/// 
 void
 PrintTreeVisitor::fallback_action(Node *node)
 {
     m_stream << this->m_indent << node->str()  << std::endl;
     next(node);
 }
-
 
 
 
@@ -970,6 +811,24 @@ std::ostream& operator<<(std::ostream &o, const Identifier &i)
     o << i.name();
     return o;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

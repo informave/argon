@@ -38,6 +38,10 @@
 ARGON_NAMESPACE_BEGIN
 
 
+typedef std::list<SemanticCheckEntry>  SemanticCheckList;
+
+
+
 //..............................................................................
 ////////////////////////////////////////////////////////////////// SemanticCheck
 ///
@@ -48,14 +52,50 @@ class SemanticCheck
 public:
     SemanticCheck(ParseTree *tree, Processor &proc);
 
+    enum sctype { SC_ERROR, SC_WARNING };
+
     void check(void);
 
     Processor& proc(void) { return this->m_proc; }
+
+    ParseTree* ast(void) { return this->m_tree; }
+
+    void addCheckEntry(const SemanticCheckEntry &entry);
 
 protected:
 
     ParseTree *m_tree;
     Processor &m_proc;
+
+    SemanticCheckList m_list;
+
+private:
+    SemanticCheck(const SemanticCheck &);
+    SemanticCheck& operator=(const SemanticCheck &);
+};
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////// SemanticCheckEntry
+///
+/// @since 0.0.1
+/// @brief Represents one error/warning in the check result list
+class SemanticCheckEntry
+{
+public:
+    SemanticCheckEntry(SemanticCheck::sctype type, const String &what, const SourceInfo &info);
+
+    SemanticCheck::sctype getType(void) const;
+
+    String _str() const;
+
+
+protected:
+    const SemanticCheck::sctype m_type;
+    const String m_what;
+    const SourceInfo m_info;
+
 };
 
 

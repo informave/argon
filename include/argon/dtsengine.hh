@@ -711,7 +711,7 @@ public:
     virtual ~ObjectInfo(void)
     {}
 
-    inline Identifier id(void) const { return m_node->id; } /// @bug is this correct?
+    inline Identifier id(void) const { return m_node->data(); } /// @bug is this correct?
 
     virtual String str(void) const;
 
@@ -760,7 +760,7 @@ public:
 
     virtual SourceInfo getSourceInfo(void) const;
 
-    inline Identifier id(void) const { return m_node->id; } /// @bug is this correct?
+    inline Identifier id(void) const { return m_node->data(); } /// @bug is this correct?
 
     virtual String name(void) const;
 
