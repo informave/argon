@@ -50,12 +50,14 @@ VoidTask::VoidTask(Processor &proc, TaskNode *node)
 
 
 /// @details
-/// 
+///
+/*
 Value
 VoidTask::resolveColumn(const Column &col)
 {
     throw std::runtime_error("resolve() not allowed on void tasks");
 }
+*/
 
 
 /// @details

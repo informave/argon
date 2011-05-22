@@ -529,13 +529,11 @@ public:
         if(isnumber(s))
         {
             Token tok(ARGON_TOK_NUMBER, SourceInfo(m_srcname, start, len, line), s);
-            /// @bug add number value
             return tok;
         }
             
         Token tok(ARGON_TOK_ID, SourceInfo(m_srcname, start, len, line));
-        String x(s);
-        tok.setData(x);
+        tok.setData(s);
         return tok;
     }
 

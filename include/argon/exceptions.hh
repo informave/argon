@@ -71,10 +71,11 @@ public:
 ///
 /// @since 0.0.1
 /// @brief Not-declared exception
+/*
 class NotDeclared : public Exception
 {
 };
-
+*/
 
 
 //..............................................................................
@@ -82,26 +83,14 @@ class NotDeclared : public Exception
 ///
 /// @since 0.0.1
 /// @brief connection-error exception
+ /*
 class ConnectionErr : public Exception
 {
 };
+ */
 
 
 
-//..............................................................................
-//////////////////////////////////////////////////////////////////// SyntaxError
-///
-/// @since 0.0.1
-/// @brief Syntax-error exception
-class SyntaxError : public Exception
-{
-public:
-    SyntaxError(Token *t);
-
-    virtual ~SyntaxError(void) throw()
-    {}
-
-};
 
 
 //..............................................................................
@@ -109,34 +98,12 @@ public:
 ///
 /// @since 0.0.1
 /// @brief parse-error exception
+/*
 class ParseError : public Exception
 {
 };
+*/
 
-
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////////// SemanticError
-///
-/// @since 0.0.1
-/// @brief Semantic error
-/// @details
-/// This exception is raised if the semantic checker founds at least one error.
-/// If there are only warnings, no exceptions is raised.
-class SemanticError : public Exception
-{
-public:
-    SemanticError(const SemanticCheckList &sclist);
-
-    virtual ~SemanticError(void) throw()
-    {}
-
-    const SemanticCheckList& getCheckResults(void) const;
-
-protected:
-    const SemanticCheckList m_sclist;
-};
 
 
 
@@ -160,6 +127,69 @@ public:
     {}
 
 };
+
+
+class CompileError : public Exception
+{
+};
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// SyntaxError
+///
+/// @since 0.0.1
+/// @brief Syntax-error exception
+class SyntaxError : public CompileError
+{
+public:
+    SyntaxError(Token *t);
+
+    virtual ~SyntaxError(void) throw()
+    {}
+
+};
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// SyntaxError
+///
+/// @since 0.0.1
+/// @brief Syntax-error exception
+class LexicalError : public CompileError
+{
+public:
+    LexicalError(String what, SourceInfo info);
+
+    virtual ~LexicalError(void) throw()
+    {}
+
+};
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// SemanticError
+///
+/// @since 0.0.1
+/// @brief Semantic error
+/// @details
+/// This exception is raised if the semantic checker founds at least one error.
+/// If there are only warnings, no exceptions is raised.
+class SemanticError : public CompileError
+{
+public:
+    SemanticError(const SemanticCheckList &sclist);
+
+    virtual ~SemanticError(void) throw()
+    {}
+
+    const SemanticCheckList& getCheckResults(void) const;
+
+protected:
+    const SemanticCheckList m_sclist;
+};
+
+
 
 
 //..............................................................................
@@ -187,7 +217,7 @@ class InternalError : public RuntimeError
 public:
     InternalError(Context &context, const char* expr, const char *what, const char *file, int line);
 
-    InternalError(const char* expr, const char *what, const char *file, int line);
+    InternalError(const char* expr, const String &what, const char *file, int line);
 
     virtual ~InternalError(void) throw()
     {}

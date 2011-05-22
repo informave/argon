@@ -15,6 +15,10 @@ set(${PROJECT_NAME}_PATCH_LEVEL 0)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
 
+set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --show-possibly-lost=yes
+-show-reachable=no")
+
+
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR AND NOT MSVC_IDE)
   message(FATAL_ERROR "In-source builds are not allowed.
   Please create a directory and run cmake from there, passing the path
@@ -126,7 +130,7 @@ if(MSVC)
   endif(ARGON_ENABLE_WERROR)
 
 elseif(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -Wno-non-virtual-dtor")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-non-virtual-dtor -Wno-deprecated")
   if (ARGON_ENABLE_WARNINGS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W -Wextra -Wno-unused-parameter  -Wwrite-strings  -Wno-unused -Wno-switch-enum")
     if(ARGON_ENABLE_PEDANTIC)

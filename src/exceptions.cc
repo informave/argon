@@ -56,7 +56,8 @@ InternalError::InternalError(Context &context, const char* expr, const char *wha
 }
 
 
-InternalError::InternalError(const char* expr, const char *what, const char *file, int line)
+
+InternalError::InternalError(const char* expr, const String &what, const char *file, int line)
     : RuntimeError()
 {
     std::wstringstream ss;
@@ -72,8 +73,6 @@ InternalError::InternalError(const char* expr, const char *what, const char *fil
 
     this->m_what = String(ss.str()) + this->m_what;
 }
-
-
 
 
 
@@ -132,14 +131,22 @@ FieldNotFound::FieldNotFound(Context &context, String fname)
 /// @details
 /// The given token can be safety freed
 SyntaxError::SyntaxError(Token *t)
-    
+    : CompileError()
 {
     std::wstringstream ss;
-    ss << t->getSourceInfo().sourceName() << L":" << t->getSourceInfo().linenum() << L": "
-       << L"(AEC5001) "
-       << L"Syntax error "
-       << L"near token "
-       << t->data();
+    if(t)
+    {
+        ss << t->getSourceInfo().sourceName() << L":" << t->getSourceInfo().linenum() << L": "
+           << L"(AEC5001) "
+           << L"Syntax error "
+           << L"near token "
+           << t->data();
+    }
+    else // no tokens so far
+    {
+        ss << L"(AEC5002) "
+           << L"Empty input stream!";
+    }
 
     this->m_what = ss.str();
 }
@@ -169,7 +176,7 @@ Exception::what(void) const throw()
 /// @details
 /// 
 SemanticError::SemanticError(const SemanticCheckList &sclist)
-    : Exception(),
+    : CompileError(),
       m_sclist(sclist)
 {
     std::wstringstream ss;
@@ -192,6 +199,22 @@ const SemanticCheckList&
 SemanticError::getCheckResults(void) const
 {
     return this->m_sclist;
+}
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////// LexicalError
+
+/// @details
+/// 
+LexicalError::LexicalError(String what, SourceInfo info)
+    : CompileError()
+{
+    std::wstringstream ss;
+
+    ss << info.str() << " Error: " << what;
+    this->m_what = ss.str();
 }
 
 

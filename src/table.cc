@@ -63,14 +63,12 @@ public:
 
     virtual void visit(ArgumentsSpecNode *node)
     {
-        /// @bug it seems we must do nothing here, because tcv is only
-        /// for looping thorugh instruction commands.
+        // This visitor only handles instructions, so it's save to ignore this node.
     }
 
     virtual void visit(ArgumentsNode *node)
     {
-        /// @bug it seems we must do nothing here, because tcv is only
-        /// for looping thorugh instruction commands.
+        // This visitor only handles instructions, so it's save to ignore this node.
     }
 
 
@@ -197,8 +195,6 @@ Table::run(const ArgumentList &args)
     foreach_node( this->m_node->getChilds(), ObjectChildVisitor(this->proc(), *this, *this), 1);
 
     safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(this->m_node);
-
-    safe_ptr<ArgumentsSpecNode> argSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
     
     ARGON_ICERR_CTX(!!argNode, *this,
                 "table node does not contains an argument node");
@@ -206,7 +202,11 @@ Table::run(const ArgumentList &args)
     ARGON_ICERR_CTX(argNode->getChilds().size() >= 2 && argNode->getChilds().size() <= 4, *this,
                 "table argument count is invalid");
 
-    /// @bug add argSpecNode !! test
+
+    safe_ptr<ArgumentsSpecNode> argSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
+
+    ARGON_ICERR_CTX(!!argSpecNode, *this,
+                "table node does not contains an argument specification node");
 
     ARGON_ICERR_CTX((argSpecNode->getChilds().size() == args.size()), *this,
                 "argument count mismatch");
@@ -310,7 +310,6 @@ Table::run(const ArgumentList &args)
 //    if(m_mode == Object::READ_MODE)
 //        m_stmt->execute();
         
-    //this->setColumn(Column(1), Value(23)); /// @bug just for debugging
 
     return Value();
 }
@@ -390,7 +389,7 @@ Table::generateInsert(String objname)
 void
 Table::execute(void)
 {
-    m_stmt->execute(); /// @bug do same as desttable
+    m_stmt->execute();
 }
 
 
@@ -468,13 +467,37 @@ Table::_type(void) const
     return "TABLE";
 }
 
+
 /// @details
 /// 
-/// @bug Check connection type
 Table*
 Table::newInstance(Processor &proc, TableNode *node, Object::mode mode)
 {
-    return new TableSqlite(proc, node, mode);
+    safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(node);
+
+    ARGON_ICERR(!!argNode,
+                "table node does not contains an argument node");
+
+    ARGON_ICERR(argNode->getChilds().size() >= 2 && argNode->getChilds().size() <= 4,
+                "table argument count is invalid");
+
+    Connection* conn;
+
+    // Find connection
+    {
+        Node::nodelist_type &args = argNode->getChilds();
+        safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
+        conn = proc.getSymbols().find<Connection>(node->data());
+    }
+    
+    switch(conn->getEnv().getEngineType())
+    {
+    case informave::db::dal::DAL_ENGINE_SQLITE:
+        return new TableSqlite(proc, node, mode);        
+    default:
+    ARGON_ICERR(false,
+                "Unknown engine type in Table::newInstance()");
+    } 
 }
 
 

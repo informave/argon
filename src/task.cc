@@ -119,14 +119,13 @@ TaskChildVisitor::visit(SqlExecNode *node)
 void
 TaskChildVisitor::visit(ArgumentsSpecNode *node)
 {
-    /// @bug it seems we must do nothing here, because tcv is only
-    /// for looping thorugh instruction commands.
+    // This visitor only handles instructions, so it's save to ignore this node.
 }
 
 void
 TaskChildVisitor::visit(TmplArgumentsNode *node)
 {
-    /// @bug
+    // This visitor only handles instructions, so it's save to ignore this node.
 }
 
 

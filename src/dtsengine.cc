@@ -177,28 +177,24 @@ DTSEngine::load(std::istreambuf_iterator<wchar_t> in, String sourcename)
 
     this->m_tree.reset(new ParseTree);
 
+
+
     //p.trace(stdout, "[LEMON] ");
     do
     {
         t = tz.next();
         //std::cout << "found token: " << t.getSourceInfo() << std::endl;
-        try
+        if(t.id() != 0)
         {
-            if(t.id() != 0)
-            {
-                assert(! t.data().empty());
-                assert(t.getSourceInfo().linenum() > 0);
-                
-                Token *tp = this->m_tree->newToken(t);
-                p.parse(t.id(), tp, this->m_tree.get());
-            }
-            else
-                p.parse(0, NULL, this->m_tree.get());
+            assert(! t.data().empty());
+            assert(t.getSourceInfo().linenum() > 0);
+            
+            Token *tp = this->m_tree->newToken(t);
+
+            p.parse(t.id(), tp, this->m_tree.get());
         }
-        catch(int) /// @bug fix lexical exceptions
-        {
-            throw std::runtime_error(t.str());
-        }
+        else
+            p.parse(0, NULL, this->m_tree.get());
     }
     while(t != Token::eof());
 }

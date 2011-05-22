@@ -157,11 +157,13 @@ FetchTask::run(const ArgumentList &args)
 
 /// @details
 /// 
+/*
 Value
 FetchTask::resolveColumn(const Column &col)
 {
     return Value(this->getMainObject()->getColumn(col));
 }
+*/
 
 
 /// @details

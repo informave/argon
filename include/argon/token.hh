@@ -73,7 +73,7 @@ public:
     inline String str(void) const
     {
     	std::stringstream ss;
-    	ss << "(" << sourceName() << ":" << linenum() << ")";
+    	ss << sourceName() << ":" << linenum();
 	return String(ss.str());
     }
 

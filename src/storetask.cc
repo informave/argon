@@ -57,15 +57,10 @@ StoreTask::StoreTask(Processor &proc, TaskNode *node)
 
 /// @details
 /// 
-/// @bug Store tasks may not have a maoin object, test it!
 Object*
 StoreTask::getMainObject(void) 
-{ 
+{                 
     return this->m_destobject.get(); 
-/*
-    ARGON_ICERR_CTX(false, *this,
-                "A STORE task does not contains a destination object.");
-*/
 }
 
 
@@ -75,10 +70,6 @@ Object*
 StoreTask::getResultObject(void) 
 { 
     return this->m_destobject.get();
-/*
-    ARGON_ICERR_CTX(false, *this,
-                "A STORE task does not contains a result object.");
-*/
 }
 
 
@@ -168,11 +159,13 @@ StoreTask::run(const ArgumentList &args)
 
 /// @details
 /// 
+/*
 Value
 StoreTask::resolveColumn(const Column &col)
 {
     return Value(this->getMainObject()->getColumn(col));
 }
+*/
 
 
 /// @details

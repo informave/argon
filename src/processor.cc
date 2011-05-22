@@ -128,36 +128,26 @@ ProcTreeWalker::visit(TableNode *node)
 void
 ProcTreeWalker::visit(TaskNode *node)
 {
-    /// @bug is this good style?
+    Task *elem = 0;
 
-    assert(! node->type.empty());
-    ARGON_DPRINT(ARGON_MOD_PROC, "Task type: " << node->type);
+    assert(! node->id.str().empty());
 
-    if(node->type == "VOID")
+    switch(node->type)
     {
-        Task *elem = this->proc().getSymbols().addPtr( new VoidTask(this->proc(), node) );
-        this->proc().getSymbols().add(node->id, elem);
+    case ARGON_TASK_VOID:
+        elem = this->proc().getSymbols().addPtr( new VoidTask(this->proc(), node) );
+        break;
+    case ARGON_TASK_FETCH:
+        elem = this->proc().getSymbols().addPtr( new FetchTask(this->proc(), node) );
+        break;
+    case ARGON_TASK_STORE:
+    	elem = this->proc().getSymbols().addPtr( new StoreTask(this->proc(), node) );
+        break;
+    case ARGON_TASK_TRANSFER:
+    	elem = this->proc().getSymbols().addPtr( new TransferTask(this->proc(), node) );
+        break;
     }
-    else if(node->type == "FETCH")
-    {
-        Task *elem = this->proc().getSymbols().addPtr( new FetchTask(this->proc(), node) );
-        this->proc().getSymbols().add(node->id, elem);
-    }
-    else if(node->type == "STORE")
-    {
-    	Task *elem = this->proc().getSymbols().addPtr( new StoreTask(this->proc(), node) );
-	this->proc().getSymbols().add(node->id, elem);
-    }
-    else if(node->type == "TRANSFER")
-    {
-    	Task *elem = this->proc().getSymbols().addPtr( new TransferTask(this->proc(), node) );
-	this->proc().getSymbols().add(node->id, elem);
-    }
-    else
-    {
-        assert(!"unknown task type");
-    }
-
+    this->proc().getSymbols().add(node->id, elem);
 }
 
 

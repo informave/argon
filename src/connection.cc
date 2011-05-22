@@ -121,6 +121,16 @@ Connection::getDbc(void)
 
 /// @details
 /// 
+db::Env&
+Connection::getEnv(void)
+{
+    assert(this->m_alloc_env.get());
+    return *this->m_alloc_env.get();
+}
+
+
+/// @details
+/// 
 Value
 Connection::_value(void) const
 {

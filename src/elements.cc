@@ -110,11 +110,13 @@ Function::getSourceInfo(void) const
 
 /// @details
 /// 
+/*
 Value
 Function::resolveColumn(const Column &col)
 {
     throw std::runtime_error("resolve() not allowed on functions");
 }
+*/
 
 
 /// @details
@@ -122,11 +124,8 @@ Function::resolveColumn(const Column &col)
 Object*
 Function::getMainObject(void)
 {
-    /// @bug implement me
-    throw std::runtime_error("Function::getMainObject");
-
-    //return this; /// @bug is this ok? maybe we need this for query() calls from object bodies
-    // we should check the object mode
+    ARGON_ICERR_CTX(false, *this,
+                "A function does not contains a result object.");
 }
 
 
@@ -136,7 +135,7 @@ Object*
 Function::getResultObject(void) 
 { 
     ARGON_ICERR_CTX(false, *this,
-                "An object does not contains a result object.");
+                "A function does not contains a result object.");
 }
 
 
@@ -146,7 +145,7 @@ Object*
 Function::getDestObject(void)
 {
     ARGON_ICERR_CTX(false, *this,
-                "An object does not contains a destination object.");
+                "A function does not contains a destination object.");
 }
 
 
@@ -223,20 +222,22 @@ Object::run(const ArgumentList &args)
 
 /// @details
 /// 
+/*
 Value
 Object::resolveColumn(const Column &col)
 {
     throw std::runtime_error("resolve() not allowed on objects");
 }
+*/
 
 
 /// @details
-/// 
+ ///
 Object*
 Object::getMainObject(void)
 {
-    return this; /// @bug is this ok? maybe we need this for query() calls from object bodies
-    // we should check the object mode
+    ARGON_ICERR_CTX(false, *this,
+                "An object does not contains a main object.");
 }
 
 
@@ -358,36 +359,47 @@ ObjectInfo::getSourceInfo(void) const
 }
 
 
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// ObjectCreator
+///
+/// @since 0.0.1
+/// @brief Object Creator
+struct ObjectCreator : public Visitor
+{
+public:
+    ObjectCreator(Processor &proc, Object::mode mode, Object *&out)
+        : Visitor(Visitor::ignore_none),
+          m_proc(proc),
+          m_mode(mode),
+          m_object(out)
+    {}
+
+
+    virtual void visit(TableNode *node)
+    {
+        this->m_object = Table::newInstance(m_proc, node, m_mode);
+    }
+
+
+private:
+    Processor &m_proc;
+    Object::mode m_mode;
+    Object *&m_object;
+};
+
+
+
 /// @details
 /// 
-/// @bug Check object type
 Object*
 ObjectInfo::newInstance(Object::mode mode)
 {
-    //if table...
+    Object *tmp = 0;
+    apply_visitor(this->m_node, ObjectCreator(this->proc(), mode, tmp));
 
-    //return new Table(this->proc(), this->m_node, mode);
-
-    TableNode *n = dynamic_cast<TableNode*>(this->m_node);
-    assert(n);
-
-    return Table::newInstance(this->proc(), n, mode);
-
-    
-
-/*
-    switch(mode)
-    {
-    case Object::READ_MODE:
-        return new Table(this->proc(), this->m_node, mode);
-    case Object::ADD_MODE:
-        return new DestTable(this->proc(), this->m_node);
-    //case Object::CHANGE_MODE:
-    	
-    default:
-        throw std::runtime_error("object mode not handled");
-    }
-*/
+    ARGON_ICERR(!!tmp, "ObjectInfo was unable to create a new instance.");
+    return tmp;
 }
 
 
@@ -452,12 +464,11 @@ ValueElement::str(void) const
 
 
 /// @details
-/// 
+/// ValueElement does not contains any source information.
 SourceInfo
 ValueElement::getSourceInfo(void) const
 {
-    return SourceInfo(); /// @bug fixme
-    //return this->m_node->getSourceInfo();
+    return SourceInfo();
 }
 
 

@@ -312,6 +312,7 @@ public:
     {}
     
     db::Connection& getDbc(void);
+    db::Env& getEnv(void);
 
     inline Identifier id(void) const { return m_node->id; }
 
@@ -384,7 +385,7 @@ public:
     /// @brief Resolved the value of the given column
     /// or throws an exception if this context does not
     /// have a main object and/or open resultset.
-    virtual Value resolveColumn(const Column &col) = 0;
+    //virtual Value resolveColumn(const Column &col) = 0;
 
 
 protected:
@@ -435,7 +436,7 @@ public:
     virtual Object* getResultObject(void);
     virtual Object* getDestObject(void);
 
-    virtual Value resolveColumn(const Column &col);
+    //virtual Value resolveColumn(const Column &col);
 
 
 protected:
@@ -507,7 +508,7 @@ public:
     virtual Object* getResultObject(void);
     virtual Object* getDestObject(void);
 
-    virtual Value resolveColumn(const Column &col);
+    //virtual Value resolveColumn(const Column &col);
 
 
     virtual Value    _value(void) const;
@@ -543,7 +544,7 @@ public:
     virtual Object* getResultObject(void);
     virtual Object* getDestObject(void);
 
-    virtual Value resolveColumn(const Column &col);
+    //virtual Value resolveColumn(const Column &col);
 
 
     virtual Value    _value(void) const;
@@ -578,7 +579,7 @@ public:
     virtual Object* getResultObject(void);
     virtual Object* getDestObject(void);
 
-    virtual Value resolveColumn(const Column &col);
+    //virtual Value resolveColumn(const Column &col);
 
 
     virtual Value    _value(void) const;
@@ -617,7 +618,7 @@ public:
     virtual Object* getResultObject(void);
     virtual Object* getDestObject(void);
 
-    virtual Value resolveColumn(const Column &col);
+    //virtual Value resolveColumn(const Column &col);
 
     virtual Value    _value(void) const;
     virtual String   _string(void) const;
@@ -664,7 +665,6 @@ public:
 
     virtual const db::Value& getColumn(Column col) = 0;
 
-    virtual Value resolveColumn(const Column &col); /// @bug remove me
 
     virtual Value lastInsertRowId(void) = 0;
 
@@ -1156,7 +1156,6 @@ public:
     void addConnection(String name, db::Connection *dbc);
  
 
-    /// @bug fixme
     void load(std::istreambuf_iterator<wchar_t> in, String sourcename = String("<input>"));
 
     void load(const char* file);

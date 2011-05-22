@@ -719,6 +719,13 @@ struct IdCallNode : public Node
 };
 
 
+enum tasktype
+{
+    ARGON_TASK_VOID,
+    ARGON_TASK_TRANSFER,
+    ARGON_TASK_FETCH,
+    ARGON_TASK_STORE
+};
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////// TaskNode
@@ -745,7 +752,7 @@ struct TaskNode : public Node
     virtual void semanticCheck(SemanticCheck &sc);
 
     Identifier id;
-    String type;
+    enum tasktype type;
 };
 
 
@@ -962,6 +969,16 @@ inline void foreach_node(Node *node, Op op, int deep = -1)
         }
     }
 }
+
+
+/// @details
+/// 
+template<class Op>
+inline void apply_visitor(Node *node, Op op)
+{
+    foreach_node(node, op, 1);
+}
+
 
 
 /// @details

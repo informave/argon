@@ -98,6 +98,7 @@
 
 
 #include <argon/dtsengine>
+#include <argon/exceptions.hh>
 
 #include <iostream>
 #include <fstream>
@@ -115,6 +116,11 @@ int main(int argc, char **argv)
 	std::cout << "Argon command line interface (c) 2010 Daniel Vogelbacher" << std::endl
 		<< std::endl;
 
+
+    DTSEngine engine;
+
+
+
     if(argc != 2)
     {
         std::cout << "No file given" << std::endl;
@@ -122,17 +128,34 @@ int main(int argc, char **argv)
     }
     
 
-    DTSEngine engine;
-
-    //engine.addConnection("c2", &c2);
     try
     {
-        engine.load(argv[1]);
+        if(String(argv[1]) == "-")
+        {
+            engine.load(std::istreambuf_iterator<wchar_t>(std::wcin.rdbuf()));
+        }
+        else
+        {
+            engine.load(argv[1]);
+        }
         engine.exec();
 	}
+    catch(CompileError &err)
+    {
+        std::cout << "Compile error:" << std::endl
+                  << err.what() << std::endl
+                  << "No code was executed." << std::endl;
+        return -1;
+    }
+    catch(RuntimeError &err)
+    {
+        std::cout << "Runtime error:" << std::endl
+                  << err.what() << std::endl;
+        return -1;
+    }
 	catch(std::exception &e)
 	{
-		std::cout << "EXCEPTION:" << std::endl << e.what() << std::endl;
+		std::cout << "UNHANDLED EXCEPTION:" << std::endl << e.what() << std::endl;
         return -1;
 	}
     return 0;

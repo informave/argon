@@ -177,8 +177,9 @@ Node::addChilds(const NodeList *list)
 void 
 Node::addChild(Node *child)
 {
-    if(!child)
-        return; /// @bug replace with ARGON_ICERR_CTX
+    ARGON_ICERR(!!child,
+                "child node is null");
+
     this->m_childs.push_back(child);
     this->updateSourceInfo(child->getSourceInfo());
 }
@@ -653,8 +654,20 @@ TaskNode::TaskNode(void)
 void
 TaskNode::init(Identifier _id, String _type)
 {
-    id = _id;
-    type = _type;
+    this->id = _id;
+
+    if(_type == "VOID")
+        this->type = ARGON_TASK_VOID;
+    else if(_type == "FETCH")
+        this->type = ARGON_TASK_FETCH;
+    else if(_type == "STORE")
+        this->type = ARGON_TASK_STORE;
+    else if(_type == "TRANSFER")
+        this->type = ARGON_TASK_TRANSFER;
+    else
+    {
+        ARGON_ICERR(false, String("Unknown task type: ").append(_type).append(" at ").append(this->getSourceInfo().str()));
+    }
 }
 
 
@@ -751,8 +764,13 @@ ParseTree::~ParseTree(void)
 void
 ParseTree::raiseSyntaxError(void)
 {
-    Token *t = *this->m_tokens.rbegin();
-    throw SyntaxError(t);
+    if(this->m_tokens.size())
+    {
+        Token *t = *this->m_tokens.rbegin();
+        throw SyntaxError(t);
+    }
+    else
+        throw SyntaxError(0);
 }
 
 

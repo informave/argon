@@ -231,7 +231,7 @@ String
 SemanticCheckEntry::_str(void) const
 {
     std::wstringstream ss;
-    ss << "Error: " << this->m_what << " at " << this->m_info.str();
+    ss << this->m_info.str() << " Error: " << this->m_what;
     return ss.str();
 }
 

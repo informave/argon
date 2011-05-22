@@ -72,7 +72,7 @@ EvalExprVisitor::visit(ExprNode *node)
         {
             m_value.data() = val1.data().asInt() + val2.data().asInt();
         }
-        catch(...) /// @bug only for tests!
+        catch(...) /// @bug handle conversion error for math expressions
         {
             m_value.data() = val1.data().asStr() + val2.data().asStr();
         }
@@ -85,8 +85,8 @@ EvalExprVisitor::visit(ExprNode *node)
         }
         catch(informave::db::ex::null_value &err)
         {
-            m_value.data().setStr( (val1.data().isnull() ? "<null>" : val1.data().asStr()) );
-            m_value.data().setStr( m_value.data().asStr() + (val2.data().isnull() ? "<null>" : val2.data().asStr()) );
+            m_value.data().set<String>( (val1.data().isnull() ? "<null>" : val1.data().asStr()) );
+            m_value.data().set<String>( m_value.data().asStr() + (val2.data().isnull() ? "<null>" : val2.data().asStr()) );
             break;
         }
     case ExprNode::minus_expr:
@@ -270,8 +270,6 @@ ArgumentsVisitor::fallback_action(Node *node)
     Value val;
     EvalExprVisitor eval(this->m_proc, this->m_context, val);
     eval(node);
-
-    /// @bug Fix Expr visitor
     m_list.push_back(val);
 }
 
@@ -428,12 +426,13 @@ TemplateVisitor::TemplateVisitor(Processor &proc, Context &context, ObjectInfo *
 
 
 /// @details
-/// 
+/// We search a given identifier (example: FETCH [ myid ]) in the global
+/// scope.
 void
 TemplateVisitor::visit(IdNode *node)
 {
     Identifier id = node->data();
-    this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id); /// @bug replace with context?
+    this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id);
 }
     
 
@@ -459,7 +458,7 @@ void
 TemplateVisitor::visit(TableNode *node)
 {
     ObjectInfo *elem = this->m_context.getSymbols().addPtr( new ObjectInfo(this->m_proc, node) );
-    this->m_context.getSymbols().add(node->data(), elem); // @bug using anonymous id
+    this->m_context.getSymbols().add(node->data(), elem); /// @bug using anonymous id
 
     m_objinfo = elem;
 }

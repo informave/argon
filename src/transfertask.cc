@@ -194,12 +194,14 @@ TransferTask::run(const ArgumentList &args)
 
 /// @details
 /// 
+/*
 Value
 TransferTask::resolveColumn(const Column &col)
 {
     assert(!"not impl");
     //return Value(this->getMainObject()->getColumn(col));
 }
+*/
 
 
 /// @details
