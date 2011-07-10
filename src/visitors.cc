@@ -218,7 +218,8 @@ EvalExprVisitor::visit(ResIdNode *node)
 {
     try
     {
-        Value val = this->m_context.getMainObject()->lastInsertRowId();
+        //Value val = this->m_context.getMainObject()->lastInsertRowId();
+        Value val = this->m_context.getDestObject()->lastInsertRowId();
         m_value.data() = val.data();
     }
     catch(RuntimeError &err)
@@ -464,6 +465,18 @@ TemplateVisitor::visit(TableNode *node)
 }
 
 
+/// @details
+/// 
+void
+TemplateVisitor::visit(SqlNode *node)
+{
+    ObjectInfo *elem = this->m_context.getSymbols().addPtr( new ObjectInfo(this->m_proc, node) );
+    this->m_context.getSymbols().add(node->data(), elem); /// @bug using anonymous id
+
+    m_objinfo = elem;
+}
+
+
 
 //..............................................................................
 ///////////////////////////////////////////////////////////// TemplateArgVisitor
@@ -509,6 +522,44 @@ TemplateArgVisitor::visit(TableNode *node)
     // no args
 }
 
+
+/// @details
+/// 
+void
+TemplateArgVisitor::visit(SqlNode *node)
+{
+    // args required for SQL with parameters, but is not implemented.
+}
+
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////// LValueColumnVisitor
+
+/// @details
+/// 
+LValueColumnVisitor::LValueColumnVisitor(Processor &proc, Context &context, Column &c)
+    : Visitor(Visitor::ignore_none),
+      m_proc(proc),
+      m_context(context),
+      m_column(c)
+{}
+
+void
+LValueColumnVisitor::visit(ColumnNode *node)
+{
+    m_column = Column(node);
+    //m_list.insert(Column(node));
+}
+
+
+void
+LValueColumnVisitor::visit(ColumnNumNode *node)
+{
+    m_column = Column(node);
+    //m_list.insert(Column(node));
+}
 
 
 

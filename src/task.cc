@@ -38,6 +38,8 @@
 ARGON_NAMESPACE_BEGIN
 
 
+//..............................................................................
+/////////////////////////////////////////////////////////////// TaskChildVisitor
 
 
 TaskChildVisitor::TaskChildVisitor(Processor &proc, Context &context)
@@ -62,7 +64,10 @@ TaskChildVisitor::visit(ColumnAssignNode *node)
     //ColumnAssignOp op(this->m_proc, m_context, node);
     //this->m_proc.call(op);
 
-    Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
+    Column col;
+    LValueColumnVisitor(this->m_proc, this->m_context, col)(node->getChilds()[0]);
+
+    //Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
 
     Value val;
     EvalExprVisitor eval(this->m_proc, this->m_context, val);

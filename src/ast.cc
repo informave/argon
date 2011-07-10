@@ -60,6 +60,7 @@ void TaskExecNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void ColumnNode::accept(Visitor &visitor)         { visitor.visit(this); }
 void SqlExecNode::accept(Visitor &visitor)        { visitor.visit(this); }
 void TableNode::accept(Visitor &visitor)          { visitor.visit(this); }
+void SqlNode::accept(Visitor &visitor)            { visitor.visit(this); }
 void ArgumentsNode::accept(Visitor &visitor)      { visitor.visit(this); }
 void ArgumentsSpecNode::accept(Visitor &visitor)  { visitor.visit(this); }
 void TmplArgumentsNode::accept(Visitor &visitor)  { visitor.visit(this); }
@@ -85,6 +86,7 @@ String ColumnNode::str(void) const            { return "columnnode"; }
 String TokenNode::str(void) const             { return "tokennode"; }
 String SqlExecNode::str(void) const           { return "sqlexecnode"; }
 String TableNode::str(void) const             { return String("tablenode ") + this->data().str(); }
+String SqlNode::str(void) const               { return String("sqlnode ") + this->data().str(); }
 String ArgumentsNode::str(void) const         { return "ArgumentsNode"; }
 String ArgumentsSpecNode::str(void) const     { return "ArgumentsSpecNode"; }
 String TmplArgumentsNode::str(void) const     { return "TmplArgumentsNode"; }
@@ -116,6 +118,7 @@ String ColumnNode::nodetype(void) const              { return ColumnNode::name()
 String TokenNode::nodetype(void) const               { return TokenNode::name();           }
 String SqlExecNode::nodetype(void) const             { return SqlExecNode::name();         }
 String TableNode::nodetype(void) const               { return TableNode::name();           }
+String SqlNode::nodetype(void) const                 { return SqlNode::name();             }
 String ArgumentsNode::nodetype(void) const           { return ArgumentsNode::name();       }
 String ArgumentsSpecNode::nodetype(void) const       { return ArgumentsSpecNode::name();   }
 String TmplArgumentsNode::nodetype(void) const       { return TmplArgumentsNode::name();   }
@@ -234,6 +237,7 @@ DEFAULT_VISIT(TaskExecNode)
 DEFAULT_VISIT(ColumnNode)
 DEFAULT_VISIT(SqlExecNode)
 DEFAULT_VISIT(TableNode)
+DEFAULT_VISIT(SqlNode)
 DEFAULT_VISIT(ArgumentsNode)
 DEFAULT_VISIT(ArgumentsSpecNode)
 DEFAULT_VISIT(TmplArgumentsNode)
@@ -551,6 +555,26 @@ TableNode::init(Identifier id)
 }
 
 
+//..............................................................................
+//////////////////////////////////////////////////////////////////////// SqlNode
+
+
+/// @details
+/// 
+SqlNode::SqlNode(void)
+    : ObjectNode()
+{}
+
+
+/// @details
+/// 
+void
+SqlNode::init(Identifier id)
+{
+    ObjectNode::init(id);
+}
+
+
 
 
 
@@ -775,6 +799,17 @@ ParseTree::raiseSyntaxError(void)
 
 
 
+String ParseTree::gen_anonymous_id(void)
+{
+    std::stringstream ss;
+    ss << ++this->m_anonymous_id_counter;
+    return "anonymous_obj" + ss.str();
+}
+
+
+
+
+
 
 //..............................................................................
 /////////////////////////////////////////////////////////////// PrintTreeVisitor
@@ -829,9 +864,6 @@ std::ostream& operator<<(std::ostream &o, const Identifier &i)
     o << i.name();
     return o;
 }
-
-
-
 
 
 

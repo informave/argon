@@ -61,7 +61,7 @@ public:
             EvalExprVisitor eval(this->m_proc, this->m_context, val);
             eval(node);
             
-            m_stream << val.data().asStr();
+            m_stream << val.data().asStr(m_stream.getloc());
         }
         catch(informave::db::ex::null_value &err)
         {
@@ -135,9 +135,13 @@ LogCmd::run(const ArgumentList &args)
 
     std::wstringstream ss;
 
+    ss.imbue(std::wcout.getloc());
+
     foreach_node(this->m_node->getChilds(), LogChildVisitor(this->proc(), this->m_context, ss), 1);
 
     std::wcout << L"[LOG] " << ss.str() << std::endl;
+
+    //std::cout << String(ss.str()).to("UTF-8") << std::endl;
 
     return Value();
 }

@@ -109,6 +109,14 @@ int main(int argc, char **argv)
 
     std::locale::global(std::locale(""));
 
+    std::cout.imbue(std::locale());
+    std::cerr.imbue(std::locale());
+    std::clog.imbue(std::locale());
+    std::wcout.imbue(std::locale());
+    std::wcerr.imbue(std::locale());
+    std::wclog.imbue(std::locale());
+
+
     std::ios_base::sync_with_stdio(true);
     std::cout.setf(std::ios::unitbuf);
     std::wcout.setf(std::ios::unitbuf);

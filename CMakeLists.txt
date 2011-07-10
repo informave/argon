@@ -245,6 +245,7 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/connection.cc
 	${ARGON_MAIN_SRC_DIR}/table.cc
 	${ARGON_MAIN_SRC_DIR}/table_sqlite.cc
+	${ARGON_MAIN_SRC_DIR}/sql.cc
 	${ARGON_MAIN_SRC_DIR}/transfertask.cc
 	${ARGON_MAIN_SRC_DIR}/fetchtask.cc
 	${ARGON_MAIN_SRC_DIR}/semantic.cc

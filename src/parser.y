@@ -126,7 +126,7 @@ declBody(A) ::= .                           { A = tree->newNodeList(); }
 anonymousObj(A) ::= objType(B). {
 					 CREATE_NODE(ArgumentsSpecNode);
 					 A = B;
-					 A->init(Identifier("anonymous-1"));
+					 A->init(Identifier(tree->gen_anonymous_id()));
 					 A->addChild(node);
 }
 
@@ -166,7 +166,11 @@ procedureObj(A) ::= PROCEDURE callArgs. { A = 0; }
 
 %type sqlObj { ObjectNode* }
 
-sqlObj(A) ::= SQL callArgs. { A = 0; }
+sqlObj(A) ::= SQL callArgs(B). {
+			 CREATE_NODE(SqlNode);
+			 node->addChild(B);
+			 A = node;
+}
 
 
 

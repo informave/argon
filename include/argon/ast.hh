@@ -49,7 +49,10 @@ struct TaskExecNode;
 struct LiteralNode;
 struct ColumnNode;
 struct ObjectNode;
+
 struct TableNode;
+struct SqlNode;
+
 struct ArgumentsNode;
 struct ArgumentsSpecNode;
 struct TmplArgumentsNode;
@@ -68,6 +71,8 @@ class ParseTree;
 
 typedef std::deque<Node*> NodeList;
 
+
+String gen_anonymous_id(void);
 
 
 //..............................................................................
@@ -154,7 +159,10 @@ public:
     virtual void visit(IdCallNode *node);
     virtual void visit(ColumnAssignNode *node);
     virtual void visit(ColumnNumNode *node);
+
     virtual void visit(TableNode *node);
+    virtual void visit(SqlNode *node);
+
     virtual void visit(NumberNode *node);
     virtual void visit(ExprNode *node);
     virtual void visit(FuncCallNode *node);
@@ -834,6 +842,34 @@ struct TableNode : public ObjectNode
 };
 
 
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////////// SqlNode
+///
+/// @since 0.0.1
+/// @brief Node for SQL()
+struct SqlNode : public ObjectNode
+{
+    SqlNode(void);
+
+    virtual ~SqlNode(void)
+    {}
+
+    void init(Identifier _id);
+
+    virtual void accept(Visitor &visitor);
+  
+    virtual String str(void) const;
+
+    virtual String nodetype(void) const;
+
+    static String name(void) { return "SQL"; }
+
+    virtual void semanticCheck(SemanticCheck &sc);
+};
+
+
+
 //..............................................................................
 //////////////////////////////////////////////////////////////////////// LogNode
 ///
@@ -868,7 +904,8 @@ public:
     ParseTree(void)
         : m_nodelists(),
           m_nodes(),
-          m_tokens()
+          m_tokens(),
+          m_anonymous_id_counter(0)
     {}
 
     virtual ~ParseTree(void);
@@ -880,6 +917,7 @@ public:
     virtual String nodetype(void) const;
     static String name(void) { return "Parsetree"; }
 
+    String gen_anonymous_id(void);
 
     virtual void raiseSyntaxError(void);
 
@@ -919,6 +957,8 @@ protected:
 
     /// @brief All allocated tokens, cleaned up by the destructor
     std::list<Token*>     m_tokens;
+
+    size_t                m_anonymous_id_counter;
 
 private:
     ParseTree(const ParseTree&);

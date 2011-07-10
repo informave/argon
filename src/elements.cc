@@ -262,6 +262,28 @@ Object::getDestObject(void)
 
 
 
+/// @details
+/// 
+int
+Object::getBindPosition(const Column &col)
+{
+    std::map<Column, int>::iterator i = this->m_column_mappings.find(col);
+    if(i == this->m_column_mappings.end())
+        throw std::runtime_error(String("unknown column: ") + col.getName());
+    else
+        return i->second;
+}
+
+
+/// @details
+/// 
+void
+Object::addBindPosition(const Column &col, int pos)
+{
+    this->m_column_mappings[col] = pos;
+}
+
+
 
 //..............................................................................
 //////////////////////////////////////////////////////////////////////// Element
@@ -379,6 +401,11 @@ public:
     virtual void visit(TableNode *node)
     {
         this->m_object = Table::newInstance(m_proc, node, m_mode);
+    }
+
+    virtual void visit(SqlNode *node)
+    {
+        this->m_object = Sql::newInstance(m_proc, node, m_mode);
     }
 
 

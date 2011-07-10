@@ -58,6 +58,7 @@ public:
     virtual void visit(LiteralNode *node);
 
     virtual void visit(TableNode *node);
+    virtual void visit(SqlNode *node);
 
 protected:
     inline Processor& proc(void) { return m_proc; }
@@ -267,6 +268,8 @@ public:
 
     virtual void visit(TableNode *node);
 
+    virtual void visit(SqlNode *node);
+
 protected:
     Processor &m_proc;
     Context &m_context;
@@ -298,6 +301,7 @@ public:
 
     virtual void visit(TableNode *node);
 
+    virtual void visit(SqlNode *node);
 
 protected:
     Processor &m_proc;
@@ -306,6 +310,28 @@ protected:
         
 };
 
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////// LValueColumnVisitor
+///
+/// @since 0.0.1
+/// @brief Object Child Visitor
+struct LValueColumnVisitor : public Visitor
+{
+public:
+    LValueColumnVisitor(Processor &proc, Context &context, Column &c);
+
+    virtual void visit(ColumnNode *node);
+
+    virtual void visit(ColumnNumNode *node);
+ 
+private:
+    Processor &m_proc;
+    Context &m_context;
+    //SourceTable      &m_sourcetable;
+    Column &m_column;
+};
 
 
 

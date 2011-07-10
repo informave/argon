@@ -40,14 +40,14 @@ ARGON_NAMESPACE_BEGIN
 
 
 //..............................................................................
-///////////////////////////////////////////////////////////// ObjectChildVisitor
+//////////////////////////////////////////////////////// TableObjectChildVisitor
 ///
 /// @since 0.0.1
 /// @brief Object Child Visitor
-struct ObjectChildVisitor : public Visitor
+struct TableObjectChildVisitor : public Visitor
 {
 public:
-    ObjectChildVisitor(Processor &proc, Context &context, /*SourceTable*/ Object &task)
+    TableObjectChildVisitor(Processor &proc, Context &context, /*SourceTable*/ Object &task)
         : Visitor(Visitor::ignore_none),
           m_proc(proc),
           m_context(context),
@@ -192,7 +192,7 @@ Table::run(const ArgumentList &args)
 
     Object::run(args);
 
-    foreach_node( this->m_node->getChilds(), ObjectChildVisitor(this->proc(), *this, *this), 1);
+    foreach_node( this->m_node->getChilds(), TableObjectChildVisitor(this->proc(), *this, *this), 1);
 
     safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(this->m_node);
     
@@ -325,24 +325,6 @@ Table::generateSelect(String objname)
     return s;
 }
 
-
-
-
-int
-Object::getBindPosition(const Column &col)
-{
-    std::map<Column, int>::iterator i = this->m_column_mappings.find(col);
-    if(i == this->m_column_mappings.end())
-        throw std::runtime_error(String("unknown column: ") + col.getName());
-    else
-        return i->second;
-}
-
-void
-Object::addBindPosition(const Column &col, int pos)
-{
-    this->m_column_mappings[col] = pos;
-}
 
 
 

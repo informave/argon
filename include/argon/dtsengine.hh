@@ -814,6 +814,85 @@ private:
 
 
 //..............................................................................
+//////////////////////////////////////////////////////////////////////////// Sql
+///
+/// @since 0.0.1
+/// @brief SQL
+class Sql : public Object
+{
+public:
+    typedef ObjectInfo Spec;
+
+    static Sql* newInstance(Processor &proc, SqlNode *node, Object::mode mode);
+
+    Sql(Processor &proc, ObjectNode *node, Object::mode mode); // change node
+
+    virtual ~Sql(void) 
+    {}
+
+    virtual String str(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+    inline Identifier id(void) const { return m_node->data(); } /// @bug is this correct?
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
+
+    virtual void setColumn(const Column &col, const Value &v);
+
+    virtual const db::Value& getColumn(Column col);
+
+    virtual void execute(void);
+
+    virtual bool next(void);
+
+    virtual bool eof(void) const;
+
+    virtual void setColumnList(const ColumnList &list);
+
+    virtual void setResultList(const ColumnList &list);
+
+    virtual Value lastInsertRowId(void);
+
+/*
+    String generateSelect(String objname);
+
+    String generateInsert(String objname);
+*/  
+
+protected:
+    virtual Value run(const ArgumentList &args);
+
+    db::Stmt::ptr  m_stmt;
+    Connection *m_conn;
+
+    ColumnList m_columns;
+    ColumnList m_result_columns;
+
+    String m_objname;
+
+    Object::mode m_mode;
+
+    NodeList  m_prepost_nodes;
+    NodeList  m_colassign_nodes;
+
+private:
+    Sql(const Sql&);
+    Sql& operator=(const Sql&);
+};
+
+
+
+
+//..............................................................................
 ////////////////////////////////////////////////////////////////////// DestTable
 ///
 /// @since 0.0.1
@@ -1009,28 +1088,36 @@ class Column
 public:
     enum selection_mode {
         by_number,
-        by_name
+        by_name,
+        invalid_column
     };
+
+    Column(void) : m_mode(invalid_column), m_name(), m_num()
+    {}
 
     Column(ColumnNode *node) : m_mode(by_name), m_name(), m_num()
     {
+        assert(node);
         m_name = node->data();
     }
 
     Column(ResColumnNode *node) : m_mode(by_name), m_name(), m_num()
     {
+        assert(node);
         m_name = node->data();
     }
     
 
     Column(ColumnNumNode *node) : m_mode(by_number), m_name(), m_num()
     {
+        assert(node);
         m_num = node->data();
     }
 
 
     Column(ResColumnNumNode *node) : m_mode(by_number), m_name(), m_num()
     {
+        assert(node);
         m_num = node->data();
     }
 
@@ -1057,6 +1144,8 @@ public:
             return m_num < col.m_num;
         case by_name:
             return m_name < col.m_name;
+        default:
+            throw std::runtime_error("invalid column");
         }
     }
 

@@ -122,6 +122,33 @@ ProcTreeWalker::visit(TableNode *node)
 
 
 
+/// @details
+/// 
+void
+ProcTreeWalker::visit(SqlNode *node)
+{
+/*
+    Connection *elem = this->proc().toHeap( new Connection(this->proc(), node, this->m_proc.getConnections()) );
+    this->proc().addSymbol(node->id, elem);
+
+    if(! elem->getDbc().isConnected())
+    {
+        throw std::runtime_error("dbc is not connected");
+    }
+*/
+
+    safe_ptr<Element> elem = SYMBOL_CREATE_ON(this->proc(), node->data(), new Sql::Spec(this->proc(), node) );
+
+//    ObjectSepc *elem = this->proc().getSymbols().addPtr( new Table::Specification(this->proc(), node) );
+
+//    ObjectInfo *elem = this->proc().getSymbols().addPtr( new ObjectInfo(this->proc(), node) );
+//    this->proc().getSymbols().add(node->id, elem);
+
+    this->m_proc.getSymbols().find<Element>(node->data());
+
+    //this->m_proc.getSymbol<Task>(id).exec(argumentlist);
+}
+
 
 /// @details
 /// 
