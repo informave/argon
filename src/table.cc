@@ -477,8 +477,11 @@ Table::newInstance(Processor &proc, TableNode *node, Object::mode mode)
     case informave::db::dal::DAL_ENGINE_SQLITE:
         return new TableSqlite(proc, node, mode);        
     default:
+    	return new Table(proc, node, mode);
+    /*
     ARGON_ICERR(false,
                 "Unknown engine type in Table::newInstance()");
+		*/
     } 
 }
 

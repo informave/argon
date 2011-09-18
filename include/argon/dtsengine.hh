@@ -1195,6 +1195,9 @@ public:
 
     Function* createFunction(const Identifier &id);
 
+    DTSEngine& getEngine(void);
+    const DTSEngine& getEngine(void) const;
+
 protected:
     db::ConnectionMap& getConnections(void);
 
@@ -1238,12 +1241,17 @@ class DTSEngine
 {
     friend class Processor;
 
+    typedef void (*logger_callback_t)(const String &msg);
+
 public:
     DTSEngine(void);
 
     /// @brief Adds a new connection to the internal connection list
     void addConnection(String name, db::Connection *dbc);
- 
+
+    void registerLogger(logger_callback_t callback);
+
+    void writeLog(const String &what) const;
 
     void load(std::istreambuf_iterator<wchar_t> in, String sourcename = String("<input>"));
 
@@ -1275,6 +1283,7 @@ protected:
     db::ConnectionMap           m_userConns;
     Processor                   m_proc;
     function_map                m_functions;
+    logger_callback_t           m_logger_callback;
 
 private:
     DTSEngine(const DTSEngine&);

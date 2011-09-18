@@ -334,6 +334,22 @@ Processor::getStack(void)
 }
 
 
+DTSEngine&
+Processor::getEngine(void)
+{
+	return this->m_engine;
+}
+
+
+const DTSEngine&
+Processor::getEngine(void) const
+{
+	return this->m_engine;
+}
+
+
+
+
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// LastError
 

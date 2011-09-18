@@ -139,7 +139,9 @@ LogCmd::run(const ArgumentList &args)
 
     foreach_node(this->m_node->getChilds(), LogChildVisitor(this->proc(), this->m_context, ss), 1);
 
-    std::wcout << L"[LOG] " << ss.str() << std::endl;
+    //std::wcout << L"[LOG] " << ss.str() << std::endl;
+
+    this->proc().getEngine().writeLog(ss.str());
 
     //std::cout << String(ss.str()).to("UTF-8") << std::endl;
 
