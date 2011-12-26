@@ -97,7 +97,19 @@ VoidTask::run(const ArgumentList &args)
 {
     Task::run(args);
 
-    foreach_node( this->m_node->getChilds(), TaskChildVisitor(this->proc(), *this), 1);
+    // Executes all init-instructions
+    foreach_node( this->m_init_nodes, TaskChildVisitor(this->proc(), *this), 1);
+    {
+        // Executes all before instructions
+        foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
+        // Executes all rules instructions
+        foreach_node( this->m_rules_nodes, TaskChildVisitor(this->proc(), *this), 1);
+        // Executes all after instructions
+        foreach_node( this->m_after_nodes, TaskChildVisitor(this->proc(), *this), 1);
+    }
+    // Executes all finalize-instructions
+    foreach_node( this->m_final_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
 
     return Value();
 }

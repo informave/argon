@@ -1,0 +1,18 @@
+
+
+
+PROGRAM.
+
+
+TASK castme : STORE[]
+BEGIN
+	$res1 <- date(123);
+	$res2 <- timestamp(23);
+	$res3 <- string(23);
+	$res4 <- string(int(timestamp("2003-04-05")));
+	$res5 <- numeric(23);
+	$res5 <- bool(23);
+END;
+
+
+

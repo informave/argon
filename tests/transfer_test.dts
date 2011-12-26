@@ -1,43 +1,47 @@
 
 CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
 
-DECLARE testTable 	AS TABLE(c1, "testTable");
+DECLARE testTable 	: TABLE(c1, "testTable");
 
 PROGRAM.
 
 
 
-TASK print AS FETCH [ Table(c1, "secTable") ]
+TASK print : FETCH [ Table(c1, "secTable") ]
 BEGIN
 	LOG "Data: " || $num || " is -> " || $val;
 
 	//EXEC TASK addto($id, $name);
 END;
 
-TASK showid(id) AS VOID
+TASK showid(id) : VOID
 BEGIN
 	LOG "ID: " || id;
 END;
 
 
-TASK addto(num, value) AS STORE [ testTable ]
+TASK addto(num, value) : STORE [ testTable ]
 BEGIN
+ rules:
 	$name <- string.concat(value, " <text>");
 	$id <- num + 1;
+ after:
 	EXEC TASK showid(%%);
 END;
 
 
-TASK transfer_to AS TRANSFER [ Table(c1, "secTable"), testTable ]
+TASK transfer_to : TRANSFER [ Table(c1, "secTable"), testTable ]
 BEGIN
+ rules:
 	$num	<- $id + 10000;
 	$val	<- "testtext";
+ after:
 	LOG "New data: " || %num || " with id: " || %%;
 END;
 
 
 
-TASK main() AS VOID
+TASK main() : VOID
 BEGIN
 	LOG "Creating test data...";
 

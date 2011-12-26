@@ -1,21 +1,21 @@
 
 CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
 
-DECLARE srcTable 	AS TABLE(c1, "srcTable");
-DECLARE destTable 	AS TABLE(c1, "destTable");
+DECLARE srcTable 	: TABLE(c1, "srcTable");
+DECLARE destTable 	: TABLE(c1, "destTable");
 
 
 PROGRAM.
 
 
 
-TASK print AS FETCH [ destTable ]
+TASK print : FETCH [ destTable ]
 BEGIN
 	LOG "Table row: " || $value || " / " || $number;
 END;
 
 
-TASK copytable AS FETCH [ srcTable ]
+TASK copytable : FETCH [ srcTable ]
 BEGIN
 	LOG "Copy row, value: " || $name || " and " || $1;
 
@@ -23,7 +23,7 @@ BEGIN
 END;
 
 
-TASK main() AS VOID
+TASK main() : VOID
 BEGIN
 	LOG "Creating test data...";
 

@@ -73,39 +73,49 @@ void FuncCallNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void ResColumnNode::accept(Visitor &visitor)      { visitor.visit(this); }
 void ResColumnNumNode::accept(Visitor &visitor)   { visitor.visit(this); }
 void ResIdNode::accept(Visitor &visitor)          { visitor.visit(this); }
+void TaskInitNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void TaskBeforeNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void TaskRulesNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void TaskAfterNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void TaskFinalNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
-String ConnNode::str(void) const              { return "ConnNode"; }
-String ConnSpec::str(void) const              { return "ConnSpec"; }
-String TaskNode::str(void) const              { return this->id.str(); }
-String ParseTree::str(void) const             { return "ParseTree"; }
-String LogNode::str(void) const               { return "LogNode"; }
-String LiteralNode::str(void) const           { return this->m_data; }
-String IdNode::str(void) const                { return String("IdNode: ") + this->data().str(); }
-String TaskExecNode::str(void) const          { return "taskexecnode"; }
-String ColumnNode::str(void) const            { return "columnnode"; }
-String TokenNode::str(void) const             { return "tokennode"; }
-String SqlExecNode::str(void) const           { return "sqlexecnode"; }
-String TableNode::str(void) const             { return String("tablenode ") + this->data().str(); }
-String SqlNode::str(void) const               { return String("sqlnode ") + this->data().str(); }
-String ArgumentsNode::str(void) const         { return "ArgumentsNode"; }
-String ArgumentsSpecNode::str(void) const     { return "ArgumentsSpecNode"; }
-String TmplArgumentsNode::str(void) const     { return "TmplArgumentsNode"; }
-String IdCallNode::str(void) const            { return "IdCallNode"; }
-String ColumnAssignNode::str(void) const      { return "ColumnAssignNode"; }
-String ColumnNumNode::str(void) const         { return "ColumnNumNode"; }
-String FuncCallNode::str(void) const          { return "FuncCallNode"; }
-String ResColumnNode::str(void) const         { return "ResColumnNode"; }
-String ResColumnNumNode::str(void) const      { return "ResColumnNumNode"; }
-String ResIdNode::str(void) const             { return "ResIdNode"; }
 
-String NumberNode::str(void) const
+
+String ConnNode::dump(void) const              { return "ConnNode"; }
+String ConnSpec::dump(void) const              { return "ConnSpec"; }
+String TaskNode::dump(void) const              { return String("(").append(this->id.str()).append(")"); }
+String ParseTree::dump(void) const             { return "ParseTree"; }
+//String LogNode::dump(void) const               { return "LogNode"; }
+//String LiteralNode::dump(void) const           { return this->m_data; }
+//String IdNode::dump(void) const                { return String("IdNode: ") + this->data().str(); }
+//String TaskExecNode::dump(void) const          { return "taskexecnode"; }
+//String ColumnNode::dump(void) const            { return "columnnode"; }
+String TokenNode::dump(void) const             { return "tokennode"; }
+String SqlExecNode::dump(void) const           { return String("(").append(m_sql).append(")"); }
+String TableNode::dump(void) const             { return this->data().str(); }
+String SqlNode::dump(void) const               { return this->data().str(); }
+//String ArgumentsNode::dump(void) const         { return "ArgumentsNode"; }
+//String ArgumentsSpecNode::dump(void) const     { return "ArgumentsSpecNode"; }
+//String TmplArgumentsNode::dump(void) const     { return "TmplArgumentsNode"; }
+//String IdCallNode::dump(void) const            { return "IdCallNode"; }
+//String ColumnAssignNode::dump(void) const      { return "ColumnAssignNode"; }
+//String ColumnNumNode::dump(void) const         { return "ColumnNumNode"; }
+//String FuncCallNode::dump(void) const          { return "FuncCallNode"; }
+//String ResColumnNode::dump(void) const         { return "ResColumnNode"; }
+//String ResColumnNumNode::dump(void) const      { return "ResColumnNumNode"; }
+//String ResIdNode::dump(void) const             { return "ResIdNode"; }
+//String TaskInitNode::dump(void) const             { return "TaskInitNode"; }
+
+/*
+String NumberNode::dump(void) const
 {
     std::wstringstream ss;
     ss << "NumberNode " << this->data();
     return String(ss.str());
 }
+*/
 
-
+/*
 String ConnNode::nodetype(void) const                { return ConnNode::name();            }
 String ConnSpec::nodetype(void) const                { return ConnSpec::name();            }
 String TaskNode::nodetype(void) const                { return TaskNode::name();            }
@@ -131,6 +141,8 @@ String FuncCallNode::nodetype(void) const            { return FuncCallNode::name
 String ResColumnNode::nodetype(void) const            { return ResColumnNode::name();            }
 String ResColumnNumNode::nodetype(void) const            { return ResColumnNumNode::name();            }
 String ResIdNode::nodetype(void) const            { return ResIdNode::name();            }
+String TaskInitNode::nodetype(void) const            { return TaskInitNode::name();            }
+*/
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////////// Node
@@ -251,6 +263,13 @@ DEFAULT_VISIT(ResColumnNode)
 DEFAULT_VISIT(ResColumnNumNode)
 DEFAULT_VISIT(ResIdNode)
 
+DEFAULT_VISIT(TaskInitNode)
+DEFAULT_VISIT(TaskBeforeNode)
+DEFAULT_VISIT(TaskRulesNode)
+DEFAULT_VISIT(TaskAfterNode)
+DEFAULT_VISIT(TaskFinalNode)
+
+
 /// @details
 /// 
 void
@@ -275,33 +294,12 @@ TokenNode::TokenNode(Token *tok)
 
 
 //..............................................................................
-///////////////////////////////////////////////////////////////////// ColumnNode
-
-/// @details
-/// 
-ColumnNode::ColumnNode(void)
-    : SimpleNode<String>()
-{}
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////////// ResColumnNode
-
-/// @details
-///
-ResColumnNode::ResColumnNode(void)
-    : SimpleNode<String>()
-{}
-
-
-
-//..............................................................................
 ////////////////////////////////////////////////////////////////// ColumnNumNode
 
 /// @details
 /// 
 ColumnNumNode::ColumnNumNode(void)
-    : m_data()
+    : SimpleNode<int>()
 {}
 
 
@@ -316,14 +314,6 @@ ColumnNumNode::init(String name)
 }
 
 
-/// @details
-/// 
-int
-ColumnNumNode::data(void) const
-{
-    return this->m_data;
-}
-
 
 //..............................................................................
 /////////////////////////////////////////////////////////////// ResColumnNumNode
@@ -331,7 +321,7 @@ ColumnNumNode::data(void) const
 /// @details
 ///
 ResColumnNumNode::ResColumnNumNode(void)
-    : m_data()
+    : SimpleNode<int>()
 {}
 
 
@@ -346,130 +336,12 @@ ResColumnNumNode::init(String name)
 }
 
 
-/// @details
-///
-int
-ResColumnNumNode::data(void) const
-{
-    return this->m_data;
-}
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// ResIdNode
 
-/// @details
-///
-ResIdNode::ResIdNode(void)
-    : m_data()
-{}
 
 
-/// @details
-///
-void
-ResIdNode::init(String name)
-{
-    assert(name.length() > 0);
-    db::Variant v(name);
-    this->m_data = v;
-}
-
-
-/// @details
-///
-String
-ResIdNode::data(void) const
-{
-    return this->m_data;
-}
-
-
-//..............................................................................
-/////////////////////////////////////////////////////////////////// TaskExecNode
-
-/// @details
-/// 
-TaskExecNode::TaskExecNode(void)
-    : SimpleNode<Identifier>()
-{}
-
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////////// ArgumentsNode
-
-/// @details
-/// 
-ArgumentsNode::ArgumentsNode(void)
-    : Node()
-{}
-
-
-//..............................................................................
-/////////////////////////////////////////////////////////////// ColumnAssignNode
-
-/// @details
-/// 
-ColumnAssignNode::ColumnAssignNode(void)
-    : Node()
-{}
-
-
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////// ArgumentsSpecNode
-
-/// @details
-/// 
-ArgumentsSpecNode::ArgumentsSpecNode(void)
-    : Node()
-{}
-
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////// TmplArgumentsNode
-
-/// @details
-/// 
-TmplArgumentsNode::TmplArgumentsNode(void)
-    : Node()
-{}
-
-
-//..............................................................................
-/////////////////////////////////////////////////////////////// ArgumentItemNode
-
-/// @details
-/// 
-/*
-  ArgumentItemNode::ArgumentItemNode(void)
-  : Node()
-  {}
-*/
-
-
-//..............................................................................
-///////////////////////////////////////////////////////////////////// IdCallNode
-
-/// @details
-/// 
-IdCallNode::IdCallNode(void)
-    : Node()
-{}
-
-
-
-//..............................................................................
-/////////////////////////////////////////////////////////////////// FuncCallNode
-
-
-/// @details
-/// 
-FuncCallNode::FuncCallNode(void)
-    : SimpleNode<Identifier>()
-{}
 
 
 //..............................................................................
@@ -504,9 +376,9 @@ ExprNode::data(void) const
 
 
 String
-ExprNode::str(void) const
+ExprNode::dump(void) const
 {
-    String s("ExprNode ");
+    String s("(");
     switch(m_mode)
     {
     case ExprNode::plus_expr:
@@ -520,19 +392,8 @@ ExprNode::str(void) const
     case ExprNode::concat_expr:
         s.append("||"); break;
     };
-    return s;
+    return s.append(")");
 }
-
-//..............................................................................
-///////////////////////////////////////////////////////////////////// ObjectNode
-
-
-/// @details
-/// 
-ObjectNode::ObjectNode(void)
-    : SimpleNode<Identifier>()
-{}
-
 
 
 //..............................................................................
@@ -620,24 +481,12 @@ SqlExecNode::sql(void) const
 
 
 //..............................................................................
-//////////////////////////////////////////////////////////////////// LiteralNode
-
-/// @details
-/// 
-LiteralNode::LiteralNode(void)
-    : SimpleNode<String>()
-{}
-
-
-
-//..............................................................................
 ///////////////////////////////////////////////////////////////////// NumberNode
 
 /// @details
 /// 
 NumberNode::NumberNode(void)
-    : Node(),
-      m_data()
+    : SimpleNode<int>()
 {}
 
 
@@ -651,15 +500,6 @@ NumberNode::init(String data)
     this->m_data = v.asInt();
 }
 
-
-//..............................................................................
-///////////////////////////////////////////////////////////////////////// IdNode
-
-/// @details
-/// 
-IdNode::IdNode(void)
-    : SimpleNode<Identifier>()
-{}
 
 
 //..............................................................................
@@ -735,15 +575,6 @@ ConnSpec::init(String _type, String _dbcstr)
     this->type = _type;
     this->dbcstr = _dbcstr;
 }
-
-
-//..............................................................................
-//////////////////////////////////////////////////////////////////////// LogNode
-
-/// @details
-/// 
-LogNode::LogNode(void)
-{}
 
 
 
@@ -851,7 +682,7 @@ PrintTreeVisitor::next(Node *node)
 void
 PrintTreeVisitor::fallback_action(Node *node)
 {
-    m_stream << this->m_indent << node->str()  << std::endl;
+    m_stream << this->m_indent << node->name() << " " << node->dump()  << std::endl;
     next(node);
 }
 

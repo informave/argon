@@ -1,19 +1,19 @@
 
 CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
 
-DECLARE srcTable(id) 	AS TABLE(c1, "srcTable");
+DECLARE srcTable(id) 	: TABLE(c1, "srcTable");
 
 
 PROGRAM.
 
 //TASK copytable AS TRANSFER [ destTable, srcTable ]
-TASK copytable(num) AS FETCH [ srcTable(num) ]
+TASK copytable(num) : FETCH [ srcTable(num) ]
 BEGIN
 	LOG "read row...";
 END;
 
 
-TASK main() AS VOID
+TASK main() : VOID
 BEGIN
 	LOG "Creating test data...";
 

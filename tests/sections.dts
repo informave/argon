@@ -1,0 +1,20 @@
+
+CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
+
+DECLARE testTable 	: TABLE(c1, "testTable");
+
+PROGRAM.
+
+
+
+task main : void
+begin
+ initialization:
+ 	log "foobar";
+ rules:
+ 	log "rules";
+ finalization:
+ 	log "final";
+end;
+
+

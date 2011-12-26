@@ -169,13 +169,65 @@ Task::run(const ArgumentList &args)
 Task::Task(Processor &proc, TaskNode *node)
     : Context(proc),
       m_node(node),
-      m_pre_nodes(),
-      m_colassign_nodes(),
-      m_post_nodes()
+      m_init_nodes(),
+      m_before_nodes(),
+      m_rules_nodes(),
+      m_after_nodes(),
+      m_final_nodes()
 {
     NodeList childs = node->getChilds();
 
     assert(childs.size() >= 2);
+
+    {
+        Node *n = find_node<TaskInitNode>(this->m_node);
+        if(n)
+	{
+            this->m_init_nodes = n->getChilds();
+	    assert(find_nodes<ColumnNode>(n).empty());
+	    assert(find_nodes<ColumnNumNode>(n).empty());
+	    assert(find_nodes<ResColumnNode>(n).empty());
+	    assert(find_nodes<ResColumnNumNode>(n).empty());
+	    assert(find_nodes<ColumnAssignNode>(n).empty());
+	}
+
+    }
+
+    {
+        Node *n = find_node<TaskBeforeNode>(this->m_node);
+        if(n)
+	{
+            this->m_before_nodes = n->getChilds();
+	    assert(find_nodes<ResColumnNode>(n).empty());
+	    assert(find_nodes<ResColumnNumNode>(n).empty());
+	    assert(find_nodes<ColumnAssignNode>(n).empty());
+	}
+    }
+
+    {
+        Node *n = find_node<TaskRulesNode>(this->m_node);
+        if(n)
+	{
+            this->m_rules_nodes = n->getChilds();
+	    assert(find_nodes<ResColumnNode>(n).empty());
+	    assert(find_nodes<ResColumnNumNode>(n).empty());
+	}
+    }
+
+    {
+        Node *n = find_node<TaskAfterNode>(this->m_node);
+        if(n)
+            this->m_after_nodes = n->getChilds();
+    }
+
+    {
+        Node *n = find_node<TaskFinalNode>(this->m_node);
+        if(n)
+            this->m_final_nodes = n->getChilds();
+    }
+
+
+/*
 
     // Skip first two arguments. Checked by semantic checker, too.
     size_t c = 3;
@@ -200,6 +252,7 @@ Task::Task(Processor &proc, TaskNode *node)
     
     // All childs must been processed.
     assert(c > childs.size());
+*/
 }
 
 

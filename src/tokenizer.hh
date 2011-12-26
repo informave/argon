@@ -115,7 +115,7 @@ public:
         this->m_keywords[ _str<CharT, TraitsT>("DBCSTR")     ] = ARGON_TOK_DBCSTR;
         this->m_keywords[ _str<CharT, TraitsT>("PROGRAM.")   ] = ARGON_TOK_PROGRAM;
         this->m_keywords[ _str<CharT, TraitsT>("TASK")       ] = ARGON_TOK_TASK;
-        this->m_keywords[ _str<CharT, TraitsT>("AS")         ] = ARGON_TOK_AS;
+//        this->m_keywords[ _str<CharT, TraitsT>("AS")         ] = ARGON_TOK_AS;
         this->m_keywords[ _str<CharT, TraitsT>("BEGIN")      ] = ARGON_TOK_BEGIN;
         this->m_keywords[ _str<CharT, TraitsT>("END")        ] = ARGON_TOK_END;
 
@@ -130,6 +130,12 @@ public:
 
         this->m_keywords[ _str<CharT, TraitsT>("LOG")         ] = ARGON_TOK_LOG;
         this->m_keywords[ _str<CharT, TraitsT>("EXEC")        ] = ARGON_TOK_EXEC;
+
+        this->m_keywords[ _str<CharT, TraitsT>("INITIALIZATION")        ] = ARGON_TOK_TASK_INIT;
+        this->m_keywords[ _str<CharT, TraitsT>("BEFORE")        ] = ARGON_TOK_TASK_BEFORE;
+        this->m_keywords[ _str<CharT, TraitsT>("RULES")        ] = ARGON_TOK_TASK_RULES;
+        this->m_keywords[ _str<CharT, TraitsT>("AFTER")        ] = ARGON_TOK_TASK_AFTER;
+        this->m_keywords[ _str<CharT, TraitsT>("FINALIZATION")        ] = ARGON_TOK_TASK_FINAL;
 
         /// Additional map with names
         this->m_templates[ _str<CharT, TraitsT>("VOID")         ] = ARGON_TOK_TEMPLATE;
@@ -241,6 +247,9 @@ public:
         case '*':
             consume();
             return Token(ARGON_TOK_MUL, si, "*");
+        case ':':
+            consume();
+            return Token(ARGON_TOK_COLON, si, ":");
         case '|':
             consume();
             assert(m_char == '|');

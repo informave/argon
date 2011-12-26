@@ -146,14 +146,17 @@ TransferTask::run(const ArgumentList &args)
 
     // Get a list of the left and right columns
     ColumnList lclist, rclist;
-    foreach_node( this->m_node->getChilds(), ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
+    foreach_node( this->m_before_nodes, ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
+    foreach_node( this->m_rules_nodes, ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
+    foreach_node( this->m_after_nodes, ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
     this->m_destobject->setColumnList(lclist);
     this->m_srcobject->setColumnList(rclist);
 
 
     // Get result columns
     ColumnList reslist;
-    foreach_node( this->m_node->getChilds(), ResColumnVisitor(this->proc(), *this, reslist));
+    foreach_node( this->m_after_nodes, ResColumnVisitor(this->proc(), *this, reslist));
+    foreach_node( this->m_final_nodes, ResColumnVisitor(this->proc(), *this, reslist));
     this->m_destobject->setResultList(reslist);
 
 
@@ -169,20 +172,30 @@ TransferTask::run(const ArgumentList &args)
     this->getMainObject()->execute();
 
     
+    // Executes all init-instructions
+    foreach_node( this->m_init_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
     // Iterate over all records in the main object
     while(! this->getMainObject()->eof())
     {
-        // Executes all pre-instructions
-        foreach_node( this->m_pre_nodes, TaskChildVisitor(this->proc(), *this), 1);
-        // Executes all column-assign instructions
-        foreach_node( this->m_colassign_nodes, TaskChildVisitor(this->proc(), *this), 1);
+        // Executes all before instructions
+        foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
+        // Executes all rules instructions
+        foreach_node( this->m_rules_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
         // Executes the destination object (put data to object)
         this->getDestObject()->execute();
-        // Executes all post-instructions
-        foreach_node( this->m_post_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
+        // Executes all after instructions
+        foreach_node( this->m_after_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
 
         this->getMainObject()->next();
     }
+
+    // Executes all finalize-instructions
+    foreach_node( this->m_final_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
 
     
     this->m_destobject.reset(0); // workaround

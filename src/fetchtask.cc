@@ -124,7 +124,9 @@ FetchTask::run(const ArgumentList &args)
 
     // Get a list of the left and right columns
     ColumnList lclist, rclist;
-    foreach_node( this->m_node->getChilds(), ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
+    foreach_node( this->m_before_nodes, ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
+    foreach_node( this->m_rules_nodes, ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
+    foreach_node( this->m_after_nodes, ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
     this->m_mainobject->setColumnList(rclist);
 
     assert(lclist.size() == 0); // FETCH tasks can't contain any column identifiers on left side.
@@ -132,7 +134,8 @@ FetchTask::run(const ArgumentList &args)
 
     // Get result columns
     ColumnList reslist;
-    foreach_node( this->m_node->getChilds(), ResColumnVisitor(this->proc(), *this, reslist));
+    foreach_node( this->m_after_nodes, ResColumnVisitor(this->proc(), *this, reslist));
+    foreach_node( this->m_final_nodes, ResColumnVisitor(this->proc(), *this, reslist));
     
     assert(reslist.size() == 0); // FETCH tasks can't contain any result columns
 
@@ -143,11 +146,30 @@ FetchTask::run(const ArgumentList &args)
     this->getMainObject()->execute();
 
 
+    // Executes all init-instructions
+    foreach_node( this->m_init_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
     while(! this->m_mainobject->eof())
     {
-        foreach_node( this->m_node->getChilds(), TaskChildVisitor(this->proc(), *this), 1);
+        // Executes all before instructions
+        foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
+        // Executes all rules instructions
+        foreach_node( this->m_rules_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
         this->m_mainobject->next();
+
+
+        // at this point, no after nodes should exists...
+        assert(this->m_after_nodes.size() == 0);
+        // Executes all after instructions
+        foreach_node( this->m_after_nodes, TaskChildVisitor(this->proc(), *this), 1);
     }
+
+    // Executes all finalize-instructions
+    foreach_node( this->m_final_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
+
 
     this->m_mainobject.reset(0); // workaround
 

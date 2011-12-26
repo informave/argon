@@ -96,7 +96,7 @@ connspec(A) ::= . {
 %type objType { ObjectNode* }
 %type declBody { NodeList* }
 
-decl ::= DECLARE(Y) ID(A) declArgList(C) AS objType(B) declBody(D) SEP(Z). { 
+decl ::= DECLARE(Y) ID(A) declArgList(C) COLON objType(B) declBody(D) SEP(Z). { 
 	  ObjectNode *node = B;
 	  if(node)
 	  {
@@ -193,7 +193,7 @@ ins ::= task.
 %type taskBody { NodeList* }
 %type bodyExprList { NodeList* }
 
-task ::= TASK(Y) ID(A) declArgList(E) AS TEMPLATE(C) tmplArgs(D) taskBody(B) SEP(Z).
+task ::= TASK(Y) ID(A) declArgList(E) COLON TEMPLATE(C) tmplArgs(D) taskBody(B) SEP(Z).
 {
    CREATE_NODE(TaskNode);
    node->init(A->data(), C->data());
@@ -210,7 +210,89 @@ task ::= TASK(Y) ID(A) declArgList(E) AS TEMPLATE(C) tmplArgs(D) taskBody(B) SEP
 }
 
 
-taskBody(A) ::= BEGIN bodyExprList(B) END. { A = B; }
+//taskBody(A) ::= BEGIN bodyExprList(B) END. { A = B; }
+
+
+%type bodySections { NodeList* }
+%type bodySectionList { NodeList* }
+
+
+taskBody(A) ::= BEGIN bodySections(B) END. { A = B; }
+
+
+
+
+
+//bodySections(A) ::= bodyInit(B) bodyBefore(C) bodyRules(D) bodyAfter(E) bodyFinal(F). {
+//}
+
+
+// %type bodyInit { TaskInitNode* }
+// %type bodyBefore { TaskInitNode* }
+
+
+/*
+ * Rule for tasks without any sections (defaults to RULES section)
+ */
+bodySections(A) ::= bodyExprList(B). {
+	A = tree->newNodeList();
+	CREATE_NODE(TaskRulesNode); /* If there no sections, we default to RULES. */
+	node->addChilds(B);
+   A->push_back(node);
+}
+
+
+bodySections(A) ::= bodySectionList(B). {
+	A = B;
+}
+
+
+bodySectionList(A) ::= bodySectionList(B) bodySection(C). {
+	A = B;
+	A->push_back(C);
+}
+
+
+bodySectionList(A) ::= bodySection(B). {
+	A = tree->newNodeList();
+	A->push_back(B);
+}
+
+
+bodySection(A) ::= bodySectionKeyword(B) COLON bodyExprList(C). {
+	A = B;
+	A->addChilds(C);
+}
+
+
+
+bodySectionKeyword(A) ::= TASK_INIT. {
+	CREATE_NODE(TaskInitNode);
+	A = node;
+}
+
+bodySectionKeyword(A) ::= TASK_BEFORE. {
+	CREATE_NODE(TaskBeforeNode);
+	A = node;
+}
+
+bodySectionKeyword(A) ::= TASK_RULES. {
+	CREATE_NODE(TaskRulesNode);
+	A = node;
+}
+
+bodySectionKeyword(A) ::= TASK_AFTER. {
+	CREATE_NODE(TaskAfterNode);
+	A = node;
+}
+
+bodySectionKeyword(A) ::= TASK_FINAL. {
+	CREATE_NODE(TaskFinalNode);
+	A = node;
+}
+
+
+
 
 taskBody(A) ::= . { A = tree->newNodeList(); }
 

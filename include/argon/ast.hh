@@ -53,6 +53,12 @@ struct ObjectNode;
 struct TableNode;
 struct SqlNode;
 
+struct TaskInitNode;
+struct TaskBeforeNode;
+struct TaskRulesNode;
+struct TaskAfterNode;
+struct TaskFinalNode;
+
 struct ArgumentsNode;
 struct ArgumentsSpecNode;
 struct TmplArgumentsNode;
@@ -73,6 +79,28 @@ typedef std::deque<Node*> NodeList;
 
 
 String gen_anonymous_id(void);
+
+
+
+#define DefineNode(NodeName, NodeType)                          \
+    struct NodeName##Node : public SimpleNode<NodeType>         \
+{                                                               \
+    NodeName##Node(void) : SimpleNode<NodeType>() {}            \
+                                                                \
+    virtual ~NodeName##Node(void)                               \
+    {}                                                          \
+                                                                \
+    virtual void accept(Visitor &visitor);                      \
+                                                                \
+    virtual String name(void) const { return classname(); }     \
+                                                                \
+    virtual void semanticCheck(SemanticCheck &sc);              \
+                                                                \
+    static String classname(void) { return #NodeName "Node"; }  \
+}
+
+
+
 
 
 //..............................................................................
@@ -108,14 +136,14 @@ public:
     void updateSourceInfo(const SourceInfo &info);
 
     /// @brief String representation (used for debugging)
-    virtual String str(void) const = 0;
+    virtual String dump(void) const { return "none"; }//= 0;
 
     /// @brief Visitor function
     virtual void accept(Visitor &visitor) = 0;
 
-    virtual String nodetype(void) const = 0;
+    virtual String name(void) const = 0;
 
-    static String name(void) { return "node"; }
+    static String classname(void) { return "Node"; }
 
     /// @brief Called by the semantic checker
     /// @details
@@ -162,6 +190,12 @@ public:
 
     virtual void visit(TableNode *node);
     virtual void visit(SqlNode *node);
+
+    virtual void visit(TaskInitNode *node);
+    virtual void visit(TaskBeforeNode *node);
+    virtual void visit(TaskRulesNode *node);
+    virtual void visit(TaskAfterNode *node);
+    virtual void visit(TaskFinalNode *node);
 
     virtual void visit(NumberNode *node);
     virtual void visit(ExprNode *node);
@@ -247,6 +281,13 @@ public:
         return this->m_data;
     }
 
+    virtual String dump(void) const
+    {
+        std::stringstream ss;
+        ss << "(" << this->data() << ")";
+        return ss.str();
+    }
+
 protected:
     SimpleNode(void) : Node(), m_data()
     {}
@@ -255,12 +296,36 @@ protected:
 };
 
 
+template<>
+class SimpleNode<void> : public Node
+{
+public:
+    virtual ~SimpleNode(void)
+    {}
+
+
+    virtual String dump(void) const
+    {
+        return "";
+    }
+
+protected:
+    SimpleNode(void) : Node()
+    {}
+};
+
+
+
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////// TaskExecNode
 ///
 /// @since 0.0.1
 /// @brief Node for EXEC TASK Command
+
+DefineNode(TaskExec, Identifier);
+
+/*
 struct TaskExecNode : public SimpleNode<Identifier>
 {
     TaskExecNode(void);
@@ -269,15 +334,50 @@ struct TaskExecNode : public SimpleNode<Identifier>
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String name(void) const { return classname(); }
 
-    virtual String nodetype(void) const;
-
-    static String name(void) { return "EXEC"; }
+    static String classname(void) { return "EXEC"; }
 
     virtual void semanticCheck(SemanticCheck &sc);
 };
+*/
 
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////// TaskInitNode
+///
+/// @since 0.0.1
+/// @brief Node for TASK initialization section
+
+DefineNode(TaskInit, void);
+
+DefineNode(TaskBefore, void);
+
+DefineNode(TaskRules, void);
+
+DefineNode(TaskAfter, void);
+
+DefineNode(TaskFinal, void);
+
+
+ /*
+struct TaskInitNode : public SimpleNode<void>
+{
+    TaskInitNode(void);
+
+    virtual ~TaskInitNode(void) {}
+
+    virtual void accept(Visitor &visitor);
+
+    //virtual String dump(void) const;
+
+    virtual String name(void) const { return classname(); }
+
+    static String classname(void) { return "TaskInit"; }
+
+    virtual void semanticCheck(SemanticCheck &sc);
+};
+ */
 
 
 //..............................................................................
@@ -295,15 +395,15 @@ struct SqlExecNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
     Identifier connid(void) const;
 
     String sql(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "EXEC SQL"; }
+    static String classname(void) { return "SqlExecNode"; }
 
 protected:
     Identifier m_connid;
@@ -324,11 +424,11 @@ struct TokenNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String dump(void) const;
     
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "TOKEN"; }
+    static String classname(void) { return "TOKEN"; }
 
 protected:
     Token *m_token;
@@ -344,6 +444,10 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Node for Identifiers
+
+DefineNode(Id, Identifier);
+
+/*
 struct IdNode : public SimpleNode<Identifier>
 {
     IdNode(void);
@@ -352,13 +456,13 @@ struct IdNode : public SimpleNode<Identifier>
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Identifier"; }
+    static String classname(void) { return "Identifier"; }
 };
-
+*/
 
 
 
@@ -368,6 +472,10 @@ struct IdNode : public SimpleNode<Identifier>
 ///
 /// @since 0.0.1
 /// @brief Node for function calls
+
+DefineNode(FuncCall, Identifier);
+
+/*
 struct FuncCallNode : public SimpleNode<Identifier>
 {
     FuncCallNode(void);
@@ -377,13 +485,11 @@ struct FuncCallNode : public SimpleNode<Identifier>
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String name(void) const { return classname(); }
 
-    virtual String nodetype(void) const;
-
-    static String name(void) { return "FuncCall"; }
+    static String classname(void) { return "FuncCall"; }
 };
-
+*/
 
 
 //..............................................................................
@@ -391,6 +497,10 @@ struct FuncCallNode : public SimpleNode<Identifier>
 ///
 /// @since 0.0.1
 /// @brief Node for Literals
+
+DefineNode(Literal, String);
+
+/*
 struct LiteralNode : public SimpleNode<String>
 {
     LiteralNode(void);
@@ -399,12 +509,11 @@ struct LiteralNode : public SimpleNode<String>
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String name(void) const { return classname(); }
 
-    virtual String nodetype(void) const;
-
-    static String name(void) { return "Literal"; }
+    static String classname(void) { return "Literal"; }
 };
+*/
 
 
 //..............................................................................
@@ -412,7 +521,7 @@ struct LiteralNode : public SimpleNode<String>
 ///
 /// @since 0.0.1
 /// @brief Node for Numbers
-struct NumberNode : public Node
+struct NumberNode : public SimpleNode<int>
 {
     NumberNode(void);
 
@@ -422,17 +531,18 @@ struct NumberNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    //virtual String dump(void) const;
 
-    inline int data(void) const { return m_data; } /// @todo replace with TNumeric
+    //inline int data(void) const { return m_data; } /// @todo replace with TNumeric
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Number"; }
+    static String classname(void) { return "Number"; }
 
-protected:
-    int m_data;
+//protected:
+//    int m_data;
 };
+
 
 
 //..............................................................................
@@ -440,6 +550,10 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Node for Column names
+
+DefineNode(Column, String);
+
+/*
 struct ColumnNode : public SimpleNode<String>
 {
     ColumnNode(void);
@@ -448,12 +562,11 @@ struct ColumnNode : public SimpleNode<String>
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String name(void) const { return classname(); }
 
-    virtual String nodetype(void) const;
-
-    static String name(void) { return "Column"; }
+    static String classname(void) { return "Column"; }
 };
+*/
 
 
 //..............................................................................
@@ -461,6 +574,10 @@ struct ColumnNode : public SimpleNode<String>
 ///
 /// @since 0.0.1
 /// @brief Node for result column names
+
+DefineNode(ResColumn, String);
+
+/*
 struct ResColumnNode : public SimpleNode<String>
 {
     ResColumnNode(void);
@@ -469,13 +586,11 @@ struct ResColumnNode : public SimpleNode<String>
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String name(void) const { return classname(); }
 
-    virtual String nodetype(void) const;
-
-    static String name(void) { return "ResColumn"; }
+    static String classname(void) { return "ResColumn"; }
 };
-
+*/
 
 
 //..............................................................................
@@ -483,27 +598,21 @@ struct ResColumnNode : public SimpleNode<String>
 ///
 /// @since 0.0.1
 /// @brief Node for Column numbers
-struct ColumnNumNode : public Node
+struct ColumnNumNode : public SimpleNode<int>
 {
     ColumnNumNode(void);
 
     virtual ~ColumnNumNode(void) {}
 
-    void init(String data);
+    void init(String data); // accept string data for conversion
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String name(void) const { return classname(); }
 
-    virtual int data(void) const;
-
-    virtual String nodetype(void) const;
-
-    static String name(void) { return "Column"; }
-
-protected:
-    int m_data;
+    static String classname(void) { return "Column"; }
 };
+
 
 
 //..............................................................................
@@ -511,26 +620,19 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Node for result column numbers
-struct ResColumnNumNode : public Node
+struct ResColumnNumNode : public SimpleNode<int>
 {
     ResColumnNumNode(void);
 
     virtual ~ResColumnNumNode(void) {}
 
-    void init(String data);
+    void init(String data); // accept string data for conversion
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String name(void) const { return classname(); }
 
-    virtual int data(void) const;
-
-    virtual String nodetype(void) const;
-
-    static String name(void) { return "ResColumn"; }
-
-protected:
-    int m_data;
+    static String classname(void) { return "ResColumn"; }
 };
 
 
@@ -540,27 +642,23 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Node for result IDs
-struct ResIdNode : public Node
+
+DefineNode(ResId, String);
+
+/*
+struct ResIdNode : public SimpleNode<String>
 {
     ResIdNode(void);
 
     virtual ~ResIdNode(void) {}
 
-    void init(String data);
-
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String name(void) const { return classname(); }
 
-    virtual String data(void) const;
-
-    virtual String nodetype(void) const;
-
-    static String name(void) { return "ResId"; }
-
-protected:
-    String m_data;
+    static String classname(void) { return "ResId"; }
 };
+*/
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////// ConnNode
@@ -577,11 +675,11 @@ struct ConnNode : public Node
 
     virtual void accept(Visitor &visitor);
     
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
     
-    static String name(void) { return "Connection"; }
+    static String classname(void) { return "Connection"; }
 
     Identifier id;
     ConnSpec *spec;
@@ -603,11 +701,11 @@ struct ConnSpec : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Connspec"; }
+    static String classname(void) { return "Connspec"; }
 
     String type;
     String dbcstr;
@@ -619,6 +717,10 @@ struct ConnSpec : public Node
 ///
 /// @since 0.0.1
 /// @brief Node for Arguments
+
+DefineNode(Arguments, void);
+
+/*
 struct ArgumentsNode : public Node
 {
     ArgumentsNode(void);
@@ -628,12 +730,13 @@ struct ArgumentsNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Argument list"; }
+    static String classname(void) { return "Argument list"; }
 };
+*/
 
 
 //..............................................................................
@@ -641,6 +744,11 @@ struct ArgumentsNode : public Node
 ///
 /// @since 0.0.1
 /// @brief Node for Column Assignment
+
+DefineNode(ColumnAssign, void);
+
+
+/*
 struct ColumnAssignNode : public Node
 {
     ColumnAssignNode(void);
@@ -650,13 +758,13 @@ struct ColumnAssignNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Column assign node"; }
+    static String classname(void) { return "Column assign node"; }
 };
-
+*/
 
 
 //..............................................................................
@@ -664,7 +772,11 @@ struct ColumnAssignNode : public Node
 ///
 /// @since 0.0.1
 /// @brief Node for Argument specifications
-struct ArgumentsSpecNode : public Node
+
+DefineNode(ArgumentsSpec, void);
+
+/*
+struct ArgumentsSpecNode : public SimpleNode<void>
 {
     ArgumentsSpecNode(void);
 
@@ -673,13 +785,13 @@ struct ArgumentsSpecNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    //virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Argument specification list"; }
+    static String classname(void) { return "ArgumentsSpec"; }
 };
-
+*/
 
 
 //..............................................................................
@@ -687,7 +799,11 @@ struct ArgumentsSpecNode : public Node
 ///
 /// @since 0.0.1
 /// @brief Node for template arguments
-struct TmplArgumentsNode : public Node
+
+DefineNode(TmplArguments, void);
+
+/*
+struct TmplArgumentsNode : public SimpleNode<void>
 {
     TmplArgumentsNode(void);
 
@@ -696,12 +812,13 @@ struct TmplArgumentsNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+//    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Tmpl Argument list"; }
+    static String classname(void) { return "Tmpl Argument list"; }
 };
+*/
 
 
 
@@ -710,7 +827,11 @@ struct TmplArgumentsNode : public Node
 ///
 /// @since 0.0.1
 /// @brief Node for identifier calls used in template arguments
-struct IdCallNode : public Node
+
+DefineNode(IdCall, void);
+
+/*
+struct IdCallNode : public SimpleNode<void>
 {
     IdCallNode(void);
 
@@ -719,12 +840,13 @@ struct IdCallNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    //virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "ID call node"; }
+    static String classname(void) { return "IdCall"; }
 };
+*/
 
 
 enum tasktype
@@ -751,11 +873,11 @@ struct TaskNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Task"; }
+    static String classname(void) { return "Task"; }
 
     virtual void semanticCheck(SemanticCheck &sc);
 
@@ -783,13 +905,13 @@ struct ExprNode : public Node
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
     enum mode data(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Expr"; }
+    static String classname(void) { return "ExprNode"; }
 
 protected:
     enum mode m_mode;
@@ -805,15 +927,13 @@ protected:
 /// @brief Node for Object (base class)
 struct ObjectNode : public SimpleNode<Identifier>
 {
-    ObjectNode(void);
+    ObjectNode(void) : SimpleNode<Identifier>() {}
 
     virtual ~ObjectNode(void)
     {}
 
-
-    static String name(void) { return "Object"; }
+    static String classname(void) { return "Object"; }
 };
-
 
 
 //..............................................................................
@@ -832,11 +952,11 @@ struct TableNode : public ObjectNode
 
     virtual void accept(Visitor &visitor);
   
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "Table"; }
+    static String classname(void) { return "Table"; }
 
     virtual void semanticCheck(SemanticCheck &sc);
 };
@@ -859,11 +979,11 @@ struct SqlNode : public ObjectNode
 
     virtual void accept(Visitor &visitor);
   
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
 
-    static String name(void) { return "SQL"; }
+    static String classname(void) { return "SQL"; }
 
     virtual void semanticCheck(SemanticCheck &sc);
 };
@@ -875,7 +995,11 @@ struct SqlNode : public ObjectNode
 ///
 /// @since 0.0.1
 /// @brief Node for LOG command
-struct LogNode : public Node
+
+DefineNode(Log, void);
+
+/*
+struct LogNode : public SimpleNode<void>
 {
     LogNode(void);
 
@@ -884,13 +1008,13 @@ struct LogNode : public Node
 
     virtual void accept(Visitor &visitor);
     
-    virtual String str(void) const;
+//    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
+    virtual String name(void) const { return classname(); }
     
-    static String name(void) { return "Log"; }
+    static String classname(void) { return "Log"; }
 };
-
+*/
 
 
 //..............................................................................
@@ -912,10 +1036,10 @@ public:
 
     virtual void accept(Visitor &visitor);
 
-    virtual String str(void) const;
+    virtual String dump(void) const;
 
-    virtual String nodetype(void) const;
-    static String name(void) { return "Parsetree"; }
+    virtual String name(void) const { return classname(); }
+    static String classname(void) { return "Parsetree"; }
 
     String gen_anonymous_id(void);
 
@@ -1069,9 +1193,9 @@ T* node_cast(Node *node)
 	{
         //throw std::runtime_error("invalid node cast");
         String s = "Type error: expecting `";
-		s.append(T::name());
+		s.append(T::classname());
 		s.append("` but got `");
-        s.append(node->nodetype());
+        s.append(node->name());
 		s.append("` at position ");
 		s.append(node->getSourceInfo().str());
 		throw std::runtime_error(s);

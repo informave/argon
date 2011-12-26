@@ -481,9 +481,18 @@ protected:
     virtual Value run(const ArgumentList &args);
 
     TaskNode *m_node;
+
+    NodeList m_init_nodes,
+        m_before_nodes,
+        m_rules_nodes,
+        m_after_nodes,
+        m_final_nodes;
+    /*
     NodeList  m_pre_nodes;
     NodeList  m_colassign_nodes;
     NodeList  m_post_nodes;
+    */
+    
 
 private:
     Task(const Task&);

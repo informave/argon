@@ -189,6 +189,140 @@ SqlNode::semanticCheck(SemanticCheck &sc)
 
 
 //..............................................................................
+//////////////////////////////////////////////////////////////////////// SqlNode
+
+/// @details
+/// 
+void
+IdNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+/// @details
+/// 
+void
+FuncCallNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+LiteralNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+ColumnNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+ResColumnNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+ResIdNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+ArgumentsNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+ColumnAssignNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+ArgumentsSpecNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+/// @details
+/// 
+void
+TmplArgumentsNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+/// @details
+/// 
+void
+IdCallNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+/// @details
+/// 
+void
+LogNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+TaskInitNode::semanticCheck(SemanticCheck &)
+{
+}
+
+/// @details
+/// 
+void
+TaskBeforeNode::semanticCheck(SemanticCheck &)
+{
+}
+
+/// @details
+/// 
+void
+TaskRulesNode::semanticCheck(SemanticCheck &)
+{
+}
+
+/// @details
+/// 
+void
+TaskAfterNode::semanticCheck(SemanticCheck &)
+{
+}
+
+/// @details
+/// 
+void
+TaskFinalNode::semanticCheck(SemanticCheck &)
+{
+}
+
+
+
+
+
+
+
+
+
+//..............................................................................
 ////////////////////////////////////////////////////////////////// SemanticCheck
 
 

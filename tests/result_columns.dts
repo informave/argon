@@ -1,37 +1,39 @@
 
 CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
 
-DECLARE testTable 	AS TABLE(c1, "testTable");
+DECLARE testTable 	: TABLE(c1, "testTable");
 
 PROGRAM.
 
 
 
-TASK print AS FETCH [ testTable ]
+TASK print : FETCH [ testTable ]
 BEGIN
 	LOG "Data: " || $id || " is -> " || $name;
 END;
 
 
 
-TASK showid(id) AS VOID
+TASK showid(id) : VOID
 BEGIN
 	LOG "ID: " || id;
 END;
 
 
 
-TASK addto(num, value) AS STORE [ testTable ]
+TASK addto(num, value) : STORE [ testTable ]
 BEGIN
+ rules:
 	$name <- value;
 	$id <- num + 1;
+ after:
 	EXEC TASK showid(%%);
 	LOG "Added data: " || %name || %id || %2;
 END;
 
 
 
-TASK main() AS VOID
+TASK main() : VOID
 BEGIN
 	LOG "Creating test data...";
 
