@@ -39,7 +39,7 @@ ARGON_NAMESPACE_BEGIN
 
 struct Node;
 struct ConnNode;
-struct ConnSpec;
+//struct ConnSpec;
 struct TaskNode;
 struct Identifier;
 struct IdNode;
@@ -49,6 +49,8 @@ struct TaskExecNode;
 struct LiteralNode;
 struct ColumnNode;
 struct ObjectNode;
+
+struct KeyValueNode;
 
 struct TableNode;
 struct SqlNode;
@@ -190,6 +192,8 @@ public:
 
     virtual void visit(TableNode *node);
     virtual void visit(SqlNode *node);
+
+    virtual void visit(KeyValueNode *node);
 
     virtual void visit(TaskInitNode *node);
     virtual void visit(TaskBeforeNode *node);
@@ -593,6 +597,8 @@ struct ResColumnNode : public SimpleNode<String>
 */
 
 
+DefineNode(KeyValue, void);
+
 //..............................................................................
 ////////////////////////////////////////////////////////////////// ColumnNumNode
 ///
@@ -665,6 +671,10 @@ struct ResIdNode : public SimpleNode<String>
 ///
 /// @since 0.0.1
 /// @brief Node for CONNECTION command
+
+DefineNode(Conn, Identifier);
+
+ /*
 struct ConnNode : public Node
 {
     ConnNode(void);
@@ -688,8 +698,9 @@ private:
     ConnNode(const ConnNode&);
     ConnNode& operator=(const ConnNode&);
 };
+ */
 
-
+/*
 struct ConnSpec : public Node
 {
     ConnSpec(void);
@@ -710,6 +721,7 @@ struct ConnSpec : public Node
     String type;
     String dbcstr;
 };
+*/
 
 
 //..............................................................................

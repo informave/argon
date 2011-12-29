@@ -1,0 +1,22 @@
+
+
+//CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
+
+//program testme;
+
+connection c1
+begin
+	"engine"	=> "sqlite:libsqlite",
+	"library"	=> "sqlite3.dll",
+	"database"	=> ":memory:"
+end;
+
+
+program.
+
+
+task main : void
+begin
+end;
+
+

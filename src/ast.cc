@@ -48,7 +48,7 @@ ARGON_NAMESPACE_BEGIN
 
 
 void TokenNode::accept(Visitor &visitor)    {}
-void ConnSpec::accept(Visitor &visitor)     {}
+//void ConnSpec::accept(Visitor &visitor)     {}
 
 void ConnNode::accept(Visitor &visitor)           { visitor.visit(this); }
 void TaskNode::accept(Visitor &visitor)           { visitor.visit(this); }
@@ -79,10 +79,12 @@ void TaskRulesNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskAfterNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskFinalNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
+void KeyValueNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
 
-String ConnNode::dump(void) const              { return "ConnNode"; }
-String ConnSpec::dump(void) const              { return "ConnSpec"; }
+
+//String ConnNode::dump(void) const              { return "ConnNode"; }
+//String ConnSpec::dump(void) const              { return "ConnSpec"; }
 String TaskNode::dump(void) const              { return String("(").append(this->id.str()).append(")"); }
 String ParseTree::dump(void) const             { return "ParseTree"; }
 //String LogNode::dump(void) const               { return "LogNode"; }
@@ -268,6 +270,8 @@ DEFAULT_VISIT(TaskBeforeNode)
 DEFAULT_VISIT(TaskRulesNode)
 DEFAULT_VISIT(TaskAfterNode)
 DEFAULT_VISIT(TaskFinalNode)
+
+DEFAULT_VISIT(KeyValueNode)
 
 
 /// @details
@@ -538,7 +542,7 @@ TaskNode::init(Identifier _id, String _type)
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////// ConnNode
-
+/*
 /// @details
 /// 
 ConnNode::ConnNode(void)
@@ -575,6 +579,7 @@ ConnSpec::init(String _type, String _dbcstr)
     this->type = _type;
     this->dbcstr = _dbcstr;
 }
+*/
 
 
 

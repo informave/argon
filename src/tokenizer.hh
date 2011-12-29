@@ -111,8 +111,8 @@ public:
 
         /// Add your keywords here
         this->m_keywords[ _str<CharT, TraitsT>("CONNECTION") ] = ARGON_TOK_CONNECTION;
-        this->m_keywords[ _str<CharT, TraitsT>("TYPE")       ] = ARGON_TOK_TYPE;
-        this->m_keywords[ _str<CharT, TraitsT>("DBCSTR")     ] = ARGON_TOK_DBCSTR;
+//        this->m_keywords[ _str<CharT, TraitsT>("TYPE")       ] = ARGON_TOK_TYPE;
+//        this->m_keywords[ _str<CharT, TraitsT>("DBCSTR")     ] = ARGON_TOK_DBCSTR;
         this->m_keywords[ _str<CharT, TraitsT>("PROGRAM.")   ] = ARGON_TOK_PROGRAM;
         this->m_keywords[ _str<CharT, TraitsT>("TASK")       ] = ARGON_TOK_TASK;
 //        this->m_keywords[ _str<CharT, TraitsT>("AS")         ] = ARGON_TOK_AS;
@@ -257,7 +257,12 @@ public:
             return Token(ARGON_TOK_CONCAT, si, "||");
         case '=':
             consume();
-            return Token(ARGON_TOK_ASSIGNOP, si, "=");
+	    if(m_char == '>')
+	    {
+	    	consume();
+		return Token(ARGON_TOK_MAPOP, si, "=>");
+	    } else
+            	return Token(ARGON_TOK_ASSIGNOP, si, "=");
 
         case '<':
             consume();

@@ -36,6 +36,43 @@
 ARGON_NAMESPACE_BEGIN
 
 
+typedef informave::db::dal::IDbc::Options dbcopts_t;
+
+//..............................................................................
+//////////////////////////////////////////////////////////// SemanticCheckRunner
+///
+/// @since 0.0.1
+/// @brief Semantic checker
+class KeyValueCreator : public Visitor
+{
+public:
+    KeyValueCreator(dbcopts_t &opts)
+        : Visitor(ignore_none),
+          m_opts(opts)
+    {}
+
+
+    virtual void visit(KeyValueNode *node)
+    {
+        assert(node->getChilds().size() == 2);
+
+        LiteralNode *key = node_cast<LiteralNode>(node->getChilds()[0]);
+        LiteralNode *value = node_cast<LiteralNode>(node->getChilds()[1]);
+
+        m_opts[key->data()] = value->data();
+    }
+
+protected:
+/*
+    virtual void fallback_action(Node *node)
+    {
+        node->semanticCheck(m_check);
+    }
+*/
+    dbcopts_t &m_opts;
+};
+
+
 
 //..............................................................................
 ///////////////////////////////////////////////////////////////////// Connection
@@ -49,23 +86,37 @@ Connection::Connection(Processor &proc, ConnNode *node, db::ConnectionMap &userC
       m_alloc_env(),
       m_alloc_dbc()
 {
-    ARGON_DPRINT(ARGON_MOD_PROC, "processing connection " << node->id);
+    ARGON_DPRINT(ARGON_MOD_PROC, "processing connection " << node->data());
 
-    if(userConns[node->id])
+    if(userConns[node->data()])
     {
-        ARGON_DPRINT(ARGON_MOD_PROC, "Using user-supplied connection " << node->id);
-        this->m_dbc = userConns[node->id];
+        ARGON_DPRINT(ARGON_MOD_PROC, "Using user-supplied connection " << node->data());
+        this->m_dbc = userConns[node->data()];
     }
     else
     {
-        if(node->spec->type.empty())
+
+        if(node->getChilds().size() == 0)
         {
             throw std::runtime_error("no dbc type given");
         }
-        this->m_alloc_env.reset(new db::Database::Environment(node->spec->type));
+
+        informave::db::dal::IDbc::Options opts;
+
+        foreach_node(node->getChilds(), KeyValueCreator(opts), 1); // for each node
+
+//        apply_visitor(node->getChilds(), KeyValueCreator(opts));
+
+        assert(opts["engine"].length() > 0);
+
+//        for(dbcopts_t::iterator i = opts.begin(); i != opts.end(); ++i)
+//            std::cout << i->first << " " << i->second << std::endl;
+
+
+        this->m_alloc_env.reset(new db::Database::Environment(opts["engine"]));
         this->m_alloc_dbc.reset(this->m_alloc_env->newConnection());
         this->m_dbc = this->m_alloc_dbc.get();
-        this->m_dbc->connect(node->spec->dbcstr);
+        this->m_dbc->connect(opts);
     }
 }
 

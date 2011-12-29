@@ -315,6 +315,33 @@ TaskFinalNode::semanticCheck(SemanticCheck &)
 }
 
 
+/// @details
+/// 
+void
+ConnNode::semanticCheck(SemanticCheck &)
+{
+}
+
+
+
+/// @details
+/// 
+void
+KeyValueNode::semanticCheck(SemanticCheck &sc)
+{
+    assert(this->getChilds().size() == 2);
+
+    Node * n = this->getChilds()[1];
+
+
+    if(! is_nodetype<LiteralNode*>(n))
+        ARGON_SC_ADD(sc, SC_ERROR, "Expression values are currenty not supported for keys", this->getSourceInfo());
+
+
+//    assert(1 !=1 );
+}
+
+
 
 
 

@@ -314,7 +314,7 @@ public:
     db::Connection& getDbc(void);
     db::Env& getEnv(void);
 
-    inline Identifier id(void) const { return m_node->id; }
+    inline Identifier id(void) const { return m_node->data(); }
 
     virtual String str(void) const;
 

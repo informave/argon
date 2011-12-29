@@ -79,14 +79,14 @@ ProcTreeWalker::visit(ConnNode *node)
 {
     Connection *elem = this->proc().getSymbols().addPtr(
         new Connection(this->proc(), node, this->m_proc.getConnections()) );
-    this->proc().getSymbols().add(node->id, elem);
+    this->proc().getSymbols().add(node->data(), elem);
 
     if(! elem->getDbc().isConnected())
     {
         throw std::runtime_error("dbc is not connected");
     }
 
-    this->m_proc.getSymbols().find<Element>(node->id);
+    this->m_proc.getSymbols().find<Element>(node->data());
 
     //this->m_proc.getSymbol<Task>(id).exec(argumentlist);
 }

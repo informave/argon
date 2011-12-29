@@ -1,5 +1,9 @@
 
-CONNECTION c1 TYPE "sqlite:libsqlite" DBCSTR ":memory:";
+CONNECTION c1 
+begin
+	"engine"	=> "sqlite:libsqlite",
+	"database"	=> ":memory:";
+end;
 
 DECLARE srcTable 	: TABLE(c1, "srcTable");
 DECLARE destTable 	: TABLE(c1, "destTable");

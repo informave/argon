@@ -64,30 +64,43 @@ setuplist ::= .
 //..............................................................................
 ///////////////////////////////////////////////////////// Connection declaration
 
-%type connspec { ConnSpec* }
-
-connDecl ::= CONNECTION(Y) ID(A) connspec(B) SEP(Z). {
+connDecl ::= CONNECTION ID(A) SEP. {
 	CREATE_NODE(ConnNode);
-   node->init(Identifier(A->data()), B);
-   tree->addChild(node);
-
-   ADD_TOKEN(node, Y);
-   ADD_TOKEN(node, Z);
+	node->init(Identifier(A->data()));
+	tree->addChild(node);
 }
 
+%type mappingContainer { NodeList* }
+%type mappingList { NodeList* }
 
-connspec(A) ::= TYPE LITERAL(B) DBCSTR LITERAL(C). {
-	CREATE_NODE(ConnSpec);
-   node->init(B->data(), C->data());
-   A = node;
+connDecl ::= CONNECTION ID(A) BEGIN mappingContainer(B) END SEP. {
+	CREATE_NODE(ConnNode);
+	node->init(Identifier(A->data()));
+	if(B)
+		node->addChilds(B);
+	tree->addChild(node);
 }
 
+mappingContainer(A) ::= . { A = 0; }
 
-connspec(A) ::= . {
-	CREATE_NODE(ConnSpec);
+mappingContainer(A) ::= mappingList(B) SEP. { A = B; }
+
+mappingList(A) ::= mappingList(B) COMMA mappingItem(C). {
+	A = B;
+	A->push_back(C);
+}
+
+mappingList(A) ::= mappingItem(B). {
+	A = tree->newNodeList();
+	A->push_back(B);
+}
+
+mappingItem(A) ::= literal(B) MAPOP expr(C). {
+	CREATE_NODE(KeyValueNode);
+	node->addChild(B);
+	node->addChild(C);
 	A = node;
 }
-
 
 
 //..............................................................................
