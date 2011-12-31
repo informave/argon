@@ -1,4 +1,6 @@
 
+program result_columns;
+
 CONNECTION c1
 begin
 	"engine"	=> "sqlite:libsqlite",
@@ -6,8 +8,6 @@ begin
 end;
 
 DECLARE testTable 	: TABLE(c1, "testTable");
-
-PROGRAM.
 
 
 

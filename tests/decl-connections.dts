@@ -1,4 +1,6 @@
 
+program decl_connection;
+
 CONNECTION c1
 begin
 	"engine"	=> "sqlite:libsqlite",
@@ -12,8 +14,6 @@ END;
 
 DECLARE table2 : TABLE(c1, "mytable");
 
-
-PROGRAM.
 
 
 TASK main() : VOID;

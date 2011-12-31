@@ -1,4 +1,6 @@
 
+program basic_table_args;
+
 CONNECTION c1
 begin
 	"engine"	=> "sqlite:libsqlite",
@@ -7,8 +9,6 @@ end;
 
 DECLARE srcTable(id) 	: TABLE(c1, "srcTable");
 
-
-PROGRAM.
 
 //TASK copytable AS TRANSFER [ destTable, srcTable ]
 TASK copytable(num) : FETCH [ srcTable(num) ]

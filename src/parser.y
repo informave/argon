@@ -53,12 +53,18 @@
 
 %start_symbol start
 
-start ::= setuplist PROGRAM inslist.
+start ::= progType langElementList.
 
-setuplist ::= setuplist connDecl.
-setuplist ::= setuplist decl.
-setuplist ::= .
+progType ::= PROGRAM id SEP.
+progType ::= MODULE id SEP.
 
+langElementList ::= langElementList langElement.
+langElementList ::= .
+
+
+langElement ::= connDecl.
+langElement ::= decl. // obj decl
+langElement ::= task.
 
 
 //..............................................................................
@@ -185,19 +191,6 @@ sqlObj(A) ::= SQL callArgs(B). {
 			 A = node;
 }
 
-
-
-
-
-
-//..............................................................................
-//////////////////////////////////////////////////////////////////// Instruction
-
-inslist ::= inslist ins.
-inslist ::= .
-
-ins ::= task.
-// ins ::= function.
 
 
 //..............................................................................

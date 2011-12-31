@@ -1,4 +1,6 @@
 
+program id_printer;
+
 CONNECTION c1
 begin
 	"engine"	=> "sqlite:libsqlite",
@@ -8,7 +10,6 @@ end;
 
 DECLARE table1 : TABLE(c1, "foo");
 
-PROGRAM.
 
 
 TASK t_1 : FETCH [ Table(c1, "test") ]

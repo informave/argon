@@ -1,4 +1,6 @@
 
+program column_assign;
+
 CONNECTION c1 
 begin
 	"engine"	=> "sqlite:libsqlite",
@@ -8,8 +10,6 @@ end;
 DECLARE srcTable 	: TABLE(c1, "srcTable");
 DECLARE destTable 	: TABLE(c1, "destTable");
 
-
-PROGRAM.
 
 
 

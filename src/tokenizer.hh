@@ -113,7 +113,8 @@ public:
         this->m_keywords[ _str<CharT, TraitsT>("CONNECTION") ] = ARGON_TOK_CONNECTION;
 //        this->m_keywords[ _str<CharT, TraitsT>("TYPE")       ] = ARGON_TOK_TYPE;
 //        this->m_keywords[ _str<CharT, TraitsT>("DBCSTR")     ] = ARGON_TOK_DBCSTR;
-        this->m_keywords[ _str<CharT, TraitsT>("PROGRAM.")   ] = ARGON_TOK_PROGRAM;
+        this->m_keywords[ _str<CharT, TraitsT>("PROGRAM")   ] = ARGON_TOK_PROGRAM;
+        this->m_keywords[ _str<CharT, TraitsT>("MODULE")    ] = ARGON_TOK_MODULE;
         this->m_keywords[ _str<CharT, TraitsT>("TASK")       ] = ARGON_TOK_TASK;
 //        this->m_keywords[ _str<CharT, TraitsT>("AS")         ] = ARGON_TOK_AS;
         this->m_keywords[ _str<CharT, TraitsT>("BEGIN")      ] = ARGON_TOK_BEGIN;
