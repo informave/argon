@@ -38,6 +38,8 @@
 ARGON_NAMESPACE_BEGIN
 
 struct Node;
+struct ProgramNode;
+struct ModuleNode;
 struct ConnNode;
 //struct ConnSpec;
 struct TaskNode;
@@ -174,6 +176,8 @@ public:
 
     Visitor(visitor_mode mode = ignore_none);
 
+    virtual void visit(ProgramNode *node);
+    virtual void visit(ModuleNode *node);
     virtual void visit(ConnNode *node);
     virtual void visit(TaskNode *node);
     virtual void visit(ParseTree *node);
@@ -319,6 +323,9 @@ protected:
 };
 
 
+
+DefineNode(Program, Identifier);
+DefineNode(Module, Identifier);
 
 
 //..............................................................................
@@ -1224,15 +1231,21 @@ template<typename T>
 inline T*
 find_node_byid(Node* node, Identifier id, int deep = -1)
 {
+    if(deep == 0) return 0;
+    
     for(Node::nodelist_type::iterator i = node->getChilds().begin();
         i != node->getChilds().end();
         ++i)
     {
         T* tmp = dynamic_cast<T*>(*i);
-        if(tmp)
+        if(tmp && tmp->id == id)
         {
-            if(tmp->id == id)
-                return tmp;
+            return tmp;
+        }
+        else
+        {
+            T* x = find_node_byid<T>(*i, id, (deep == -1 ? -1 : deep - 1));
+            if(x) return x;
         }
     }
     return 0;

@@ -53,38 +53,63 @@
 
 %start_symbol start
 
-start ::= progType langElementList.
+%type langElementList { NodeList* }
 
-progType ::= PROGRAM id SEP.
-progType ::= MODULE id SEP.
-
-langElementList ::= langElementList langElement.
-langElementList ::= .
+//%type progType { ProgramNode* }
 
 
-langElement ::= connDecl.
-langElement ::= decl. // obj decl
-langElement ::= task.
+start ::= progType(A) langElementList(B). {
+	A->addChilds(B);
+	tree->addChild(A);
+}
+	
+
+progType(Z) ::= PROGRAM ID(A) SEP. {
+	CREATE_NODE(ProgramNode);
+	node->init(A->data());
+	Z = node;
+}
+
+progType(Z) ::= MODULE ID(A) SEP. {
+	CREATE_NODE(ModuleNode);
+	node->init(A->data());
+	Z = node;
+}
+
+langElementList(Z) ::= langElementList(A) langElement(B). {
+	Z = A;
+	assert(B);
+	Z->push_back(B);
+}
+
+langElementList(Z) ::= . {
+	Z = tree->newNodeList();
+}
+
+
+langElement(Z) ::= connDecl(A). { Z = A; }
+langElement(Z) ::= decl(A). { Z = A; } // obj decl
+langElement(Z) ::= task(A). { Z = A; }
 
 
 //..............................................................................
 ///////////////////////////////////////////////////////// Connection declaration
 
-connDecl ::= CONNECTION ID(A) SEP. {
+connDecl(Z) ::= CONNECTION ID(A) SEP. {
 	CREATE_NODE(ConnNode);
 	node->init(Identifier(A->data()));
-	tree->addChild(node);
+	Z = node;
 }
 
 %type mappingContainer { NodeList* }
 %type mappingList { NodeList* }
 
-connDecl ::= CONNECTION ID(A) BEGIN mappingContainer(B) END SEP. {
+connDecl(Z) ::= CONNECTION ID(A) BEGIN mappingContainer(B) END SEP. {
 	CREATE_NODE(ConnNode);
 	node->init(Identifier(A->data()));
 	if(B)
 		node->addChilds(B);
-	tree->addChild(node);
+	Z = node;
 }
 
 mappingContainer(A) ::= . { A = 0; }
@@ -115,7 +140,7 @@ mappingItem(A) ::= literal(B) MAPOP expr(C). {
 %type objType { ObjectNode* }
 %type declBody { NodeList* }
 
-decl ::= DECLARE(Y) ID(A) declArgList(C) COLON objType(B) declBody(D) SEP(Z). { 
+decl(Z) ::= DECLARE(Y) ID(A) declArgList(C) COLON objType(B) declBody(D) SEP(X). { 
 	  ObjectNode *node = B;
 	  if(node)
 	  {
@@ -124,9 +149,9 @@ decl ::= DECLARE(Y) ID(A) declArgList(C) COLON objType(B) declBody(D) SEP(Z). {
 		  	node->addChild(C);
 			node->addChilds(D);
 
-	   	tree->addChild(node);
+	   	Z = node;
 	   	ADD_TOKEN(node, Y);
-	   	ADD_TOKEN(node, Z);
+	   	ADD_TOKEN(node, X);
 		}
 }
 
@@ -199,7 +224,7 @@ sqlObj(A) ::= SQL callArgs(B). {
 %type taskBody { NodeList* }
 %type bodyExprList { NodeList* }
 
-task ::= TASK(Y) ID(A) declArgList(E) COLON TEMPLATE(C) tmplArgs(D) taskBody(B) SEP(Z).
+task(Z) ::= TASK(Y) ID(A) declArgList(E) COLON TEMPLATE(C) tmplArgs(D) taskBody(B) SEP(X).
 {
    CREATE_NODE(TaskNode);
    node->init(A->data(), C->data());
@@ -210,9 +235,9 @@ task ::= TASK(Y) ID(A) declArgList(E) COLON TEMPLATE(C) tmplArgs(D) taskBody(B) 
    assert(B);
    node->addChilds(B);
 
-   tree->addChild(node);
+	Z = node;
    ADD_TOKEN(node, Y);
-   ADD_TOKEN(node, Z);
+   ADD_TOKEN(node, X);
 }
 
 

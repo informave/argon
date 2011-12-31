@@ -52,7 +52,7 @@ public:
 
     virtual void visit(ConnNode *node);
     virtual void visit(TaskNode *node);
-    virtual void visit(ParseTree *node);
+    //virtual void visit(ParseTree *node);
     virtual void visit(LogNode *node);
     virtual void visit(IdNode *node);
     virtual void visit(LiteralNode *node);

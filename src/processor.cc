@@ -68,7 +68,8 @@ protected:
 /// @details
 /// 
 ProcTreeWalker::ProcTreeWalker(Processor &proc)
-    : m_proc(proc)
+    : Visitor(ignore_none),
+      m_proc(proc)
 {}
 
 
@@ -207,11 +208,13 @@ ProcTreeWalker::visit(LiteralNode *node)
 
 /// @details
 /// 
+/*
 void
 ProcTreeWalker::visit(ParseTree *node)
 {
     //std::cout << "Visit tree" << std::endl;
 }
+*/
 
 
 
@@ -260,17 +263,22 @@ Processor::compile(ParseTree *tree)
     // print node tree
 #if defined(ARGON_DEV_DEBUG) || 1
     foreach_node(this->m_tree, PrintTreeVisitor(*this, std::wcout), 1);
-    #endif
-
+#endif
 
     SemanticCheck sc(this->m_tree, *this);
-
     sc.check();
 
     //::abort();
 
-    // Generate connections, objects etc...
-    foreach_node( this->m_tree, ProcTreeWalker(*this), 2); // only deep 2
+
+    // for each module and the progam, we run the ProcTreeWalker to
+    // create connections, objectinfos, ...
+    for(NodeList::iterator i = this->m_tree->getChilds().begin();
+        i != this->m_tree->getChilds().end();
+        ++i)
+    {
+        foreach_node( (*i)->getChilds(), ProcTreeWalker(*this), 1); // only first level nodes
+    }
 }
 
 

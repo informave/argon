@@ -50,6 +50,8 @@ ARGON_NAMESPACE_BEGIN
 void TokenNode::accept(Visitor &visitor)    {}
 //void ConnSpec::accept(Visitor &visitor)     {}
 
+void ProgramNode::accept(Visitor &visitor)           { visitor.visit(this); }
+void ModuleNode::accept(Visitor &visitor)           { visitor.visit(this); }
 void ConnNode::accept(Visitor &visitor)           { visitor.visit(this); }
 void TaskNode::accept(Visitor &visitor)           { visitor.visit(this); }
 void ParseTree::accept(Visitor &visitor)          { visitor.visit(this); }
@@ -241,6 +243,8 @@ Visitor::fallback_action(Node *node)
         this->fallback_action(node);            \
     }
 
+DEFAULT_VISIT(ProgramNode)
+DEFAULT_VISIT(ModuleNode)
 DEFAULT_VISIT(ConnNode)
 DEFAULT_VISIT(TaskNode)
 DEFAULT_VISIT(ParseTree)

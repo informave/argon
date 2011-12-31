@@ -4,15 +4,15 @@
 
 //program testme;
 
+program connectiondecl;
+
 connection c1
 begin
 	"engine"	=> "sqlite:libsqlite",
 	"library"	=> "sqlite3.dll",
-	"database"	=> ":memory:"
+	"database"	=> ":memory:";
 end;
 
-
-program.
 
 
 task main : void

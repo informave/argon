@@ -77,7 +77,8 @@ protected:
 void
 TaskExecNode::semanticCheck(SemanticCheck &sc)
 {
-    TaskNode *task = find_node_byid<TaskNode>(sc.ast(), Identifier(this->data()));
+    // search on top-level and module/program level
+    TaskNode *task = find_node_byid<TaskNode>(sc.ast(), Identifier(this->data()), 2);
 
     if(!task)
     {
@@ -319,6 +320,22 @@ TaskFinalNode::semanticCheck(SemanticCheck &)
 /// 
 void
 ConnNode::semanticCheck(SemanticCheck &)
+{
+}
+
+
+/// @details
+/// 
+void
+ProgramNode::semanticCheck(SemanticCheck &)
+{
+}
+
+
+/// @details
+/// 
+void
+ModuleNode::semanticCheck(SemanticCheck &)
 {
 }
 
