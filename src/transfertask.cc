@@ -27,6 +27,7 @@
 #include "argon/dtsengine.hh"
 #include "argon/exceptions.hh"
 #include "argon/ast.hh"
+#include "argon/rtti.hh"
 #include "debug.hh"
 #include "visitors.hh"
 
@@ -38,7 +39,7 @@
 ARGON_NAMESPACE_BEGIN
 
 
-typedef TemplateVisitor       TransferTemplateVisitor;
+//typedef TemplateVisitor       TransferTemplateVisitor;
 typedef TemplateArgVisitor    TransferTemplateArgVisitor;
 
 
@@ -47,8 +48,8 @@ typedef TemplateArgVisitor    TransferTemplateArgVisitor;
 
 /// @details
 /// 
-TransferTask::TransferTask(Processor &proc, TaskNode *node)
-    : Task(proc, node),
+TransferTask::TransferTask(Processor &proc, TaskNode *node, const ArgumentList &args)
+    : Task(proc, node, args),
       m_srcobject(),
       m_destobject()
 {}
@@ -59,8 +60,8 @@ TransferTask::TransferTask(Processor &proc, TaskNode *node)
 Object*
 TransferTask::getMainObject(void) 
 { 
-    assert(this->m_srcobject.get());
-    return this->m_srcobject.get(); 
+    assert(this->m_srcobject);
+    return this->m_srcobject; 
 }
 
 
@@ -69,8 +70,8 @@ TransferTask::getMainObject(void)
 Object*
 TransferTask::getResultObject(void) 
 { 
-    assert(this->m_destobject.get());
-    return this->m_destobject.get();
+    assert(this->m_destobject);
+    return this->m_destobject;
 /*
     ARGON_ICERR_CTX(false, *this,
                 "A STORE task does not contains a result object.");
@@ -83,19 +84,21 @@ TransferTask::getResultObject(void)
 Object*
 TransferTask::getDestObject(void)
 {
-    assert(this->m_destobject.get());
-    return this->m_destobject.get();
+    assert(this->m_destobject);
+    return this->m_destobject;
 }
 
 
 /// @details
 /// 
 Value
-TransferTask::run(const ArgumentList &args)
+TransferTask::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
 
-    Task::run(args);
+    ScopedStackFrame frame(this->proc());
+
+    Task::run();
 
     // Get template arguments
     safe_ptr<TmplArgumentsNode> tmplArgNode = find_node<TmplArgumentsNode>(this->m_node);
@@ -107,11 +110,24 @@ TransferTask::run(const ArgumentList &args)
                 "wrong template argument count");
 
 
-    ObjectInfo *srcInfoObj = 0;
-    ObjectInfo *destInfoObj = 0;
-
-
     // Create destination object
+    IdCallNode *destArgNode = node_cast<IdCallNode>(tmplArgNode->getChilds().at(0));
+    IdNode *destIdNode = find_node<IdNode>(destArgNode);
+    ObjectType* destType = this->proc().getTypes().find<ObjectType>(destIdNode->data());
+
+
+    // Handle destination object arguments
+    ArgumentList destArgs;
+    foreach_node(destArgNode, TransferTemplateArgVisitor(this->proc(), *this, destArgs), 1);
+
+
+    ObjectSmartPtr set_destobj(&this->m_destobject, destType->newInstance(destArgs, Type::INSERT_MODE));
+    //this->m_destobject.reset(destType->newInstance(Type::INSERT_MODE));
+    
+    ARGON_ICERR_CTX(this->m_destobject != 0, *this,
+                "Destination object allocation failed");
+/*
+
     Node *destArgNode = tmplArgNode->getChilds().at(0);
     foreach_node(destArgNode, TransferTemplateVisitor(this->proc(), *this, destInfoObj), 1);
     ARGON_ICERR_CTX(destInfoObj != 0, *this,
@@ -120,14 +136,29 @@ TransferTask::run(const ArgumentList &args)
     this->m_destobject.reset(destInfoObj->newInstance(Object::ADD_MODE));
     ARGON_ICERR_CTX(this->m_destobject.get() != 0, *this,
                 "Dest object allocation failed");
+*/
 
-    // Handle destination object arguments
-    ArgumentList destArgs;
-    foreach_node(destArgNode, TransferTemplateArgVisitor(this->proc(), *this, destArgs), 1);
 
 
 
     // Create source object
+    IdCallNode *srcArgNode = node_cast<IdCallNode>(tmplArgNode->getChilds().at(0));
+    IdNode *srcIdNode = find_node<IdNode>(srcArgNode);
+    ObjectType* srcType = this->proc().getTypes().find<ObjectType>(srcIdNode->data());
+
+    // Handle source object arguments
+    ArgumentList srcArgs;
+    foreach_node(srcArgNode, TransferTemplateArgVisitor(this->proc(), *this, srcArgs), 1);
+
+
+    ObjectSmartPtr set_srcobj(&this->m_srcobject, srcType->newInstance(srcArgs, Type::READ_MODE));
+
+    //this->m_srcobject.reset(srcType->newInstance(Type::READ_MODE));
+
+    ARGON_ICERR_CTX(this->m_srcobject != 0, *this,
+                "Source object allocation failed");
+
+/*
     Node *srcArgNode = tmplArgNode->getChilds().at(1);
     foreach_node(srcArgNode, TransferTemplateVisitor(this->proc(), *this, srcInfoObj), 1);
     ARGON_ICERR_CTX(srcInfoObj != 0, *this,
@@ -136,10 +167,7 @@ TransferTask::run(const ArgumentList &args)
     this->m_srcobject.reset(srcInfoObj->newInstance(Object::READ_MODE));
     ARGON_ICERR_CTX(this->m_srcobject.get() != 0, *this,
                 "Source object allocation failed");
-
-    // Handle source object arguments
-    ArgumentList srcArgs;
-    foreach_node(srcArgNode, TransferTemplateArgVisitor(this->proc(), *this, srcArgs), 1);
+*/
 
 
 
@@ -162,8 +190,8 @@ TransferTask::run(const ArgumentList &args)
 
     // Call both objects to setup their initial environment
     // This prepares SQL statements etc.
-    this->proc().call(this->getMainObject(), srcArgs);
-    this->proc().call(this->getDestObject(), destArgs);
+    this->proc().call(this->getMainObject());
+    this->proc().call(this->getDestObject());
 
     // IMPORTANT: destArgs may be used as values, Too!!
 
@@ -198,8 +226,8 @@ TransferTask::run(const ArgumentList &args)
 
 
     
-    this->m_destobject.reset(0); // workaround
-    this->m_srcobject.reset(0); // workaround
+    //this->m_destobject.reset(0); // workaround
+    //this->m_srcobject.reset(0); // workaround
 
     return Value();
 }

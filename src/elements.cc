@@ -63,8 +63,8 @@ Column::getFrom(db::Resultset &rs, Context &context)
 
 /// @details
 /// 
-Function::Function(Processor &proc)
-    : Context(proc)
+Function::Function(Processor &proc, const ArgumentList &args)
+    : Context(proc, args)
 {}
 
 
@@ -102,8 +102,7 @@ SourceInfo
 Function::getSourceInfo(void) const
 {
     /// @bug implement me
-    throw std::runtime_error("Function::getSourceInfo");
-    //return this->m_node->getSourceInfo();
+    return SourceInfo();
 }
 
 
@@ -183,6 +182,16 @@ Function::_type(void) const
     return "FUNCTION";
 }
 
+Value
+Function::run(void)
+{
+    /// @bug throw not-defined exception
+
+    //return *args.begin();
+
+    return db::Variant(String("empty"));
+}
+
 
 
 //..............................................................................
@@ -190,8 +199,8 @@ Function::_type(void) const
 
 /// @details
 /// 
-Object::Object(Processor &proc, ObjectNode *node)
-    : Context(proc),
+Object::Object(Processor &proc, DeclNode *node, const ArgumentList &args)
+    : Context(proc, args),
       m_column_mappings(),
       m_node(node)
 {}
@@ -200,8 +209,10 @@ Object::Object(Processor &proc, ObjectNode *node)
 /// @details
 /// This runs some code that is required by all objects like Arguments->Symboltable
 Value
-Object::run(const ArgumentList &args)
+Object::run(void)
 {
+    if(this->m_node)
+    {
     // Load OBJECTs arguments to local symbol table
     this->getSymbols().reset();
     safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
@@ -209,12 +220,13 @@ Object::run(const ArgumentList &args)
     ARGON_ICERR_CTX(argsSpecNode.get() != 0, *this,
                 "no argument specification");
     
-    ARGON_ICERR_CTX(argsSpecNode->getChilds().size() == args.size(), *this,
+    ARGON_ICERR_CTX(argsSpecNode->getChilds().size() == this->getCallArgs().size(), *this,
                 "Argument count mismatch");
     
-    ArgumentList::const_iterator i = args.begin();
-    foreach_node(argsSpecNode->getChilds(), Arg2SymVisitor(this->proc(), *this, i), 1);
-    
+    ArgumentList::const_iterator i = this->getCallArgs().begin();
+    foreach_node(argsSpecNode->getChilds(),
+                 Arg2SymVisitor(this->proc(), this->getSymbols(), i, this->getCallArgs().end()), 1);
+    }
     return Value();
 }
 
@@ -285,14 +297,85 @@ Object::addBindPosition(const Column &col, int pos)
 
 
 
+
+
+Ref::Ref(Element *elem) : m_element(elem)
+{
+    assert(elem);
+    this->m_element->registerRef(this);
+}
+
+Ref::Ref(const Ref &orig) : m_element(orig.m_element)
+{
+    assert(m_element);
+    this->m_element->registerRef(this);
+}
+
+Ref::~Ref(void)
+{
+    this->m_element->unregisterRef(this);
+}
+
+
+Element*
+Ref::operator->(void)
+{
+    return this->m_element;
+}
+
+const Element*
+Ref::operator->(void) const
+{
+    return this->m_element;
+}
+
+
+Element*
+Ref::operator&(void)
+{
+    return this->m_element;
+}
+
+
+
+
 //..............................................................................
 //////////////////////////////////////////////////////////////////////// Element
 
 /// @details
 /// 
 Element::Element(Processor &proc)
-    : m_proc(proc)
+    : m_references(),
+      m_proc(proc)
 {}
+
+
+Element::~Element(void)
+{
+    std::stringstream ss;
+    ss << "Element '" << typeid(this).name() << "' has " << this->m_references.size()
+       << " active references!";
+
+    /// @bug better error message
+    ARGON_ICERR(this->m_references.empty(), ss.str());
+}
+
+
+void
+Element::registerRef(const Ref *p)
+{
+    this->m_references.push_back(p);
+}
+
+
+
+void
+Element::unregisterRef(const Ref *p)
+{
+    this->m_references.remove(p);
+}
+
+
 
 
 //..............................................................................
@@ -300,9 +383,10 @@ Element::Element(Processor &proc)
 
 /// @details
 /// 
-Context::Context(Processor &proc)
+Context::Context(Processor &proc, const ArgumentList &args)
     : Element(proc),
-      m_symbols(&proc.getSymbols()) /// @bug good style??
+      m_symbols(&proc.getSymbols()), /// @bug good style??
+      m_args(args)
 {}
 
 
@@ -327,140 +411,12 @@ Context::getSymbols(void) const
 /// @details
 /// 
 Value
-Element::run(const ArgumentList &args)
+Element::run()
 { 
     throw std::runtime_error("is not callabled");
 }
 
 
-
-
-//..............................................................................
-///////////////////////////////////////////////////////////////////// ObjectInfo
-
-/// @details
-/// 
-ObjectInfo::ObjectInfo(Processor &proc, ObjectNode *node)
-    : Element(proc),
-      m_node(node)
-{}
-
-
-/// @details
-/// 
-String
-ObjectInfo::str(void) const
-{
-    return "[OBJINFO]";
-}
-
-
-/// @details
-/// 
-String
-ObjectInfo::name(void) const
-{
-    return ARGON_UNNAMED_ELEMENT;
-}
-
-/// @details
-/// 
-String
-ObjectInfo::type(void) const
-{
-    return "OBJECT";
-}
-
-
-/// @details
-/// 
-SourceInfo
-ObjectInfo::getSourceInfo(void) const
-{
-    return this->m_node->getSourceInfo();
-}
-
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////////// ObjectCreator
-///
-/// @since 0.0.1
-/// @brief Object Creator
-struct ObjectCreator : public Visitor
-{
-public:
-    ObjectCreator(Processor &proc, Object::mode mode, Object *&out)
-        : Visitor(Visitor::ignore_none),
-          m_proc(proc),
-          m_mode(mode),
-          m_object(out)
-    {}
-
-
-    virtual void visit(TableNode *node)
-    {
-        this->m_object = Table::newInstance(m_proc, node, m_mode);
-    }
-
-    virtual void visit(SqlNode *node)
-    {
-        this->m_object = Sql::newInstance(m_proc, node, m_mode);
-    }
-
-
-private:
-    Processor &m_proc;
-    Object::mode m_mode;
-    Object *&m_object;
-};
-
-
-
-/// @details
-/// 
-Object*
-ObjectInfo::newInstance(Object::mode mode)
-{
-    Object *tmp = 0;
-    apply_visitor(this->m_node, ObjectCreator(this->proc(), mode, tmp));
-
-    ARGON_ICERR(!!tmp, "ObjectInfo was unable to create a new instance.");
-    return tmp;
-}
-
-
-/// @details
-/// 
-Value
-ObjectInfo::_value(void) const
-{
-    return this->_name();
-}
-
-/// @details
-/// 
-String
-ObjectInfo::_string(void) const
-{
-    return this->_value().data().asStr();
-}
-
-/// @details
-/// 
-String
-ObjectInfo::_name(void) const
-{
-    return this->id().str() + String(" (object)");
-}
-
-/// @details
-/// 
-String
-ObjectInfo::_type(void) const
-{
-    return "OBJINFO";
-}
 
 
 //..............................................................................

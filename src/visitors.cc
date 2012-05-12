@@ -28,6 +28,8 @@
 
 #include "builtin/functions.hh"
 
+#include "argon/rtti.hh"
+
 #include <stdexcept>
 
 ARGON_NAMESPACE_BEGIN
@@ -140,10 +142,40 @@ EvalExprVisitor::visit(FuncCallNode *node)
     // Fill argument list with the result of each argument node
     foreach_node(argsnode->getChilds(), ArgumentsVisitor(m_proc, m_context, al), 1);
 
-    // create new function in current context
-    std::auto_ptr<Function> fun( m_proc.createFunction(id) );
 
-    m_value.data() = m_proc.call(fun.get(), al).data();
+
+    // // create new function in current context
+    // std::auto_ptr<Function> fun( m_proc.createFunction(id) );
+
+    // m_value.data() = m_proc.call(fun.get(), al).data();
+
+
+    // resolve<> better?
+
+
+    Element *elem = 0;
+
+
+
+
+    elem = this->m_proc.getTypes().find<FunctionType>(id)->newInstance(al);
+
+
+
+    assert(elem);
+
+    ScopedStackPush _ssp(this->m_proc, elem);
+
+
+    /// @bug just call m_proc.call(<function-id>, args)
+    m_value.data() = m_proc.call(elem).data();
+
+
+    //Function *f = this->m_proc.getSymbols().find<Function>(id);
+
+
+    //m_value.data() = m_proc.call(f, al).data();
+
 }
 
 
@@ -263,6 +295,28 @@ ArgumentsVisitor::ArgumentsVisitor(Processor &proc, Context &context, ArgumentLi
 {}
 
 
+
+/// @details
+/// 
+void
+ArgumentsVisitor::visit(IdNode *node)
+{
+    Identifier id = node->data();
+
+    Element *elem = m_context.resolve<Element>(id);
+
+    m_list.push_back(Ref(elem));
+
+//    m_value.data() = elem->_value().data();
+/*
+    Value val;
+    EvalExprVisitor eval(this->m_proc, this->m_context, val);
+    eval(node);
+    m_list.push_back(val);
+*/
+}
+
+
 /// @details
 /// 
 void
@@ -271,7 +325,9 @@ ArgumentsVisitor::fallback_action(Node *node)
     Value val;
     EvalExprVisitor eval(this->m_proc, this->m_context, val);
     eval(node);
-    m_list.push_back(val);
+    ValueElement *elem = new ValueElement(m_proc, val);
+    this->m_proc.stackPush(elem);
+    m_list.push_back(Ref(elem));
 }
 
 
@@ -282,11 +338,14 @@ ArgumentsVisitor::fallback_action(Node *node)
 
 /// @details
 /// 
-Arg2SymVisitor::Arg2SymVisitor(Processor &proc, Context &context, ArgumentList::const_iterator &i)
+Arg2SymVisitor::Arg2SymVisitor(Processor &proc, SymbolTable &symboltable, 
+                               ArgumentList::const_iterator &i, ArgumentList::const_iterator end)
     : Visitor(Visitor::ignore_none),
       m_proc(proc),
-      m_context(context),
-      m_arg_iterator(i)
+    m_symboltable(symboltable),
+//m_context(context),
+    m_arg_iterator(i),
+    m_end_iterator(end)
 {}
 
 
@@ -295,9 +354,16 @@ Arg2SymVisitor::Arg2SymVisitor(Processor &proc, Context &context, ArgumentList::
 void
 Arg2SymVisitor::visit(IdNode *node)
 {
+    Identifier argumentId = node->data();
+
+    //m_context.getSymbols().add(argumentId, *m_arg_iterator);
+    this->m_symboltable.add(argumentId, *m_arg_iterator);
+
+/*
     Element *tmp = m_context.getSymbols().addPtr( new ValueElement(m_proc, *m_arg_iterator));
     m_context.getSymbols().add(node->data(),
                                tmp);
+*/
     ++m_arg_iterator;
 }
 
@@ -413,70 +479,6 @@ ColumnVisitor::fallback_action(Node *node)
 }
 
 
-//..............................................................................
-//////////////////////////////////////////////////////////////// TemplateVisitor
-
-/// @details
-/// 
-TemplateVisitor::TemplateVisitor(Processor &proc, Context &context, ObjectInfo *&obj)
-    : Visitor(Visitor::ignore_none),
-      m_proc(proc),
-      m_context(context),
-      m_objinfo(obj)
-{}
-
-
-/// @details
-/// We search a given identifier (example: FETCH [ myid ]) in the global
-/// scope.
-void
-TemplateVisitor::visit(IdNode *node)
-{
-    Identifier id = node->data();
-    this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id);
-}
-    
-
-/// @details
-/// 
-void
-TemplateVisitor::visit(IdCallNode *node)
-{
-    ARGON_ICERR_CTX(node->getChilds().size() >= 1, this->m_context,
-                    "IdCallNode does not contains any subnodes");
-
-    IdNode *idnode = node_cast<IdNode>(node->getChilds().at(0));
-
-    Identifier id = idnode->data();
-
-    this->m_objinfo = this->m_proc.getSymbols().find<ObjectInfo>(id);
-}
-
-
-/// @details
-/// 
-void
-TemplateVisitor::visit(TableNode *node)
-{
-    ObjectInfo *elem = this->m_context.getSymbols().addPtr( new ObjectInfo(this->m_proc, node) );
-    this->m_context.getSymbols().add(node->data(), elem); /// @bug using anonymous id
-
-    m_objinfo = elem;
-}
-
-
-/// @details
-/// 
-void
-TemplateVisitor::visit(SqlNode *node)
-{
-    ObjectInfo *elem = this->m_context.getSymbols().addPtr( new ObjectInfo(this->m_proc, node) );
-    this->m_context.getSymbols().add(node->data(), elem); /// @bug using anonymous id
-
-    m_objinfo = elem;
-}
-
-
 
 //..............................................................................
 ///////////////////////////////////////////////////////////// TemplateArgVisitor
@@ -512,25 +514,6 @@ TemplateArgVisitor::visit(IdCallNode *node)
 
     foreach_node(argsnode->getChilds(), ArgumentsVisitor(this->m_proc, m_context, this->m_list), 1);
 }
-
-
-/// @details
-/// 
-void
-TemplateArgVisitor::visit(TableNode *node)
-{
-    // no args
-}
-
-
-/// @details
-/// 
-void
-TemplateArgVisitor::visit(SqlNode *node)
-{
-    // args required for SQL with parameters, but is not implemented.
-}
-
 
 
 

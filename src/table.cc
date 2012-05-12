@@ -54,6 +54,10 @@ public:
           m_sourcetable(task)
     {}
 
+    virtual void visit(IdNode *node)
+    {
+        // The ID node refers to the object base.
+    }
 
     virtual void visit(LogNode *node)
     {
@@ -87,8 +91,8 @@ private:
 
 /// @details
 /// 
-Table::Table(Processor &proc, ObjectNode *node, Object::mode mode)
-    : Object(proc, node),
+Table::Table(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode)
+    : Object(proc, node, args),
       m_stmt(),
       m_conn(),
       m_columns(),
@@ -115,7 +119,7 @@ Table::setColumnList(const ColumnList &list)
 void
 Table::setResultList(const ColumnList &list)
 {
-	assert(this->m_mode == Object::ADD_MODE);
+	assert(this->m_mode == Type::INSERT_MODE);
     this->m_result_columns = list;
 }
 
@@ -126,7 +130,7 @@ Table::setResultList(const ColumnList &list)
 void
 Table::setColumn(const Column &col, const Value &v)
 {
-	assert(this->m_mode == Object::ADD_MODE);
+	assert(this->m_mode == Type::INSERT_MODE);
     int i = this->getBindPosition(col);
 
     assert(i > 0);
@@ -186,11 +190,53 @@ Table::eof(void) const
 /// @details
 /// 
 Value
-Table::run(const ArgumentList &args)
+Table::run(void)
 {
     String tableName, schemaName, dbName;
 
-    Object::run(args);
+    Object::run();
+
+    if(!this->m_node)
+    {
+        ArgumentList::const_iterator i = this->getCallArgs().begin();
+
+        this->m_conn = i->cast<Connection>();
+
+        ++i; /// @bug no check for end()
+
+        /// @todo only literal strings supported for now. This
+        /// can be extended to identifiers later.
+
+        
+        tableName = (*i)->_value().data().asStr();
+
+/*
+        try
+        {
+            node = node_cast<LiteralNode>(args.at(1));
+            tableName = node->data();
+        }
+        catch(...)
+        {
+            IdNode *node = node_cast<IdNode>(args.at(1));
+            tableName = this->getSymbols().find<Element>(node->data())->_value().data().asStr();
+        }
+
+        if(args.size() > 2)
+        {
+            node = node_cast<LiteralNode>(args.at(2));
+            schemaName = node->data();
+        }
+
+        if(args.size() > 3)
+        {
+            node = node_cast<LiteralNode>(args.at(3));
+            dbName = node->data();
+        }
+*/
+    }
+    else
+    {
 
     foreach_node( this->m_node->getChilds(), TableObjectChildVisitor(this->proc(), *this, *this), 1);
 
@@ -208,15 +254,19 @@ Table::run(const ArgumentList &args)
     ARGON_ICERR_CTX(!!argSpecNode, *this,
                 "table node does not contains an argument specification node");
 
-    ARGON_ICERR_CTX((argSpecNode->getChilds().size() == args.size()), *this,
+    ARGON_ICERR_CTX((argSpecNode->getChilds().size() == this->getCallArgs().size()), *this,
                 "argument count mismatch");
 
     // Prepare connection
     {
         Node::nodelist_type &args = argNode->getChilds();
         safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
-        this->m_conn = this->proc().getSymbols().find<Connection>(node->data());
+        /// @bug Needs review
+        //this->m_conn = this->proc().getSymbols().find<Connection>(node->data());
+        this->m_conn = this->getSymbols().find<Connection>(node->data());
     }
+
+
 
     // Prepare table name, schema etc.
     {
@@ -226,8 +276,17 @@ Table::run(const ArgumentList &args)
 
         /// @todo only literal strings supported for now. This
         /// can be extended to identifiers later.
-        node = node_cast<LiteralNode>(args.at(1));
-        tableName = node->data();
+
+        try
+        {
+            node = node_cast<LiteralNode>(args.at(1));
+            tableName = node->data();
+        }
+        catch(...)
+        {
+            IdNode *node = node_cast<IdNode>(args.at(1));
+            tableName = this->getSymbols().find<Element>(node->data())->_value().data().asStr();
+        }
 
         if(args.size() > 2)
         {
@@ -240,6 +299,8 @@ Table::run(const ArgumentList &args)
             node = node_cast<LiteralNode>(args.at(3));
             dbName = node->data();
         }
+    }
+
     }
 
     ARGON_ICERR_CTX(tableName.length() > 0, *this,
@@ -266,10 +327,10 @@ Table::run(const ArgumentList &args)
 
     switch(this->m_mode)
     {
-    case Object::READ_MODE:
+    case Type::READ_MODE:
         sql_query = this->generateSelect(m_objname);
         break;
-    case Object::ADD_MODE:
+    case Type::INSERT_MODE:
         sql_query = this->generateInsert(m_objname);
         break;
     default:
@@ -453,345 +514,21 @@ Table::_type(void) const
 /// @details
 /// 
 Table*
-Table::newInstance(Processor &proc, TableNode *node, Object::mode mode)
+Table::newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, DeclNode *node, Type::mode_t mode)
 {
-    safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(node);
-
-    ARGON_ICERR(!!argNode,
-                "table node does not contains an argument node");
-
-    ARGON_ICERR(argNode->getChilds().size() >= 2 && argNode->getChilds().size() <= 4,
-                "table argument count is invalid");
-
-    Connection* conn;
-
-    // Find connection
-    {
-        Node::nodelist_type &args = argNode->getChilds();
-        safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
-        conn = proc.getSymbols().find<Connection>(node->data());
-    }
+    assert(dbc);
     
-    switch(conn->getEnv().getEngineType())
+    switch(dbc->getEnv().getEngineType())
     {
     case informave::db::dal::DAL_ENGINE_SQLITE:
-        return new TableSqlite(proc, node, mode);        
+        return new TableSqlite(proc, args, node, mode);
     default:
-    	return new Table(proc, node, mode);
-    /*
-    ARGON_ICERR(false,
-                "Unknown engine type in Table::newInstance()");
-		*/
-    } 
-}
-
-
-
-/*
-
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////////////// DestTable
-
-/// @details
-/// 
-DestTable::DestTable(Processor &proc, ObjectNode *node)
-    : Object(proc, node),
-      m_stmt(),
-      m_column_values(),
-      m_columns()
-{}
-
-
-
-/// @details
-/// 
-void
-DestTable::setColumnList(const ColumnList &list)
-{
-    this->m_columns = list;
-}
-
-
-
-int
-Object::getBindPosition(const Column &col)
-{
-    std::map<Column, int>::iterator i = this->m_column_mappings.find(col);
-    if(i == this->m_column_mappings.end())
-        throw std::runtime_error(String("unknown column: ") + col.getName());
-    else
-        return i->second;
-}
-
-void
-Object::addBindPosition(const Column &col, int pos)
-{
-    this->m_column_mappings[col] = pos;
-}
-
-
-
-/// @details
-/// 
-void
-DestTable::setColumn(Column col, Value v)
-{
-    int i = this->getBindPosition(col);
-
-    assert(i > 0);
-
-    this->m_stmt->bind(i, v.data());
-
-	//this->m_column_values[col.getName()] = v;
-//	this->m_column_values[c
-}
-
-
-/// @details
-/// 
-bool
-DestTable::eof(void) const
-{
-    return m_stmt->resultset().eof();
-}
-
-
-/// @details
-/// 
-bool
-DestTable::next(void)
-{
-    //m_stmt->resultset().next();
-
-    //return !m_stmt->resultset().eof();
-    //
-    return false;
-    
-    //std::cout << m_stmt->resultset().column(1) << std::endl;
-}
-
-
-/// @details
-/// 
-const db::Value&
-DestTable::getColumn(Column col)
-{
-
-    // if(Column::by_number == col.mode())
-    //     return m_stmt->resultset().column(col.getNum());
-    // else
-    //     return m_stmt->resultset().column(col.getName());
-
-	throw std::runtime_error("getcolumn");
-}
-
-
-/// @details
-/// 
-Value
-DestTable::run(const ArgumentList &args)
-{
-    String tableName, schemaName, dbName;
-    Connection *conn;
-
-    Object::run(args);
-
-    foreach_node( this->m_node->getChilds(), ObjectChildVisitor(this->proc(), *this, *this), 1);
-
-    safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(this->m_node);
-
-    safe_ptr<ArgumentsSpecNode> argSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
-    
-    ARGON_ICERR_CTX(!!argNode, *this,
-                "table node does not contains an argument node");
-
-    ARGON_ICERR_CTX(argNode->getChilds().size() >= 2 && argNode->getChilds().size() <= 4, *this,
-                "table argument count is invalid");
-
-    /// @bug add argSpecNode !! test
-
-    ARGON_ICERR_CTX((argSpecNode->getChilds().size() == args.size()), *this,
-                "argument count mismatch");
-
-    // Prepare connection
-    {
-        Node::nodelist_type &args = argNode->getChilds();
-        safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
-        conn = this->proc().getSymbols().find<Connection>(node->data());
+    	return new Table(proc, args, node, mode);
     }
-
-    // Prepare table name, schema etc.
-    {
-        Node::nodelist_type &args = argNode->getChilds();
-        safe_ptr<LiteralNode> node;
-
-
-        /// @todo only literal strings supported for now. This
-        /// can be extended to identifiers later.
-        node = node_cast<LiteralNode>(args.at(1));
-        tableName = node->data();
-
-        if(args.size() > 2)
-        {
-            node = node_cast<LiteralNode>(args.at(2));
-            schemaName = node->data();
-        }
-
-        if(args.size() > 3)
-        {
-            node = node_cast<LiteralNode>(args.at(3));
-            dbName = node->data();
-        }
-    }
-
-    ARGON_ICERR_CTX(tableName.length() > 0, *this,
-                "table name is empty");
-
-
-    String s("INSERT INTO ");
-    String objname;
-
-    if(dbName.length() > 0)
-        objname.append(dbName);
-
-    if(schemaName.length() > 0)
-        objname.append( (objname.length() > 0 ? String(".") : String("")) + schemaName);
-
-    if(tableName.length() > 0)
-        objname.append( (objname.length() > 0 ? String(".") : String("")) + tableName);
-
-
-    s.append(objname);
-
-    //this->m_column_values["number"] = Value(23);
-    //this->m_column_values["value"] = Value(String("foo"));
-
-	assert(! this->m_columns.empty());
-
-	String column_list, param_list;
-
-    int bindpos = 1;
-
-    for(ColumnList::iterator i = this->m_columns.begin();
-    	i != this->m_columns.end();
-        ++i)
-	{
-		if(! column_list.empty())
-			column_list.append(", ");
-		column_list.append(i->getName()); /// @bug
-		if(! param_list.empty())
-			param_list.append(", ");
-		param_list.append("?");
-        this->addBindPosition(*i, bindpos++);
-	}
-
-    s.append("(");
-    s.append(column_list);
-    s.append(") VALUES(");
-    s.append(param_list);
-    s.append(")");
-
-	std::cout << s << std::endl;
-
-    ARGON_DPRINT(ARGON_MOD_PROC, "RUN INSERT: " << s);
-
-
-    this->m_stmt.reset( conn->getDbc().newStatement() );
-    
-    //m_stmt->prepare("foo"); // invalid read, FIX THIS!
-    
-    m_stmt->prepare(s);
-    
-    
-        
-    //this->setColumn(Column(1), Value(23)); /// @bug just for debugging
-
-    return Value();
-}
-
-void
-DestTable::execute(void)
-{
-    m_stmt->execute();
-}
-
-
-/// @details
-/// 
-String
-DestTable::str(void) const
-{
-    String s;
-    //s.append(this->id().str());
-    s.append("[TASK]");
-    return s;
-}
-
-
-/// @details
-/// 
-String
-DestTable::name(void) const
-{
-    String s = this->id().str();
-    return s.empty() ? "<anonymous>" : s;
-}
-
-
-/// @details
-/// 
-String
-DestTable::type(void) const
-{
-    return "TABLE";
-}
-
-
-/// @details
-/// 
-SourceInfo
-DestTable::getSourceInfo(void) const
-{
-    assert(this->m_node);
-    return this->m_node->getSourceInfo();
 }
 
 
 
-/// @details
-/// 
-Value
-DestTable::_value(void) const
-{
-    return String("TABLE");
-}
-
-/// @details
-/// 
-String
-DestTable::_string(void) const
-{
-    return this->_value().data().asStr();
-}
-
-/// @details
-/// 
-String
-DestTable::_name(void) const
-{
-    return this->id().str() + String(" (table)");
-}
-
-/// @details
-/// 
-String
-DestTable::_type(void) const
-{
-    return "TABLE";
-}
-*/
 
 
 ARGON_NAMESPACE_END

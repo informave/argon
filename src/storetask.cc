@@ -27,6 +27,7 @@
 #include "argon/dtsengine.hh"
 #include "argon/exceptions.hh"
 #include "argon/ast.hh"
+#include "argon/rtti.hh"
 #include "debug.hh"
 #include "visitors.hh"
 
@@ -39,7 +40,7 @@ ARGON_NAMESPACE_BEGIN
 
 
 
-typedef TemplateVisitor       StoreTemplateVisitor;
+//typedef TemplateVisitor       StoreTemplateVisitor;
 typedef TemplateArgVisitor    StoreTemplateArgVisitor;
 
 
@@ -49,8 +50,8 @@ typedef TemplateArgVisitor    StoreTemplateArgVisitor;
 
 /// @details
 /// 
-StoreTask::StoreTask(Processor &proc, TaskNode *node)
-    : Task(proc, node),
+StoreTask::StoreTask(Processor &proc, TaskNode *node, const ArgumentList &args)
+    : Task(proc, node, args),
       m_destobject()
 {}
 
@@ -60,7 +61,7 @@ StoreTask::StoreTask(Processor &proc, TaskNode *node)
 Object*
 StoreTask::getMainObject(void) 
 {                 
-    return this->m_destobject.get(); 
+    return this->m_destobject; 
 }
 
 
@@ -69,7 +70,7 @@ StoreTask::getMainObject(void)
 Object*
 StoreTask::getResultObject(void) 
 { 
-    return this->m_destobject.get();
+    return this->m_destobject;
 }
 
 
@@ -78,18 +79,20 @@ StoreTask::getResultObject(void)
 Object*
 StoreTask::getDestObject(void)
 {
-    return this->m_destobject.get();
+    return this->m_destobject;
 }
 
 
 /// @details
 /// 
 Value
-StoreTask::run(const ArgumentList &args)
+StoreTask::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
 
-    Task::run(args);
+    ScopedStackFrame frame(this->proc());
+
+    Task::run();
 
     // Get template arguments
     safe_ptr<TmplArgumentsNode> tmplArgNode = find_node<TmplArgumentsNode>(this->m_node);
@@ -101,23 +104,22 @@ StoreTask::run(const ArgumentList &args)
                 "wrong template argument count");
         
 
-    ObjectInfo *destInfoObj = 0;
-
 
     // Create destination object
-    Node *destArgNode = tmplArgNode->getChilds().at(0);
-    foreach_node(destArgNode, StoreTemplateVisitor(this->proc(), *this, destInfoObj), 1);
-    ARGON_ICERR_CTX(destInfoObj != 0, *this,
-                "destination information is not valid");
-
-    this->m_destobject.reset(destInfoObj->newInstance(Object::ADD_MODE));
-    ARGON_ICERR_CTX(this->m_destobject.get() != 0, *this,
-                "Main object allocation failed");
+    IdCallNode *destArgNode = node_cast<IdCallNode>(tmplArgNode->getChilds().at(0));
+    IdNode *destIdNode = find_node<IdNode>(destArgNode);
+    ObjectType* destType = this->proc().getTypes().find<ObjectType>(destIdNode->data());
 
     // Handle destination object arguments
     ArgumentList destArgs;
     foreach_node(destArgNode, StoreTemplateArgVisitor(this->proc(), *this, destArgs), 1);
 
+    ObjectSmartPtr set_destobj(&this->m_destobject, destType->newInstance(destArgs, Type::INSERT_MODE));
+
+    //this->m_destobject.reset(destType->newInstance(Type::INSERT_MODE));
+    
+    ARGON_ICERR_CTX(this->m_destobject != 0, *this,
+                "Destination object allocation failed");
 
 
     // Get a list of the left and right columns
@@ -137,7 +139,7 @@ StoreTask::run(const ArgumentList &args)
     
     // Call object to setup initial environment
     // This prepares the SQL statement etc.
-    this->proc().call(this->getMainObject(), destArgs);
+    this->proc().call(this->getMainObject());
 
    // IMPORTANT: destArgs may be used as values, Too!!
 
@@ -162,7 +164,7 @@ StoreTask::run(const ArgumentList &args)
     foreach_node( this->m_final_nodes, TaskChildVisitor(this->proc(), *this), 1);
     
 
-    this->m_destobject.reset(0); // workaround
+    //this->m_destobject.reset(0); // workaround
     return Value();
 }
 

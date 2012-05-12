@@ -89,8 +89,14 @@ TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
     ARGON_DPRINT(ARGON_MOD_PROC, "Calling task " << node->taskid().str());
     //foreach_node(node->getChilds(), PrintTreeVisitor(this->m_proc, std::wcout), 1);
     
-    Task* task = this->m_proc.getSymbols().find<Task>(node->data()); // search task global
+    //Task* task = this->m_proc.getSymbols().find<Task>(node->data()); // search task global
+
+    //Task* task = this->m_proc.getTypes().find<TaskType>(node->data()).newInstance();
     
+    
+
+    ScopedStackFrame frame(this->m_proc);
+
     /// @bug fix this
     ArgumentList al;
     
@@ -110,7 +116,8 @@ TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
         */
 
         // get arguments
-        this->m_proc.call(task, al);
+        this->m_proc.call(node->data(), al);
+
 }
 
 
@@ -142,7 +149,7 @@ TaskChildVisitor::visit(TmplArgumentsNode *node)
 /// @details
 /// This runs some code that is required by all tasks like Arguments->Symboltable
 Value
-Task::run(const ArgumentList &args)
+Task::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
 
@@ -153,11 +160,12 @@ Task::run(const ArgumentList &args)
     ARGON_ICERR_CTX(argsSpecNode.get() != 0, *this,
                 "no argument specification");
 
-    ARGON_ICERR_CTX(argsSpecNode->getChilds().size() == args.size(), *this,
+    ARGON_ICERR_CTX(argsSpecNode->getChilds().size() == this->getCallArgs().size(), *this,
                 "Argument count mismatch");
     
-    ArgumentList::const_iterator i = args.begin();
-    foreach_node(argsSpecNode->getChilds(), Arg2SymVisitor(this->proc(), *this, i), 1);
+    ArgumentList::const_iterator i = this->getCallArgs().begin();
+    foreach_node(argsSpecNode->getChilds(),
+                 Arg2SymVisitor(this->proc(), this->getSymbols(), i, this->getCallArgs().end()), 1);
 
     return Value();
 }
@@ -166,8 +174,8 @@ Task::run(const ArgumentList &args)
 
 /// @details
 /// 
-Task::Task(Processor &proc, TaskNode *node)
-    : Context(proc),
+Task::Task(Processor &proc, TaskNode *node, const ArgumentList &args)
+    : Context(proc, args),
       m_node(node),
       m_init_nodes(),
       m_before_nodes(),

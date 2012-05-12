@@ -139,11 +139,11 @@ SqlExecCmd::bindParam(int pnum, Value value)
 /// @details
 /// 
 Value
-SqlExecCmd::run(const ArgumentList &args)
+SqlExecCmd::run(void)
 {
     assert(! this->m_node->sql().empty());
 
-    assert(args.size() == 0);
+    //assert(this->getCallArgs().size() == 0);
 
     Connection *con = this->m_context.resolve<Connection>(this->m_node->connid());
     db::Connection& dbc = con->getDbc();

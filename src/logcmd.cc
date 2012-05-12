@@ -129,7 +129,7 @@ LogCmd::getSourceInfo(void) const
 /// @details
 /// 
 Value
-LogCmd::run(const ArgumentList &args)
+LogCmd::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Run LogCmd");
 

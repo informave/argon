@@ -26,6 +26,7 @@
 
 #include "argon/dtsengine.hh"
 #include "argon/exceptions.hh"
+#include "argon/rtti.hh"
 #include "argon/ast.hh"
 #include "debug.hh"
 #include "visitors.hh"
@@ -38,7 +39,7 @@ ARGON_NAMESPACE_BEGIN
 
 
 
-typedef TemplateVisitor       FetchTemplateVisitor;
+//typedef TemplateVisitor       FetchTemplateVisitor;
 typedef TemplateArgVisitor    FetchTemplateArgVisitor;
 
 
@@ -49,8 +50,8 @@ typedef TemplateArgVisitor    FetchTemplateArgVisitor;
 
 /// @details
 /// 
-FetchTask::FetchTask(Processor &proc, TaskNode *node)
-    : Task(proc, node),
+FetchTask::FetchTask(Processor &proc, TaskNode *node, const ArgumentList &args)
+    : Task(proc, node, args),
       m_mainobject()
 {}
 
@@ -60,7 +61,7 @@ FetchTask::FetchTask(Processor &proc, TaskNode *node)
 Object*
 FetchTask::getMainObject(void) 
 { 
-    return this->m_mainobject.get(); 
+    return this->m_mainobject; 
 }
 
 
@@ -87,11 +88,13 @@ FetchTask::getDestObject(void)
 /// @details
 /// 
 Value
-FetchTask::run(const ArgumentList &args)
+FetchTask::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
 
-    Task::run(args);
+    ScopedStackFrame frame(this->proc());
+
+    Task::run();
 
     // Get template arguments
     safe_ptr<TmplArgumentsNode> tmplArgNode = find_node<TmplArgumentsNode>(this->m_node);
@@ -101,25 +104,24 @@ FetchTask::run(const ArgumentList &args)
 
     ARGON_ICERR_CTX(tmplArgNode->getChilds().size() == 1, *this,
                 "wrong template argument count");
-        
-
-    ObjectInfo *sourceInfoObj = 0;
 
 
     // Create source object
-    Node *sourceArgNode = tmplArgNode->getChilds().at(0);
-    foreach_node(sourceArgNode, FetchTemplateVisitor(this->proc(), *this, sourceInfoObj), 1);
-    ARGON_ICERR_CTX(sourceInfoObj != 0, *this,
-                "source information is not valid");
-
-    this->m_mainobject.reset(sourceInfoObj->newInstance(Object::READ_MODE));
-    ARGON_ICERR_CTX(this->m_mainobject.get() != 0, *this,
-                "Source object allocation failed");
-
+    IdCallNode *sourceArgNode = node_cast<IdCallNode>(tmplArgNode->getChilds().at(0));
+    IdNode *sourceIdNode = find_node<IdNode>(sourceArgNode);
+    ObjectType* sourceType = this->proc().getTypes().find<ObjectType>(sourceIdNode->data());
 
     // Handle source object arguments
     ArgumentList sourceArgs;
     foreach_node(sourceArgNode, FetchTemplateArgVisitor(this->proc(), *this, sourceArgs), 1);
+
+
+    ObjectSmartPtr set_mainobj(&this->m_mainobject, sourceType->newInstance(sourceArgs, Type::READ_MODE));
+
+
+    ARGON_ICERR_CTX(this->m_mainobject != 0, *this,
+                "Source object allocation failed");
+
 
 
     // Get a list of the left and right columns
@@ -140,9 +142,14 @@ FetchTask::run(const ArgumentList &args)
     assert(reslist.size() == 0); // FETCH tasks can't contain any result columns
 
 
+
     // Call object to setup initial environment
     // This prepares the SQL statement etc.
-    this->proc().call(this->getMainObject(), sourceArgs);
+    this->proc().call(this->getMainObject());
+    
+    //this->m_mainobject.reset(0);
+
+
     this->getMainObject()->execute();
 
 
@@ -171,7 +178,7 @@ FetchTask::run(const ArgumentList &args)
 
 
 
-    this->m_mainobject.reset(0); // workaround
+    //this->m_mainobject.reset(0); // workaround
 
     return Value();
 }

@@ -90,6 +90,17 @@ langElementList(Z) ::= . {
 langElement(Z) ::= connDecl(A). { Z = A; }
 langElement(Z) ::= decl(A). { Z = A; } // obj decl
 langElement(Z) ::= task(A). { Z = A; }
+langElement(Z) ::= function(A). {
+	Z = A;
+}
+
+
+function(Z) ::= FUNCTION ID(A) BEGIN END SEP. {
+	CREATE_NODE(FunctionNode);
+	node->init(A->data());
+	Z = node;
+}
+
 
 
 //..............................................................................
@@ -137,34 +148,46 @@ mappingItem(A) ::= literal(B) MAPOP expr(C). {
 //..............................................................................
 ///////////////////////////////////////////////////////////// OBJECT Declaration
 
-%type objType { ObjectNode* }
+//%type objType { ObjectNode* }
 %type declBody { NodeList* }
 
-decl(Z) ::= DECLARE(Y) ID(A) declArgList(C) COLON objType(B) declBody(D) SEP(X). { 
-	  ObjectNode *node = B;
-	  if(node)
-	  {
-			node->init(Identifier(A->data()));
+%type declBase { IdNode* }
 
-		  	node->addChild(C);
-			node->addChilds(D);
+declBase(A) ::= id(B). { A = B; }
 
-	   	Z = node;
-	   	ADD_TOKEN(node, Y);
-	   	ADD_TOKEN(node, X);
-		}
+declBase(A) ::= SQL. {
+				CREATE_NODE(IdNode);
+				node->init(Identifier("sql"));
+				A = node;
 }
 
 
+decl(Z) ::= DECLARE(Y) ID(A) declArgList(C) COLON declBase(B) callArgs(E) declBody(D) SEP(X). { 
+	  CREATE_NODE(DeclNode);
+	  
+	  node->init(Identifier(A->data()));
+	  node->addChild(B);
+	  node->addChild(E);
+	  node->addChild(C);
+	  node->addChilds(D);
+
+	  Z = node;
+	  ADD_TOKEN(node, A);
+	  ADD_TOKEN(node, Y);
+	  ADD_TOKEN(node, X);
+}
+
+/*
 objType(A) ::= tableObj(B).       { A = B; }
 objType(A) ::= viewObj(B).        { A = B; }
 objType(A) ::= procedureObj(B).   { A = B; }
 objType(A) ::= sqlObj(B).         { A = B; }
-
+*/
 
 declBody(A) ::= BEGIN bodyExprList(B) END.  { A = B; }
 declBody(A) ::= .                           { A = tree->newNodeList(); }
 
+/*
 %type anonymousObj { ObjectNode* }
 
 anonymousObj(A) ::= objType(B). {
@@ -173,8 +196,9 @@ anonymousObj(A) ::= objType(B). {
 					 A->init(Identifier(tree->gen_anonymous_id()));
 					 A->addChild(node);
 }
+*/
 
-
+/*
 //..............................................................................
 ////////////////////////////////////////////////////////////////////////// Table
 
@@ -215,7 +239,7 @@ sqlObj(A) ::= SQL callArgs(B). {
 			 node->addChild(B);
 			 A = node;
 }
-
+*/
 
 
 //..............................................................................
@@ -375,6 +399,24 @@ tmplArgList(A) ::= tmplArgItem(B). {
 }
 
 
+tmplArgItem(A) ::= declBase(B) tmplArgItemCallArgs(C). { // @bug is callArgList ok?
+               CREATE_NODE(IdCallNode);
+					node->addChild(B);
+					node->addChild(C);
+               A = node;
+}
+
+tmplArgItemCallArgs(A) ::= LP callArgList(C) RP. {
+							  A = C;
+}
+
+tmplArgItemCallArgs(A) ::= . {
+				CREATE_NODE(ArgumentsNode);
+				A = node;
+}
+
+
+/*
 tmplArgItem(A) ::= id(B). {
                A = B;
 }
@@ -385,11 +427,13 @@ tmplArgItem(A) ::= id(B) LP callArgList(C) RP. { // @bug is callArgList ok?
 					node->addChild(C);
                A = node;
 }
+*/
 
+/*
 tmplArgItem(A) ::= anonymousObj(B). {
 					A = B;
 }
-
+*/
 
 
 

@@ -45,20 +45,46 @@ ARGON_NAMESPACE_BEGIN
 ///
 /// @since 0.0.1
 /// @brief Processor initial tree walker
-class ProcTreeWalker : public Visitor
+class Pass1Visitor : public Visitor
 {
 public:
-    ProcTreeWalker(Processor &proc);
+    Pass1Visitor(Processor &proc);
 
     virtual void visit(ConnNode *node);
     virtual void visit(TaskNode *node);
+    virtual void visit(FunctionNode *node);
     //virtual void visit(ParseTree *node);
     virtual void visit(LogNode *node);
     virtual void visit(IdNode *node);
     virtual void visit(LiteralNode *node);
 
-    virtual void visit(TableNode *node);
-    virtual void visit(SqlNode *node);
+    virtual void visit(DeclNode *node);
+
+protected:
+    inline Processor& proc(void) { return m_proc; }
+    Processor &m_proc;
+};
+
+//..............................................................................
+///////////////////////////////////////////////////////////////// ProcTreeWalker
+///
+/// @since 0.0.1
+/// @brief Processor initial tree walker
+class Pass2Visitor : public Visitor
+{
+public:
+    Pass2Visitor(Processor &proc);
+
+    virtual void visit(ConnNode *node);
+    virtual void visit(TaskNode *node);
+    virtual void visit(FunctionNode *node);
+    //virtual void visit(ParseTree *node);
+    virtual void visit(LogNode *node);
+    virtual void visit(IdNode *node);
+    virtual void visit(LiteralNode *node);
+
+
+    virtual void visit(DeclNode *node);
 
 protected:
     inline Processor& proc(void) { return m_proc; }
@@ -104,11 +130,14 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Evaluates each argument and writes the value into the argument list
+/// @warning Remember to use ScopedStackFrame before using this visitor
+/// because it may create new values on the stack!
 struct ArgumentsVisitor : public Visitor
 {
 public:
     ArgumentsVisitor(Processor &proc, Context &context, ArgumentList &list);
 
+    virtual void visit(IdNode *node);
 
 protected:
     virtual void fallback_action(Node *node);
@@ -128,15 +157,18 @@ protected:
 struct Arg2SymVisitor : public Visitor
 {
 public:
-    Arg2SymVisitor(Processor &proc, Context &context, ArgumentList::const_iterator &i);
+    Arg2SymVisitor(Processor &proc, SymbolTable &symboltable,
+                   ArgumentList::const_iterator &i, ArgumentList::const_iterator end);
 
     // only IdNode support required, because argument declaration only contains IDs.
     virtual void visit(IdNode *node);
 
 protected:
     Processor &m_proc;
-    Context &m_context;
+    //Context &m_context;
+    SymbolTable &m_symboltable;
     ArgumentList::const_iterator &m_arg_iterator;
+    ArgumentList::const_iterator m_end_iterator;
 };
 
 
@@ -257,6 +289,7 @@ protected:
 /// TASK foo() AS TRANSFER [ obj1(x) ]
 ///                          ^^^^
 /// 
+/*
 struct TemplateVisitor : public Visitor
 {
 public:
@@ -276,7 +309,7 @@ protected:
     ObjectInfo *&m_objinfo;
         
 };
-
+*/
 
 
 
@@ -299,9 +332,6 @@ public:
     
     virtual void visit(IdCallNode *node);
 
-    virtual void visit(TableNode *node);
-
-    virtual void visit(SqlNode *node);
 
 protected:
     Processor &m_proc;

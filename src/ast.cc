@@ -50,6 +50,7 @@ ARGON_NAMESPACE_BEGIN
 void TokenNode::accept(Visitor &visitor)    {}
 //void ConnSpec::accept(Visitor &visitor)     {}
 
+void FunctionNode::accept(Visitor &visitor)           { visitor.visit(this); }
 void ProgramNode::accept(Visitor &visitor)           { visitor.visit(this); }
 void ModuleNode::accept(Visitor &visitor)           { visitor.visit(this); }
 void ConnNode::accept(Visitor &visitor)           { visitor.visit(this); }
@@ -61,8 +62,6 @@ void IdNode::accept(Visitor &visitor)             { visitor.visit(this); }
 void TaskExecNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void ColumnNode::accept(Visitor &visitor)         { visitor.visit(this); }
 void SqlExecNode::accept(Visitor &visitor)        { visitor.visit(this); }
-void TableNode::accept(Visitor &visitor)          { visitor.visit(this); }
-void SqlNode::accept(Visitor &visitor)            { visitor.visit(this); }
 void ArgumentsNode::accept(Visitor &visitor)      { visitor.visit(this); }
 void ArgumentsSpecNode::accept(Visitor &visitor)  { visitor.visit(this); }
 void TmplArgumentsNode::accept(Visitor &visitor)  { visitor.visit(this); }
@@ -83,6 +82,7 @@ void TaskFinalNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
 void KeyValueNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
+void DeclNode::accept(Visitor &visitor)    { visitor.visit(this); }
 
 
 //String ConnNode::dump(void) const              { return "ConnNode"; }
@@ -96,8 +96,7 @@ String ParseTree::dump(void) const             { return "ParseTree"; }
 //String ColumnNode::dump(void) const            { return "columnnode"; }
 String TokenNode::dump(void) const             { return "tokennode"; }
 String SqlExecNode::dump(void) const           { return String("(").append(m_sql).append(")"); }
-String TableNode::dump(void) const             { return this->data().str(); }
-String SqlNode::dump(void) const               { return this->data().str(); }
+
 //String ArgumentsNode::dump(void) const         { return "ArgumentsNode"; }
 //String ArgumentsSpecNode::dump(void) const     { return "ArgumentsSpecNode"; }
 //String TmplArgumentsNode::dump(void) const     { return "TmplArgumentsNode"; }
@@ -245,6 +244,7 @@ Visitor::fallback_action(Node *node)
 
 DEFAULT_VISIT(ProgramNode)
 DEFAULT_VISIT(ModuleNode)
+DEFAULT_VISIT(FunctionNode)
 DEFAULT_VISIT(ConnNode)
 DEFAULT_VISIT(TaskNode)
 DEFAULT_VISIT(ParseTree)
@@ -254,8 +254,6 @@ DEFAULT_VISIT(LiteralNode)
 DEFAULT_VISIT(TaskExecNode)
 DEFAULT_VISIT(ColumnNode)
 DEFAULT_VISIT(SqlExecNode)
-DEFAULT_VISIT(TableNode)
-DEFAULT_VISIT(SqlNode)
 DEFAULT_VISIT(ArgumentsNode)
 DEFAULT_VISIT(ArgumentsSpecNode)
 DEFAULT_VISIT(TmplArgumentsNode)
@@ -276,6 +274,8 @@ DEFAULT_VISIT(TaskAfterNode)
 DEFAULT_VISIT(TaskFinalNode)
 
 DEFAULT_VISIT(KeyValueNode)
+
+DEFAULT_VISIT(DeclNode)
 
 
 /// @details
@@ -402,47 +402,6 @@ ExprNode::dump(void) const
     };
     return s.append(")");
 }
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////////////// TableNode
-
-
-/// @details
-/// 
-TableNode::TableNode(void)
-    : ObjectNode()
-{}
-
-
-/// @details
-/// 
-void
-TableNode::init(Identifier id)
-{
-    ObjectNode::init(id);
-}
-
-
-//..............................................................................
-//////////////////////////////////////////////////////////////////////// SqlNode
-
-
-/// @details
-/// 
-SqlNode::SqlNode(void)
-    : ObjectNode()
-{}
-
-
-/// @details
-/// 
-void
-SqlNode::init(Identifier id)
-{
-    ObjectNode::init(id);
-}
-
 
 
 

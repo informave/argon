@@ -114,7 +114,6 @@ protected:
 
 };
 
-typedef std::list<Value> ArgumentList;
 
 
 //..............................................................................
@@ -164,6 +163,55 @@ private:
 
 
 //..............................................................................
+//////////////////////////////////////////////////////////////////////////// Ref
+///
+/// @since 0.0.1
+/// @brief Ref class
+class Ref
+{
+public:
+    Ref(Element *elem);
+
+    Ref(const Ref &orig);
+
+    ~Ref(void);
+
+    template<typename T>
+    T* cast(void) const
+    {
+        T *tmp = dynamic_cast<T*>(m_element);
+        assert(tmp);
+        return tmp;
+    }
+
+    
+    Element* operator->(void);
+
+    const Element* operator->(void) const;
+
+    Element* operator&(void);
+
+    template<typename T>
+    bool is(void)
+    {
+        return dynamic_cast<T*>(m_element) == 0 ? false : true;
+    }
+
+
+protected:
+    Element *m_element;
+
+private:
+    Ref& operator=(const Ref&);
+};
+
+
+typedef std::list<Ref> ArgumentList;
+
+
+
+
+//..............................................................................
 //////////////////////////////////////////////////////////////////// SymbolTable
 ///
 /// @since 0.0.1
@@ -171,9 +219,8 @@ private:
 class SymbolTable
 {
 public:
-    typedef std::deque<Element*>            stack_type;
-    typedef std::map<Identifier, Element*>  element_map;
-    typedef std::list<Element*>             heap_type;
+    typedef std::map<Identifier, Ref>         element_map;
+    //typedef std::list<Element*>             heap_type;
 
     /// @brief Constructor
     /// @param[in] parent Pointer to a parent symbol table or NULL
@@ -182,7 +229,7 @@ public:
     ~SymbolTable(void);
 
     /// @brief Adds a new symbol to the symbol table
-    void add(Identifier name, Element *symbol);
+    void add(Identifier name, const Ref &ref);
 
     /// @brief Get a symbol by identifier
     /// Throws if symbol is not of type T
@@ -191,31 +238,19 @@ public:
     /// @brief Dumps the symbol table as printable string
     String str(void) const;
 
-    /// @brief Adds a pointer to the symbol table's memory manager
-    template<typename T>
-    inline T* addPtr(T* elem)
-    {
-        m_heap.push_back(elem);
-        return elem;
-    }
 
     /// @brief Clear out all entries and release memory
     inline void reset(void)
     {
         this->m_symbols.clear();
-        this->freeHeap();
     }
 
 protected:
-    void freeHeap(void);
 
-    Element* find_element(Identifier id);
+    Ref find_element(Identifier id);
 
     /// @brief Symbol list
     element_map             m_symbols;
-
-    /// @brief Allocated elements
-    heap_type                m_heap;
 
     /// @brief Parent table
     safe_ptr<SymbolTable>   m_parent;
@@ -226,6 +261,66 @@ private:
     SymbolTable& operator=(const SymbolTable &);
 };
 
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// TypeTable
+///
+/// @since 0.0.1
+/// @brief Type table
+class TypeTable
+{
+public:
+    typedef std::map<Identifier, Type*>  element_map;
+    typedef std::list<Type*>             heap_type;
+
+    /// @brief Constructor
+    /// @param[in] parent Pointer to a parent symbol table or NULL
+    TypeTable(void);
+
+    ~TypeTable(void);
+
+    /// @brief Adds a new type to the type table
+    void add(Type *type);
+
+    /// @brief Get a type by identifier
+    /// Throws if tyoe is not of type T
+    template<typename T> T* find(Identifier name);
+
+    /// @brief Dumps the symbol table as printable string
+    String str(void) const;
+
+    /// @brief Adds a pointer to the type table's memory manager
+    template<typename T>
+    inline T* addPtr(T* elem)
+    {
+        m_heap.push_back(elem);
+        return elem;
+    }
+
+    /// @brief Clear out all entries and release memory
+    inline void reset(void)
+    {
+        this->m_types.clear();
+        this->freeHeap();
+    }
+
+protected:
+    void freeHeap(void);
+
+    Type* find_type(Identifier id);
+
+    /// @brief Symbol list
+    element_map             m_types;
+
+    /// @brief Allocated elements
+    heap_type                m_heap;
+
+
+
+private:
+    TypeTable(const TypeTable &);
+    TypeTable& operator=(const TypeTable &);
+};
 
 
 //..............................................................................
@@ -238,19 +333,26 @@ class Element
 public:
     friend class Executor;
 
-    virtual ~Element(void)
-    {}
+    typedef std::list<const Ref*> reflist_type;
+
+    virtual ~Element(void);
+
+
+    virtual SourceInfo getSourceInfo(void) const = 0;
+
 
     virtual String str(void) const = 0;
     virtual String name(void) const = 0;
     virtual String type(void) const = 0;
 
-    virtual SourceInfo getSourceInfo(void) const = 0;
-
     virtual Value    _value(void) const = 0;
     virtual String   _string(void) const = 0;
     virtual String   _name(void) const = 0;
     virtual String   _type(void) const = 0;
+
+    void registerRef(const Ref *p);
+
+    void unregisterRef(const Ref *p);
 
 protected:
     /// @brief Constructs a new element
@@ -259,10 +361,12 @@ protected:
     /// @brief Gives the control to the element.
     /// The default behavior is to raise an exception.
     /// Derived classes must implement this method.
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     /// @brief Access to the processor
     inline Processor& proc(void) { return this->m_proc; }
+
+    reflist_type m_references;
 
 private:
     Processor &m_proc;
@@ -283,16 +387,14 @@ private:
 class Executor
 {
 public:
-    Executor(const ArgumentList &args) : m_list(args)
+    Executor(void)
     {}
 
     inline Value operator()(Element &elem) const
     {
-        return elem.run(m_list);
+        return elem.run();
     }
 
-private:
-    ArgumentList m_list;
 };
 
 
@@ -345,6 +447,48 @@ private:
 
 
 
+//..............................................................................
+/////////////////////////////////////////////////////////////////////////// Type
+///
+/// @since 0.0.1
+/// @brief Type element
+class Type : public Element
+{
+public:
+    Type(Processor &proc, Identifier type_id) : Element(proc),
+                                                m_type_id(type_id) {}
+
+
+    enum mode_t { DEFAULT_MODE, READ_MODE, INSERT_MODE };
+
+
+    virtual Identifier id(void) const { return this->m_type_id; }
+
+
+    virtual Node* getNode(void) const = 0;
+
+    virtual bool builtin(void) const
+        {
+            return 0 == this->getNode();
+        }
+
+    virtual Element* newInstance(const ArgumentList &args, Type::mode_t mode = DEFAULT_MODE) = 0;
+
+
+//    Identifier        id (void) const = 0;
+    virtual String      str (void) const  { return "implme"; }
+
+virtual String  type (void) const  { return "implme"; }
+virtual Value   _value (void) const  { throw 0; }
+virtual String  _string (void) const  { return name(); }
+virtual String  _name (void) const  { return name(); }
+virtual String  _type (void) const  { return name(); }
+virtual SourceInfo      getSourceInfo (void) const   { throw 0; }
+
+protected:
+    /* const */ Identifier m_type_id;
+};
+
 
 //..............................................................................
 //////////////////////////////////////////////////////////////////////// Context
@@ -387,13 +531,21 @@ public:
     /// have a main object and/or open resultset.
     //virtual Value resolveColumn(const Column &col) = 0;
 
+    inline const ArgumentList& getCallArgs(void) const
+    {
+        return this->m_args;
+    }
+
 
 protected:
     /// @brief Hidden constructor, only derived classes can be instantiated
-    Context(Processor &proc);
+    Context(Processor &proc, const ArgumentList &args);
 
     /// @brief Context-related symbol table
     SymbolTable m_symbols;
+
+    /// @brief Arguments for this context, used when run() is called
+    ArgumentList m_args;
 
 private:
     Context(void); // not implemented
@@ -411,7 +563,7 @@ private:
 class Function : public Context
 {
 public:
-    Function(Processor &proc);
+    Function(Processor &proc, const ArgumentList &args);
 
     virtual ~Function(void)
     {}
@@ -440,8 +592,8 @@ public:
 
 
 protected:
-    /// Tasks must be runnable
-    //virtual Value run(const ArgumentList &args);
+    /// Functions must be runnable
+    virtual Value run(void);
 
     //TaskNode *m_node;
 
@@ -460,7 +612,7 @@ private:
 class Task : public Context
 {
 public:
-    Task(Processor &proc, TaskNode *node);
+    Task(Processor &proc, TaskNode *node, const ArgumentList &args);
 
     virtual ~Task(void)
     {}
@@ -478,7 +630,7 @@ public:
 
 protected:
     /// Tasks must be runnable
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     TaskNode *m_node;
 
@@ -508,7 +660,7 @@ private:
 class FetchTask : public Task
 {
 public:
-    FetchTask(Processor &proc, TaskNode *node);
+    FetchTask(Processor &proc, TaskNode *node, const ArgumentList &args);
 
     virtual ~FetchTask(void)
     {}
@@ -527,11 +679,15 @@ public:
 
 
 protected:
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     /// @brief Main object
     /// This object only exists while task is running
-    std::auto_ptr<Object> m_mainobject;
+    Object *m_mainobject;
+
+private:
+    FetchTask(const FetchTask&);
+    FetchTask& operator=(const FetchTask&);
 };
 
 
@@ -544,7 +700,7 @@ protected:
 class StoreTask : public Task
 {
 public:
-    StoreTask(Processor &proc, TaskNode *node);
+    StoreTask(Processor &proc, TaskNode *node, const ArgumentList &args);
 
     virtual ~StoreTask(void)
     {}
@@ -563,11 +719,15 @@ public:
 
 
 protected:
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     /// @brief Main object
     /// This object only exists while task is running
-    std::auto_ptr<Object> m_destobject;
+    Object *m_destobject;
+
+private:
+    StoreTask(const StoreTask&);
+    StoreTask& operator=(const StoreTask&);
 };
 
 
@@ -579,7 +739,7 @@ protected:
 class TransferTask : public Task
 {
 public:
-    TransferTask(Processor &proc, TaskNode *node);
+    TransferTask(Processor &proc, TaskNode *node, const ArgumentList &args);
     
     virtual ~TransferTask(void)
     {}
@@ -598,13 +758,16 @@ public:
 
 
 protected:
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     /// This object only exists while task is running
-    std::auto_ptr<Object> m_srcobject;
+    Object *m_srcobject;
 
-    std::auto_ptr<Object> m_destobject;
+    Object *m_destobject;
 
+private:
+    TransferTask(const TransferTask&);
+    TransferTask& operator=(const TransferTask&);
 };
 
 
@@ -618,7 +781,7 @@ protected:
 class VoidTask : public Task
 {
 public:
-    VoidTask(Processor &proc, TaskNode *node);
+    VoidTask(Processor &proc, TaskNode *node, const ArgumentList &args);
 
     virtual ~VoidTask(void)
     {}
@@ -635,7 +798,7 @@ public:
     virtual String   _type(void) const;
 
 protected:
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 };
 
 
@@ -648,14 +811,8 @@ protected:
 class Object : public Context
 {
 public:
-    typedef enum
-    {
-        READ_MODE,
-        ADD_MODE,
-        UPDATE_MODE
-    } mode;
 
-    Object(Processor &proc, ObjectNode *node);
+    Object(Processor &proc, DeclNode *node, const ArgumentList &args);
 
     virtual ~Object(void) 
     {}
@@ -688,7 +845,7 @@ public:
 
 protected:
     /// Objects must be runnable
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     int getBindPosition(const Column &col);
 
@@ -697,7 +854,7 @@ protected:
     std::map<Column, int> m_column_mappings;
 
 
-    ObjectNode *m_node;
+    DeclNode *m_node;
 
 private:
     Object(const Object&);
@@ -708,59 +865,16 @@ private:
 
 
 //..............................................................................
-///////////////////////////////////////////////////////////////////// ObjectInfo
+////////////////////////////////////////////////////////////////////////// Table
 ///
 /// @since 0.0.1
-/// @brief Object info
-class ObjectInfo : public Element
-{
-public:
-    ObjectInfo(Processor &proc, ObjectNode *node);
-
-    virtual ~ObjectInfo(void)
-    {}
-
-    inline Identifier id(void) const { return m_node->data(); } /// @bug is this correct?
-
-    virtual String str(void) const;
-
-    virtual String name(void) const;
-
-    virtual String type(void) const;
-
-    virtual Value    _value(void) const;
-    virtual String   _string(void) const;
-    virtual String   _name(void) const;
-    virtual String   _type(void) const;
-
-    virtual SourceInfo getSourceInfo(void) const;
-
-    /// @brief Creates a new object based on the object information
-    virtual Object* newInstance(Object::mode mode);
-    
-protected:
-    ObjectNode *m_node;
-
-private:
-    ObjectInfo(const ObjectInfo&);
-    ObjectInfo& operator=(const ObjectInfo&);
-};
-
-
-
-//..............................................................................
-//////////////////////////////////////////////////////////////////// SourceTable
-///
-/// @since 0.0.1
-/// @brief Source Table
+/// @brief Table element
 class Table : public Object
 {
 public:
-    typedef ObjectInfo Spec;
+    static Table* newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, DeclNode *node, Type::mode_t mode);
 
-    static Table* newInstance(Processor &proc, TableNode *node, Object::mode mode);
-
-    Table(Processor &proc, ObjectNode *node, Object::mode mode); // change node
+    Table(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode); // change node
 
     virtual ~Table(void) 
     {}
@@ -803,7 +917,7 @@ public:
     
 
 protected:
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     db::Stmt::ptr  m_stmt;
     Connection *m_conn;
@@ -813,7 +927,7 @@ protected:
 
     String m_objname;
 
-    Object::mode m_mode;
+    Type::mode_t m_mode;
 
 private:
     Table(const Table&);
@@ -830,11 +944,9 @@ private:
 class Sql : public Object
 {
 public:
-    typedef ObjectInfo Spec;
+    static Sql* newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, DeclNode *node, Type::mode_t mode);
 
-    static Sql* newInstance(Processor &proc, SqlNode *node, Object::mode mode);
-
-    Sql(Processor &proc, ObjectNode *node, Object::mode mode); // change node
+    Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode); // change node
 
     virtual ~Sql(void) 
     {}
@@ -878,7 +990,7 @@ public:
 */  
 
 protected:
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     db::Stmt::ptr  m_stmt;
     Connection *m_conn;
@@ -888,7 +1000,7 @@ protected:
 
     String m_objname;
 
-    Object::mode m_mode;
+    Type::mode_t m_mode;
 
     NodeList  m_prepost_nodes;
     NodeList  m_colassign_nodes;
@@ -898,67 +1010,6 @@ private:
     Sql& operator=(const Sql&);
 };
 
-
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////////////// DestTable
-///
-/// @since 0.0.1
-/// @brief Destination Table
-/*
-class DestTable : public Object
-{
-public:
-    typedef std::map<String, Value> ColumnValueList;
-
-    DestTable(Processor &proc, ObjectNode *node); // change node
-
-    virtual ~DestTable(void) 
-    {}
-
-    virtual String str(void) const;
-
-    virtual SourceInfo getSourceInfo(void) const;
-
-    inline Identifier id(void) const { return m_node->id; } /// @bug is this correct?
-
-    virtual String name(void) const;
-
-    virtual String type(void) const;
-
-    virtual Value    _value(void) const;
-    virtual String   _string(void) const;
-    virtual String   _name(void) const;
-    virtual String   _type(void) const;
-
-    virtual void setColumn(Column col, Value v);
-
-    virtual const db::Value& getColumn(Column col);
-
-    virtual void execute(void);
-
-    virtual bool next(void);
-
-    virtual bool eof(void) const;
-
-    virtual void setColumnList(const ColumnList &list);
-
-protected:
-    virtual Value run(const ArgumentList &args);
-
-    db::Stmt::ptr   m_stmt;
-
-    ColumnValueList m_column_values;
-
-    ColumnList m_columns;
-
-private:
-    DestTable(const DestTable&);
-    DestTable& operator=(const DestTable&);
-};
-
-*/
 
 
 //..............................................................................
@@ -989,7 +1040,7 @@ public:
     virtual String   _type(void) const;
 
 protected:
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     Context &m_context;
     LogNode *m_node;
@@ -1030,7 +1081,7 @@ public:
     void bindParam(int pnum, Value value);
 
 protected:
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
     Context       &m_context;
     SqlExecNode   *m_node;
@@ -1170,7 +1221,8 @@ protected:
 };
 
 
-
+class ScopedStackPush;
+class ScopedStackFrame;
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// Processor
@@ -1179,10 +1231,14 @@ protected:
 /// @brief DTS Processor
 class Processor
 {
-    friend class ProcTreeWalker;
+    friend class Pass1Visitor;
+    friend class Pass2Visitor;
+    friend class ScopedStackPush;
+    friend class ScopedStackFrame;
 
 public:
     typedef std::deque<Element*>   stack_type;
+    typedef std::list<Element*>    heap_type;
 
     /// @brief Constructor
     Processor(DTSEngine &engine);
@@ -1196,11 +1252,19 @@ public:
     /// @brief Get call stack
     const stack_type& getStack(void);
 
-    Value call(Element *obj, const ArgumentList &args);
+    void addtoHeap(Element *elem);
+
+    void stackPush(Element *elem);
+
+    Value call(Element *obj);
 
     Value call(Element &localObj);
 
+    Value call(Identifier id, const ArgumentList &args = ArgumentList());
+
     SymbolTable& getSymbols(void);
+
+    TypeTable& getTypes(void);
 
     Function* createFunction(const Identifier &id);
 
@@ -1212,13 +1276,124 @@ protected:
 
     DTSEngine    &m_engine;
     stack_type    m_stack;
+    heap_type     m_heap;
     ParseTree    *m_tree;
     SymbolTable   m_symbols;
+    TypeTable     m_types;
 
 private:
     Processor(const Processor&);
     Processor& operator=(const Processor&);
 };
+
+
+
+
+/// @bug add documentation
+struct builtin_func_def
+{
+    const char *name;
+    Function*(*factory)(Processor &, const ArgumentList &);
+    signed int min_arg;
+    signed int max_arg;
+};
+
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////// ScopedStackPush
+///
+/// @since 0.0.1
+/// @brief Scoped stack-push
+class ScopedStackPush
+{
+public:
+    ScopedStackPush(Processor &proc, Element *elem)
+        : m_ptr(elem),
+          m_stack(proc.m_stack)
+    {
+        m_stack.push_front(elem);
+    }
+
+    ~ScopedStackPush(void);
+
+
+protected:
+    Element *m_ptr;
+    Processor::stack_type &m_stack;
+
+private:
+    ScopedStackPush(const ScopedStackPush&);
+    ScopedStackPush& operator=(const ScopedStackPush&);
+};
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////// ScopedStackFrame
+///
+/// @since 0.0.1
+/// @brief Scoped stack frame
+class ScopedStackFrame
+{
+public:
+    ScopedStackFrame(Processor &proc)
+        : m_stack(proc.m_stack),
+          m_pos()
+    {
+        m_pos = m_stack.begin();
+    }
+
+    ~ScopedStackFrame(void)
+    {
+
+        for(Processor::stack_type::iterator i = m_stack.begin();
+            (!m_stack.empty()) && i != m_pos;
+            ++i)
+        {
+            delete (*i);
+            m_stack.erase(i);
+        }
+    }
+
+protected:
+    Processor::stack_type &m_stack;
+    Processor::stack_type::iterator m_pos;
+};
+
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////// ScopedStackFrame
+///
+/// @since 0.0.1
+/// @brief Scoped stack frame
+class ObjectSmartPtr
+{
+public:
+    ObjectSmartPtr(Object **destptr, Object *ptr) : m_ptr(destptr)
+    {
+        *m_ptr = ptr;
+    }
+
+    ~ObjectSmartPtr(void)
+    {
+        delete *m_ptr;
+    }
+
+protected:
+    Object **m_ptr;
+
+private:
+    ObjectSmartPtr(const ObjectSmartPtr&);
+    ObjectSmartPtr& operator=(const ObjectSmartPtr&);
+
+};
+
+
+
 
 
 //..............................................................................
@@ -1308,11 +1483,28 @@ private:
 template<typename T> T*
 SymbolTable::find(Identifier name)
 {
-    Element *elem = this->find_element(name);
+    Ref ref = this->find_element(name);
+    
+    T* ptr = ref.cast<T>();
+    if(!ptr)
+        throw std::runtime_error("found element, but it has a different type");
+    else
+        return ptr;
+}
+
+
+
+//
+//
+template<typename T> T*
+TypeTable::find(Identifier name)
+{
+    Type *elem = this->find_type(name);
     
     T* ptr = dynamic_cast<T*>(elem);
     if(!ptr)
-        throw std::runtime_error("found element, but it has a different type");
+        /// @bug fix message
+        throw std::runtime_error("found type, but it has a different type");
     else
         return ptr;
 }

@@ -116,15 +116,20 @@ public:
         this->m_keywords[ _str<CharT, TraitsT>("PROGRAM")   ] = ARGON_TOK_PROGRAM;
         this->m_keywords[ _str<CharT, TraitsT>("MODULE")    ] = ARGON_TOK_MODULE;
         this->m_keywords[ _str<CharT, TraitsT>("TASK")       ] = ARGON_TOK_TASK;
+        this->m_keywords[ _str<CharT, TraitsT>("FUNCTION")       ] = ARGON_TOK_FUNCTION;
 //        this->m_keywords[ _str<CharT, TraitsT>("AS")         ] = ARGON_TOK_AS;
         this->m_keywords[ _str<CharT, TraitsT>("BEGIN")      ] = ARGON_TOK_BEGIN;
         this->m_keywords[ _str<CharT, TraitsT>("END")        ] = ARGON_TOK_END;
 
         this->m_keywords[ _str<CharT, TraitsT>("DECLARE")     ] = ARGON_TOK_DECLARE;
+/*
         this->m_keywords[ _str<CharT, TraitsT>("TABLE")       ] = ARGON_TOK_TABLE;
         this->m_keywords[ _str<CharT, TraitsT>("VIEW")        ] = ARGON_TOK_VIEW;
         this->m_keywords[ _str<CharT, TraitsT>("PROCEDURE")   ] = ARGON_TOK_PROCEDURE;
+*/
+
         this->m_keywords[ _str<CharT, TraitsT>("SQL")         ] = ARGON_TOK_SQL;
+
         this->m_keywords[ _str<CharT, TraitsT>("ON")         ] = ARGON_TOK_ON;
         this->m_keywords[ _str<CharT, TraitsT>("WITH")         ] = ARGON_TOK_WITH;
         this->m_keywords[ _str<CharT, TraitsT>("PARAMS")         ] = ARGON_TOK_PARAMS;

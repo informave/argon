@@ -40,8 +40,8 @@ ARGON_NAMESPACE_BEGIN
 struct Node;
 struct ProgramNode;
 struct ModuleNode;
+struct FunctionNode;
 struct ConnNode;
-//struct ConnSpec;
 struct TaskNode;
 struct Identifier;
 struct IdNode;
@@ -50,19 +50,13 @@ struct LogNode;
 struct TaskExecNode;
 struct LiteralNode;
 struct ColumnNode;
-struct ObjectNode;
-
+struct DeclNode;
 struct KeyValueNode;
-
-struct TableNode;
-struct SqlNode;
-
 struct TaskInitNode;
 struct TaskBeforeNode;
 struct TaskRulesNode;
 struct TaskAfterNode;
 struct TaskFinalNode;
-
 struct ArgumentsNode;
 struct ArgumentsSpecNode;
 struct TmplArgumentsNode;
@@ -84,7 +78,7 @@ typedef std::deque<Node*> NodeList;
 
 String gen_anonymous_id(void);
 
-
+#define NULL_NODE 0
 
 #define DefineNode(NodeName, NodeType)                          \
     struct NodeName##Node : public SimpleNode<NodeType>         \
@@ -178,6 +172,7 @@ public:
 
     virtual void visit(ProgramNode *node);
     virtual void visit(ModuleNode *node);
+    virtual void visit(FunctionNode *node);
     virtual void visit(ConnNode *node);
     virtual void visit(TaskNode *node);
     virtual void visit(ParseTree *node);
@@ -193,18 +188,13 @@ public:
     virtual void visit(IdCallNode *node);
     virtual void visit(ColumnAssignNode *node);
     virtual void visit(ColumnNumNode *node);
-
-    virtual void visit(TableNode *node);
-    virtual void visit(SqlNode *node);
-
+    virtual void visit(DeclNode *node);
     virtual void visit(KeyValueNode *node);
-
     virtual void visit(TaskInitNode *node);
     virtual void visit(TaskBeforeNode *node);
     virtual void visit(TaskRulesNode *node);
     virtual void visit(TaskAfterNode *node);
     virtual void visit(TaskFinalNode *node);
-
     virtual void visit(NumberNode *node);
     virtual void visit(ExprNode *node);
     virtual void visit(FuncCallNode *node);
@@ -235,8 +225,13 @@ struct Identifier
 {
     Identifier() : m_name() { }
 
-    Identifier(const String& name) : m_name(name)
-    { }
+    Identifier(const String& name) : m_name()
+    { 
+        /// @bug this should be reviewed
+        std::string s = name;
+        std::transform(s.begin(), s.end(), s.begin(), tolower );
+        m_name = s;
+    }
 
     bool operator==(const Identifier &o) const
     { return this->m_name == o.m_name; }
@@ -327,6 +322,7 @@ protected:
 DefineNode(Program, Identifier);
 DefineNode(Module, Identifier);
 
+DefineNode(Function, Identifier);
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////// TaskExecNode
@@ -352,6 +348,8 @@ struct TaskExecNode : public SimpleNode<Identifier>
     virtual void semanticCheck(SemanticCheck &sc);
 };
 */
+
+
 
 
 //..............................................................................
@@ -389,6 +387,9 @@ struct TaskInitNode : public SimpleNode<void>
     virtual void semanticCheck(SemanticCheck &sc);
 };
  */
+
+
+ DefineNode(Decl, Identifier);
 
 
 //..............................................................................
@@ -900,7 +901,7 @@ struct TaskNode : public Node
 
     virtual void semanticCheck(SemanticCheck &sc);
 
-    Identifier id;
+    Identifier id; /// @bug getter method
     enum tasktype type;
 };
 
@@ -944,6 +945,7 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Node for Object (base class)
+/*
 struct ObjectNode : public SimpleNode<Identifier>
 {
     ObjectNode(void) : SimpleNode<Identifier>() {}
@@ -953,59 +955,7 @@ struct ObjectNode : public SimpleNode<Identifier>
 
     static String classname(void) { return "Object"; }
 };
-
-
-//..............................................................................
-////////////////////////////////////////////////////////////////////// TableNode
-///
-/// @since 0.0.1
-/// @brief Node for TABLE()
-struct TableNode : public ObjectNode
-{
-    TableNode(void);
-
-    virtual ~TableNode(void)
-    {}
-
-    void init(Identifier _id);
-
-    virtual void accept(Visitor &visitor);
-  
-    virtual String dump(void) const;
-
-    virtual String name(void) const { return classname(); }
-
-    static String classname(void) { return "Table"; }
-
-    virtual void semanticCheck(SemanticCheck &sc);
-};
-
-
-
-//..............................................................................
-//////////////////////////////////////////////////////////////////////// SqlNode
-///
-/// @since 0.0.1
-/// @brief Node for SQL()
-struct SqlNode : public ObjectNode
-{
-    SqlNode(void);
-
-    virtual ~SqlNode(void)
-    {}
-
-    void init(Identifier _id);
-
-    virtual void accept(Visitor &visitor);
-  
-    virtual String dump(void) const;
-
-    virtual String name(void) const { return classname(); }
-
-    static String classname(void) { return "SQL"; }
-
-    virtual void semanticCheck(SemanticCheck &sc);
-};
+*/
 
 
 
@@ -1276,9 +1226,9 @@ public:
 
     PrintTreeVisitor(const PrintTreeVisitor& pt);
 
-    mutable Processor &m_proc;
+    Processor &m_proc;
     String m_indent;
-    mutable std::wostream &m_stream;
+    std::wostream &m_stream;
     
     void next(Node *node);
        

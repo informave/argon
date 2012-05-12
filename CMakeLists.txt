@@ -236,6 +236,9 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/ast.cc
 	${ARGON_MAIN_SRC_DIR}/elements.cc
 	${ARGON_MAIN_SRC_DIR}/symboltable.cc
+	${ARGON_MAIN_SRC_DIR}/typetable.cc
+	${ARGON_MAIN_SRC_DIR}/pass1visitor.cc
+	${ARGON_MAIN_SRC_DIR}/pass2visitor.cc
 	${ARGON_MAIN_SRC_DIR}/task.cc
 	${ARGON_MAIN_SRC_DIR}/voidtask.cc
 	${ARGON_MAIN_SRC_DIR}/storetask.cc
@@ -253,6 +256,7 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/dtsengine.cc
 	${ARGON_MAIN_SRC_DIR}/exceptions.cc
 	${ARGON_MAIN_SRC_DIR}/value.cc
+	${ARGON_MAIN_SRC_DIR}/rtti.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/string.cc
 )
 

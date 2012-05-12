@@ -147,8 +147,8 @@ private:
 
 /// @details
 /// 
-Sql::Sql(Processor &proc, ObjectNode *node, Object::mode mode)
-    : Object(proc, node),
+Sql::Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode)
+    : Object(proc, node, args),
       m_stmt(),
       m_conn(),
       m_columns(),
@@ -158,6 +158,10 @@ Sql::Sql(Processor &proc, ObjectNode *node, Object::mode mode)
       m_prepost_nodes(),
       m_colassign_nodes()
 {
+
+    if(node)
+    {
+
     NodeList childs = node->getChilds();
 
     assert(childs.size() >= 2);
@@ -185,6 +189,7 @@ Sql::Sql(Processor &proc, ObjectNode *node, Object::mode mode)
     
     // All childs must been processed.
     assert(c > childs.size());
+    }
 }
 
 
@@ -205,7 +210,7 @@ Sql::setColumnList(const ColumnList &list)
 void
 Sql::setResultList(const ColumnList &list)
 {
-	assert(this->m_mode == Object::ADD_MODE);
+	assert(this->m_mode == Type::INSERT_MODE);
     this->m_result_columns = list;
 }
 
@@ -280,14 +285,37 @@ Sql::eof(void) const
 /// @details
 /// 
 Value
-Sql::run(const ArgumentList &args)
+Sql::run(void)
 {
-    String tableName, schemaName, dbName;
+    String sqlCommand;
 
-    Object::run(args);
+
+    Object::run();
+
+
+    if(!this->m_node)
+    {
+
+        ArgumentList::const_iterator i = this->getCallArgs().begin();
+
+        this->m_conn = i->cast<Connection>();
+
+        ++i; /// @bug no check for end()
+
+        /// @todo only literal strings supported for now. This
+        /// can be extended to identifiers later.
+
+        
+        sqlCommand = (*i)->_value().data().asStr();
+
+    }
+    else
+    {
+
 
     //foreach_node( this->m_node->getChilds(), SqlObjectChildVisitor(this->proc(), *this, *this), 1);
     foreach_node( this->m_prepost_nodes, SqlObjectChildVisitor(this->proc(), *this, *this), 1);
+
 
     safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(this->m_node);
     
@@ -303,7 +331,7 @@ Sql::run(const ArgumentList &args)
     ARGON_ICERR_CTX(!!argSpecNode, *this,
                 "table node does not contains an argument specification node");
 
-    ARGON_ICERR_CTX((argSpecNode->getChilds().size() == args.size()), *this,
+    ARGON_ICERR_CTX((argSpecNode->getChilds().size() == this->getCallArgs().size()), *this,
                 "argument count mismatch");
 
     // Prepare connection
@@ -322,8 +350,9 @@ Sql::run(const ArgumentList &args)
         /// @todo only literal strings supported for now. This
         /// can be extended to identifiers later.
         node = node_cast<LiteralNode>(args.at(1));
-        tableName = node->data();
+        sqlCommand = node->data();
 
+/*
         if(args.size() > 2)
         {
             node = node_cast<LiteralNode>(args.at(2));
@@ -335,23 +364,17 @@ Sql::run(const ArgumentList &args)
             node = node_cast<LiteralNode>(args.at(3));
             dbName = node->data();
         }
+*/
     }
 
-    ARGON_ICERR_CTX(tableName.length() > 0, *this,
-                "table name is empty");
+    }
 
+    ARGON_ICERR_CTX(sqlCommand.length() > 0, *this,
+                    "sql command is empty");
+    
 
-    // Generate object name
-
-
-    if(dbName.length() > 0)
-        m_objname.append(dbName);
-
-    if(schemaName.length() > 0)
-        m_objname.append( (m_objname.length() > 0 ? String(".") : String("")) + schemaName);
-
-    if(tableName.length() > 0)
-        m_objname.append( (m_objname.length() > 0 ? String(".") : String("")) + tableName);
+    if(sqlCommand.length() > 0)
+        m_objname.append( (m_objname.length() > 0 ? String(".") : String("")) + sqlCommand);
 
 
 
@@ -382,8 +405,8 @@ Sql::run(const ArgumentList &args)
     if(schemaName.length() > 0)
         objname.append( (objname.length() > 0 ? String(".") : String("")) + schemaName);
 
-    if(tableName.length() > 0)
-        objname.append( (objname.length() > 0 ? String(".") : String("")) + tableName);
+    if(sqlCommand.length() > 0)
+        objname.append( (objname.length() > 0 ? String(".") : String("")) + sqlCommand);
 
 
     s.append(objname);
@@ -497,8 +520,18 @@ Sql::_type(void) const
 /// @details
 /// 
 Sql*
-Sql::newInstance(Processor &proc, SqlNode *node, Object::mode mode)
+Sql::newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, DeclNode *node, Type::mode_t mode)
 {
+    /// the dbc argument is currently not used, because there is no
+    /// special handling for different db engines.
+
+    if(!node)
+    {
+        // handle anonymous object
+    }
+    else
+    {
+
     safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(node);
 
     ARGON_ICERR(!!argNode,
@@ -516,8 +549,9 @@ Sql::newInstance(Processor &proc, SqlNode *node, Object::mode mode)
         conn = proc.getSymbols().find<Connection>(node->data());
     }
 
+    }
 
-    return new Sql(proc, node, mode);
+    return new Sql(proc, args, node, mode);
 /*    
     switch(conn->getEnv().getEngineType())
     {

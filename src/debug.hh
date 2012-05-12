@@ -51,6 +51,15 @@ ARGON_NAMESPACE_BEGIN
 #define ARGON_MOD_DD "--*****--"
 
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define AT __FILE__ ":" TOSTRING(__LINE__)
+
+
+#define FIXME() throw std::runtime_error(AT " FIXME")
+
+#define BUG() FIXME("bug")
+
 inline void debug_print_arglist(const ArgumentList &list)
 {
 #ifdef ARGON_DEV_DEBUG

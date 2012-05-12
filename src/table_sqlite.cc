@@ -35,8 +35,8 @@ ARGON_NAMESPACE_BEGIN
 
 
 
-TableSqlite::TableSqlite(Processor &proc, ObjectNode *node, Object::mode mode)
-    : Table(proc, node, mode),
+TableSqlite::TableSqlite(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode)
+    : Table(proc, args, node, mode),
       m_result_stmt()
 {}
 
@@ -44,7 +44,7 @@ TableSqlite::TableSqlite(Processor &proc, ObjectNode *node, Object::mode mode)
 const db::Value&
 TableSqlite::getColumn(Column col)
 {
-    if(this->m_mode == Object::ADD_MODE)
+    if(this->m_mode == Type::INSERT_MODE)
     {
     	assert(this->m_result_stmt.get());
         return col.getFrom(this->m_result_stmt->resultset(), *this);
@@ -56,14 +56,14 @@ TableSqlite::getColumn(Column col)
 
 
 Value
-TableSqlite::run(const ArgumentList &args)
+TableSqlite::run(void)
 {
-    Value v = Table::run(args);
+    Value v = Table::run();
 
     // prepare
 
     // only if there are result columns requested
-    if(this->m_mode == Object::ADD_MODE && this->m_result_columns.size() > 0)
+    if(this->m_mode == Type::INSERT_MODE && this->m_result_columns.size() > 0)
     { 
         this->m_result_stmt.reset( m_conn->getDbc().newStatement() );
         
@@ -85,7 +85,7 @@ TableSqlite::execute(void)
 {
     Table::execute();
 
-    if(this->m_mode == Object::ADD_MODE &&  this->m_result_columns.size() > 0)
+    if(this->m_mode == Type::INSERT_MODE &&  this->m_result_columns.size() > 0)
     {
         this->m_result_stmt->bind(1, this->lastInsertRowId().data());
         this->m_result_stmt->execute();

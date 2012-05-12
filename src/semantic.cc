@@ -143,54 +143,11 @@ TaskNode::semanticCheck(SemanticCheck &sc)
 
 
 
-//..............................................................................
-////////////////////////////////////////////////////////////////////// TableNode
-
-/// @details
-/// 
 void
-TableNode::semanticCheck(SemanticCheck &sc)
+DeclNode::semanticCheck(SemanticCheck &sc)
 {
-    ARGON_DPRINT(ARGON_MOD_SEM, "checking table node");
-
-    // Argument nodes check
-    {
-        ArgumentsNode* args = find_node<ArgumentsNode>(this);
-        assert(args);
-        assert(args->getChilds().size() >= 2 && args->getChilds().size() <= 4);
-
-        IdNode      *node1 = node_cast<IdNode>(args->getChilds().at(0));
-        LiteralNode *node2 = node_cast<LiteralNode>(args->getChilds().at(1));
-    }
 }
 
-
-
-//..............................................................................
-//////////////////////////////////////////////////////////////////////// SqlNode
-
-/// @details
-/// 
-void
-SqlNode::semanticCheck(SemanticCheck &sc)
-{
-    ARGON_DPRINT(ARGON_MOD_SEM, "checking sql node");
-
-    // Argument nodes check
-    {
-        ArgumentsNode* args = find_node<ArgumentsNode>(this);
-        assert(args);
-        assert(args->getChilds().size() == 2);
-
-        IdNode      *node1 = node_cast<IdNode>(args->getChilds().at(0));
-        LiteralNode *node2 = node_cast<LiteralNode>(args->getChilds().at(1));
-    }
-}
-
-
-
-//..............................................................................
-//////////////////////////////////////////////////////////////////////// SqlNode
 
 /// @details
 /// 
@@ -336,6 +293,14 @@ ProgramNode::semanticCheck(SemanticCheck &)
 /// 
 void
 ModuleNode::semanticCheck(SemanticCheck &)
+{
+}
+
+
+/// @details
+/// 
+void
+FunctionNode::semanticCheck(SemanticCheck &sc)
 {
 }
 

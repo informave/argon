@@ -44,8 +44,8 @@ ARGON_NAMESPACE_BEGIN
 
 /// @details
 /// 
-VoidTask::VoidTask(Processor &proc, TaskNode *node)
-    : Task(proc, node)
+VoidTask::VoidTask(Processor &proc, TaskNode *node, const ArgumentList &args)
+    : Task(proc, node, args)
 {}
 
 
@@ -93,9 +93,12 @@ VoidTask::getDestObject(void)
 /// @details
 /// 
 Value
-VoidTask::run(const ArgumentList &args)
+VoidTask::run(void)
 {
-    Task::run(args);
+
+    ScopedStackFrame frame(this->proc());
+
+    Task::run();
 
     // Executes all init-instructions
     foreach_node( this->m_init_nodes, TaskChildVisitor(this->proc(), *this), 1);

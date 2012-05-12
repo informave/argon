@@ -93,9 +93,10 @@ DTSEngine::DTSEngine(void)
       m_logger_callback(0)
 {
 #define ADD_FUNCTION(id, type) m_functions[Identifier(id)] = new_function<type>
-
+/*
     ADD_FUNCTION("string.concat", string::func_concat);
     ADD_FUNCTION("string.len", string::func_len);
+*/
 }
 
 /// @details

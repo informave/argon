@@ -10,18 +10,20 @@ namespace string
 {
 
 
-#define ARGON_FUNCTION_DEF(name) Value func_##name::run(const ArgumentList &args)
+#define ARGON_FUNCTION_DEF(name) Value func_##name::run(void)
 
 
     ARGON_FUNCTION_DEF(concat)
     {
         std::wstringstream ss;
 
-        for(ArgumentList::const_iterator i = args.begin();
-            i != args.end();
+        for(ArgumentList::const_iterator i = m_args.begin();
+            i != m_args.end();
             ++i)
         {
-            ss << i->data();
+            //ss << (*i)->str();
+            /// @bug requires better solution since we have ValueElement Refs as args
+            ss << (*i)->_value().str();
         }
 
         return Value(String(ss.str()));
@@ -33,11 +35,11 @@ namespace string
     {
         std::wstringstream ss;
 
-        for(ArgumentList::const_iterator i = args.begin();
-            i != args.end();
+        for(ArgumentList::const_iterator i = m_args.begin();
+            i != m_args.end();
             ++i)
         {
-            ss << i->data();
+            ss << (*i)->_value().str();
         }
     
         return Value((int)ss.str().length()); /// @bug remove cast
@@ -46,6 +48,25 @@ namespace string
 
 
 }
+
+
+template<typename T>
+static Function* factory_function(Processor &proc, const ArgumentList &args)
+{
+    return new T(proc, args);
+}
+
+
+
+builtin_func_def table_string_funcs[] =
+{
+    { "string.concat",  factory_function<string::func_concat>, 2, -1 },
+    { "string.len",     factory_function<string::func_len>,    1,  1 },
+    { NULL, NULL, 0, 0 }
+};
+
+
+//bbb = { 2 };
 
 ARGON_NAMESPACE_END
 

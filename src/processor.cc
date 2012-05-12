@@ -28,193 +28,38 @@
 #include "argon/dtsengine.hh"
 #include "argon/exceptions.hh"
 #include "argon/semantic.hh"
+#include "argon/rtti.hh"
 #include "helpers.hh"
 #include "debug.hh"
 #include "visitors.hh"
+
+#include "builtin/functions.hh"
 
 #include <iostream>
 #include <stack>
 
 ARGON_NAMESPACE_BEGIN
 
-//..............................................................................
-//////////////////////////////////////////////////////////////// ScopedStackPush
-///
-/// @since 0.0.1
-/// @brief Scoped stack-push
-class ScopedStackPush
+
+ScopedStackPush::~ScopedStackPush(void)
 {
-public:
-    ScopedStackPush(Processor::stack_type &stack, Element *elem)
-        : m_stack(stack)
-    {
-        m_stack.push_front(elem);
-    }
+    Element *elem = m_stack.front();
 
-    ~ScopedStackPush(void)
-    {
-        m_stack.pop_front();
-    }
+    LastError e(m_stack);
 
-protected:
-    Processor::stack_type &m_stack;
-};
+    String s = e.str();
+    
+    s = String("Stack protection error:") + s;
 
-
-
-//..............................................................................
-///////////////////////////////////////////////////////////////// ProcTreeWalker
-
-/// @details
-/// 
-ProcTreeWalker::ProcTreeWalker(Processor &proc)
-    : Visitor(ignore_none),
-      m_proc(proc)
-{}
-
-
-/// @details
-/// 
-void
-ProcTreeWalker::visit(ConnNode *node)
-{
-    Connection *elem = this->proc().getSymbols().addPtr(
-        new Connection(this->proc(), node, this->m_proc.getConnections()) );
-    this->proc().getSymbols().add(node->data(), elem);
-
-    if(! elem->getDbc().isConnected())
-    {
-        throw std::runtime_error("dbc is not connected");
-    }
-
-    this->m_proc.getSymbols().find<Element>(node->data());
-
-    //this->m_proc.getSymbol<Task>(id).exec(argumentlist);
+    // If something very bad happens to the stack,
+    // the value we pop is not the same as we pushed before.
+    // Main reason is someone has push something to the stack,
+    // but has not pop from when finished.
+    ARGON_ICERR(m_ptr == elem, s);
+    
+    delete elem;
+    m_stack.pop_front();
 }
-
-
-
-/// @details
-/// 
-void
-ProcTreeWalker::visit(TableNode *node)
-{
-/*
-    Connection *elem = this->proc().toHeap( new Connection(this->proc(), node, this->m_proc.getConnections()) );
-    this->proc().addSymbol(node->id, elem);
-
-    if(! elem->getDbc().isConnected())
-    {
-        throw std::runtime_error("dbc is not connected");
-    }
-*/
-
-    safe_ptr<Element> elem = SYMBOL_CREATE_ON(this->proc(), node->data(), new Table::Spec(this->proc(), node) );
-
-//    ObjectSepc *elem = this->proc().getSymbols().addPtr( new Table::Specification(this->proc(), node) );
-
-//    ObjectInfo *elem = this->proc().getSymbols().addPtr( new ObjectInfo(this->proc(), node) );
-//    this->proc().getSymbols().add(node->id, elem);
-
-    this->m_proc.getSymbols().find<Element>(node->data());
-
-    //this->m_proc.getSymbol<Task>(id).exec(argumentlist);
-}
-
-
-
-/// @details
-/// 
-void
-ProcTreeWalker::visit(SqlNode *node)
-{
-/*
-    Connection *elem = this->proc().toHeap( new Connection(this->proc(), node, this->m_proc.getConnections()) );
-    this->proc().addSymbol(node->id, elem);
-
-    if(! elem->getDbc().isConnected())
-    {
-        throw std::runtime_error("dbc is not connected");
-    }
-*/
-
-    safe_ptr<Element> elem = SYMBOL_CREATE_ON(this->proc(), node->data(), new Sql::Spec(this->proc(), node) );
-
-//    ObjectSepc *elem = this->proc().getSymbols().addPtr( new Table::Specification(this->proc(), node) );
-
-//    ObjectInfo *elem = this->proc().getSymbols().addPtr( new ObjectInfo(this->proc(), node) );
-//    this->proc().getSymbols().add(node->id, elem);
-
-    this->m_proc.getSymbols().find<Element>(node->data());
-
-    //this->m_proc.getSymbol<Task>(id).exec(argumentlist);
-}
-
-
-/// @details
-/// 
-void
-ProcTreeWalker::visit(TaskNode *node)
-{
-    Task *elem = 0;
-
-    assert(! node->id.str().empty());
-
-    switch(node->type)
-    {
-    case ARGON_TASK_VOID:
-        elem = this->proc().getSymbols().addPtr( new VoidTask(this->proc(), node) );
-        break;
-    case ARGON_TASK_FETCH:
-        elem = this->proc().getSymbols().addPtr( new FetchTask(this->proc(), node) );
-        break;
-    case ARGON_TASK_STORE:
-    	elem = this->proc().getSymbols().addPtr( new StoreTask(this->proc(), node) );
-        break;
-    case ARGON_TASK_TRANSFER:
-    	elem = this->proc().getSymbols().addPtr( new TransferTask(this->proc(), node) );
-        break;
-    }
-    this->proc().getSymbols().add(node->id, elem);
-}
-
-
-/// @details
-/// 
-void
-ProcTreeWalker::visit(LogNode *node)
-{
-    //std::cout << "visit log node" << std::endl;
-}
-
-
-/// @details
-/// 
-void
-ProcTreeWalker::visit(IdNode *node)
-{
-    //std::cout << "visit id node: " << node->str() << std::endl;
-}
-
-
-/// @details
-/// 
-void
-ProcTreeWalker::visit(LiteralNode *node)
-{
-    //std::cout << "visit literal node: " << node->str() << std::endl;
-}
-
-
-/// @details
-/// 
-/*
-void
-ProcTreeWalker::visit(ParseTree *node)
-{
-    //std::cout << "Visit tree" << std::endl;
-}
-*/
 
 
 
@@ -226,8 +71,10 @@ ProcTreeWalker::visit(ParseTree *node)
 Processor::Processor(DTSEngine &engine)
     : m_engine(engine),
       m_stack(),
+      m_heap(),
       m_tree(0),
-      m_symbols()
+      m_symbols(),
+      m_types()
 {}
 
 
@@ -252,6 +99,18 @@ Processor::getConnections(void)
     return this->m_engine.getConnections();
 }
 
+void
+Processor::addtoHeap(Element *elem)
+{
+    this->m_heap.push_back(elem);
+}
+
+void
+Processor::stackPush(Element *elem)
+{
+    this->m_stack.push_front(elem);
+}
+
 
 /// @details
 /// 
@@ -265,31 +124,70 @@ Processor::compile(ParseTree *tree)
     foreach_node(this->m_tree, PrintTreeVisitor(*this, std::wcout), 1);
 #endif
 
+//    ::abort();
+
+
     SemanticCheck sc(this->m_tree, *this);
     sc.check();
 
-    //::abort();
 
 
-    // for each module and the progam, we run the ProcTreeWalker to
-    // create connections, objectinfos, ...
+    // Phase 1
+    // Add builtin types, functions etc.
+    this->getTypes().add(new ConnectionType(*this, Identifier("connection")));
+    this->getTypes().add(new TableType(*this, Identifier("table"), NULL_NODE));
+    this->getTypes().add(new SqlType(*this, Identifier("sql"), NULL_NODE));
+
+
+
+//    this->getTypes().add(new FunctionType(*this, Identifier("string.concat"), NULL_NODE));
+
+
+    builtin_func_def *defp = table_string_funcs;
+    while(defp->name)
+    {
+        this->getTypes().add(new BuiltinFunctionType(*this, *defp));
+        ++defp;
+    }
+
+
+
+    // for each module and the progam
     for(NodeList::iterator i = this->m_tree->getChilds().begin();
         i != this->m_tree->getChilds().end();
         ++i)
     {
-        foreach_node( (*i)->getChilds(), ProcTreeWalker(*this), 1); // only first level nodes
+        foreach_node( (*i)->getChilds(), Pass1Visitor(*this), 1); // only first level nodes
     }
+
+    // Phase 2
+    // for each module and the progam
+    for(NodeList::iterator i = this->m_tree->getChilds().begin();
+        i != this->m_tree->getChilds().end();
+        ++i)
+    {
+        foreach_node( (*i)->getChilds(), Pass2Visitor(*this), 1); // only first level nodes
+    }
+
+    //::abort();
+
+
+
 }
 
 
 /// @details
 /// 
 Value
-Processor::call(Element *obj, const ArgumentList &args)
+Processor::call(Element *obj)
 {
-    ScopedStackPush _ssp(this->m_stack, obj);
+/*
+    ScopedStackPush _ssp(*this, obj);
 
     return enter_element(Executor(args), *obj);
+*/
+
+    return enter_element(Executor(), *obj);
 }
 
 
@@ -299,8 +197,37 @@ Processor::call(Element *obj, const ArgumentList &args)
 Value
 Processor::call(Element &obj)
 {
-    return enter_element(Executor(ArgumentList()), obj);
+    // DO NOT USE StackPush!
+    // The newer version deletes the element!
+    //ScopedStackPush _ssp(*this, &obj);
+
+    // This is for LogCmd & Co., see TaskChildVisitor
+
+    return enter_element(Executor(), obj);
 }
+
+
+
+/// @details
+/// 
+Value
+Processor::call(Identifier id, const ArgumentList &list)
+{
+    Element *elem = 0;
+
+    elem = this->getTypes().find<TaskType>(id)->newInstance(list);
+
+
+    ScopedStackPush _ssp(*this, elem);
+
+    return enter_element(Executor(), *elem);
+
+//    ScopedStackPush _ssp(this->m_stack, &obj);
+
+//    return enter_element(Executor(ArgumentList()), obj);
+}
+
+
 
 
 
@@ -309,18 +236,10 @@ Processor::call(Element &obj)
 void Processor::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running script");
-   
 
-
-    Task *task = this->getSymbols().find<Task>(Identifier("main"));
-
-    // RUN TASK
-    Value v = this->call(task, ArgumentList());
-
+    Value v = this->call(Identifier("main"));
+    
     assert(this->m_stack.size() == 0);
-
-    //this->call( this->getSymbol<Connection>(Identifier("c1")) );
-
 }
 
 
@@ -330,6 +249,15 @@ SymbolTable&
 Processor::getSymbols(void)
 {
     return this->m_symbols;
+}
+
+
+/// @details
+/// 
+TypeTable&
+Processor::getTypes(void)
+{
+	return this->m_types;
 }
 
 

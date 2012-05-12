@@ -52,12 +52,12 @@ ARGON_NAMESPACE_BEGIN
 class TableSqlite : public Table
 {
 public:
-    TableSqlite(Processor &proc, ObjectNode *node, Object::mode mode); // change node
+    TableSqlite(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode); // change node
 
     virtual ~TableSqlite(void)
     {}
 
-    virtual Value run(const ArgumentList &args);
+    virtual Value run(void);
 
 
     virtual void execute(void);

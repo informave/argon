@@ -47,6 +47,7 @@ typedef informave::db::String String;
 #define ARGON_UNNAMED_ELEMENT "foo"
 
 class Element;
+class Ref;
 class Token;
 class DTSEngine;
 class ParseTree;
@@ -59,6 +60,7 @@ class Column;
 class Object;
 class LastError;
 class Function;
+class Type;
 template<typename T> class safe_ptr;
 
 class SemanticCheckEntry;
