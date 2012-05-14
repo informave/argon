@@ -631,7 +631,7 @@ PrintTreeVisitor::PrintTreeVisitor(const PrintTreeVisitor& pt)
       m_indent(pt.m_indent),
       m_stream(pt.m_stream)
 {
-    m_indent.append("   ");
+    this->m_indent.append("  "); /// @bug change to 3 spaces, you will see valgrind errors...
 }
 
 
@@ -650,7 +650,11 @@ PrintTreeVisitor::next(Node *node)
 void
 PrintTreeVisitor::fallback_action(Node *node)
 {
-    m_stream << this->m_indent << node->name() << " " << node->dump()  << std::endl;
+
+    m_stream << this->m_indent << node->name()
+             << " " << node->dump() 
+             << std::endl;
+
     next(node);
 }
 
