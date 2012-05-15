@@ -95,7 +95,7 @@ TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
     
     
 
-    ScopedStackFrame frame(this->m_proc);
+    ARGON_SCOPED_STACKFRAME(this->m_proc);
 
     /// @bug fix this
     ArgumentList al;

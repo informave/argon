@@ -214,17 +214,10 @@ Value
 Processor::call(Identifier id, const ArgumentList &list)
 {
     Element *elem = 0;
-
     elem = this->getTypes().find<TaskType>(id)->newInstance(list);
-
-
-    ScopedStackPush _ssp(*this, elem);
+    ARGON_SCOPED_STACKPUSH(*this, elem);
 
     return enter_element(Executor(), *elem);
-
-//    ScopedStackPush _ssp(this->m_stack, &obj);
-
-//    return enter_element(Executor(ArgumentList()), obj);
 }
 
 

@@ -1305,7 +1305,7 @@ struct builtin_func_def
 //////////////////////////////////////////////////////////////// ScopedStackPush
 ///
 /// @since 0.0.1
-/// @brief Scoped stack-push
+/// @brief Scoped stack push
 class ScopedStackPush
 {
 public:
@@ -1328,6 +1328,7 @@ private:
     ScopedStackPush& operator=(const ScopedStackPush&);
 };
 
+#define ARGON_SCOPED_STACKPUSH(proc, element) ScopedStackPush ssp__autogen_##__LINE__ (proc, elem)
 
 
 //..............................................................................
@@ -1363,13 +1364,15 @@ protected:
 };
 
 
+#define ARGON_SCOPED_STACKFRAME(proc) ScopedStackFrame ssf__autogen_##__LINE__ (proc)
 
 
 //..............................................................................
-/////////////////////////////////////////////////////////////// ScopedStackFrame
+///////////////////////////////////////////////////////////////// ObjectSmartPtr
 ///
 /// @since 0.0.1
-/// @brief Scoped stack frame
+/// @brief Smart pointer for Objects
+/// Used in task implementations to hold an object pointer
 class ObjectSmartPtr
 {
 public:
