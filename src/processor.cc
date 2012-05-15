@@ -176,20 +176,6 @@ Processor::compile(ParseTree *tree)
 }
 
 
-/// @details
-/// 
-Value
-Processor::call(Element *obj)
-{
-/*
-    ScopedStackPush _ssp(*this, obj);
-
-    return enter_element(Executor(args), *obj);
-*/
-
-    return enter_element(Executor(), *obj);
-}
-
 
 
 /// @details

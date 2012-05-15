@@ -190,8 +190,8 @@ TransferTask::run(void)
 
     // Call both objects to setup their initial environment
     // This prepares SQL statements etc.
-    this->proc().call(this->getMainObject());
-    this->proc().call(this->getDestObject());
+    this->proc().call(*this->getMainObject());
+    this->proc().call(*this->getDestObject());
 
     // IMPORTANT: destArgs may be used as values, Too!!
 

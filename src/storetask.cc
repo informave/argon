@@ -139,7 +139,7 @@ StoreTask::run(void)
     
     // Call object to setup initial environment
     // This prepares the SQL statement etc.
-    this->proc().call(this->getMainObject());
+    this->proc().call(*this->getMainObject());
 
    // IMPORTANT: destArgs may be used as values, Too!!
 

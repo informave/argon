@@ -145,7 +145,7 @@ FetchTask::run(void)
 
     // Call object to setup initial environment
     // This prepares the SQL statement etc.
-    this->proc().call(this->getMainObject());
+    this->proc().call(*this->getMainObject());
     
     //this->m_mainobject.reset(0);
 

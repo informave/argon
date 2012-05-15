@@ -1256,8 +1256,6 @@ public:
 
     void stackPush(Element *elem);
 
-    Value call(Element *obj);
-
     Value call(Element &localObj);
 
     Value call(const Identifier &id, const ArgumentList &args = ArgumentList());

@@ -168,7 +168,7 @@ EvalExprVisitor::visit(FuncCallNode *node)
 
 
     /// @bug just call m_proc.call(<function-id>, args)
-    m_value.data() = m_proc.call(elem).data();
+    m_value.data() = m_proc.call(*elem).data();
 
 
     //Function *f = this->m_proc.getSymbols().find<Function>(id);
