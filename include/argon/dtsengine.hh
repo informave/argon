@@ -1260,7 +1260,9 @@ public:
 
     Value call(Element &localObj);
 
-    Value call(Identifier id, const ArgumentList &args = ArgumentList());
+    Value call(const Identifier &id, const ArgumentList &args = ArgumentList());
+
+    Value call(const Identifier &id, ArgumentsNode *argsNode, Context &ctx);
 
     SymbolTable& getSymbols(void);
 

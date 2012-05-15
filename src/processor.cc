@@ -211,14 +211,41 @@ Processor::call(Element &obj)
 /// @details
 /// 
 Value
-Processor::call(Identifier id, const ArgumentList &list)
+Processor::call(const Identifier &id, const ArgumentList &list)
 {
     Element *elem = 0;
     elem = this->getTypes().find<TaskType>(id)->newInstance(list);
+    assert(elem);
     ARGON_SCOPED_STACKPUSH(*this, elem);
 
     return enter_element(Executor(), *elem);
 }
+
+
+
+/// @details
+/// This call() method resolves the arguments from the ArgumentsNode via
+/// the given context and calls the <id> with these argument values.
+Value
+Processor::call(const Identifier &id, ArgumentsNode *argsNode, Context &ctx)
+{
+    // new stack frame for this call
+    ARGON_SCOPED_STACKFRAME(*this);
+
+    assert(argsNode);
+
+    ArgumentList alist;
+    // resolve all arguments
+    foreach_node(argsNode->getChilds(), ArgumentsVisitor(*this, ctx, alist), 1);
+
+    const Processor::stack_type::size_type size = this->getStack().size();
+
+    Value v = this->call(id, alist);
+    assert(this->getStack().size() == size); // stack must have same size as saved before call
+    return v;
+}
+
+
 
 
 

@@ -87,37 +87,10 @@ void
 TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Calling task " << node->taskid().str());
-    //foreach_node(node->getChilds(), PrintTreeVisitor(this->m_proc, std::wcout), 1);
     
-    //Task* task = this->m_proc.getSymbols().find<Task>(node->data()); // search task global
+    safe_ptr<ArgumentsNode> argsnode = find_node<ArgumentsNode>(node);
 
-    //Task* task = this->m_proc.getTypes().find<TaskType>(node->data()).newInstance();
-    
-    
-
-    ARGON_SCOPED_STACKFRAME(this->m_proc);
-
-    /// @bug fix this
-    ArgumentList al;
-    
-    
-    //ARGON_ICERR_CTX(node->getChilds().size() >= 1, this->m_proc,
-    //"IdCallNode does not contains any subnodes");
-        
-        //ArgumentsNode *argsnode = node_cast<ArgumentsNode>(node->getChilds().at(1));
-        //safe_ptr<ArgumentsNode>
-        ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
-        assert(argsnode);
-        
-        foreach_node(argsnode->getChilds(), ArgumentsVisitor(this->m_proc, m_context, al), 1);
-        /*
-        al.push_back(Value(String("foo1")));
-        al.push_back(Value(String("foo2")));
-        */
-
-        // get arguments
-        this->m_proc.call(node->data(), al);
-
+    this->m_proc.call(node->data(), argsnode.get(), this->m_context);
 }
 
 

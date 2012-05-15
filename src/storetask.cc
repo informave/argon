@@ -90,7 +90,7 @@ StoreTask::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running task " << this->id());
 
-    ScopedStackFrame frame(this->proc());
+    ARGON_SCOPED_STACKFRAME(this->proc());
 
     Task::run();
 

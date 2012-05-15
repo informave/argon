@@ -95,8 +95,7 @@ VoidTask::getDestObject(void)
 Value
 VoidTask::run(void)
 {
-
-    ScopedStackFrame frame(this->proc());
+    ARGON_SCOPED_STACKFRAME(this->proc());
 
     Task::run();
 
