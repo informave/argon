@@ -142,7 +142,7 @@ TransferTask::run(void)
 
 
     // Create source object
-    IdCallNode *srcArgNode = node_cast<IdCallNode>(tmplArgNode->getChilds().at(0));
+    IdCallNode *srcArgNode = node_cast<IdCallNode>(tmplArgNode->getChilds().at(1));
     IdNode *srcIdNode = find_node<IdNode>(srcArgNode);
     ObjectType* srcType = this->proc().getTypes().find<ObjectType>(srcIdNode->data());
 
