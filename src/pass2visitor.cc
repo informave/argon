@@ -67,7 +67,9 @@ Pass2Visitor::visit(ConnNode *node)
     /// @bug use ConnectionType::newInstance()
     Connection *elem = new Connection(this->proc(), node, this->m_proc.getConnections());
 
-    this->proc().addtoHeap(elem);
+	this->m_proc.stackPush(elem);
+
+    //this->proc().addtoHeap(elem);
 
     this->proc().getSymbols().add(node->data(), Ref(elem));
 

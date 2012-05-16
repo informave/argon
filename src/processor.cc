@@ -99,11 +99,13 @@ Processor::getConnections(void)
     return this->m_engine.getConnections();
 }
 
+/*
 void
 Processor::addtoHeap(Element *elem)
 {
     this->m_heap.push_back(elem);
 }
+*/
 
 void
 Processor::stackPush(Element *elem)
@@ -162,13 +164,14 @@ Processor::compile(ParseTree *tree)
 
     // Phase 2
     // for each module and the progam
+/*
     for(NodeList::iterator i = this->m_tree->getChilds().begin();
         i != this->m_tree->getChilds().end();
         ++i)
     {
         foreach_node( (*i)->getChilds(), Pass2Visitor(*this), 1); // only first level nodes
     }
-
+*/
     //::abort();
 
 
@@ -234,17 +237,39 @@ Processor::call(const Identifier &id, ArgumentsNode *argsNode, Context &ctx)
 
 
 
-
-
-
 /// @details
 /// 
 void Processor::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running script");
-
-    Value v = this->call(Identifier("main"));
     
+    {
+        ARGON_SCOPED_STACKFRAME(*this);
+        
+        Node::nodelist_type childs = this->m_tree->getChilds();	
+        
+        // Phase 2
+        // for each module and the progam 
+        std::for_each(childs.begin(), childs.end(),
+                      [this](Node::nodelist_type::value_type node){
+                          foreach_node( node->getChilds(), Pass2Visitor(*this), 1);
+                      });
+        
+        try
+        {
+            Value v = this->call(Identifier("main"));
+            
+            // Pass2Visitor creates symbols, so we have to cleanup all <id, ref> entries
+            // before the stackframe is dropped and elements are destroyed.
+            this->getSymbols().reset();
+        }
+        catch(...)
+        {
+            // If there is an exception, we need to cleanup the symbol table
+            this->getSymbols().reset();
+            throw;
+        }
+    }   
     assert(this->m_stack.size() == 0);
 }
 

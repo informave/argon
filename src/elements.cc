@@ -30,9 +30,33 @@
 #include "visitors.hh"
 
 #include <iostream>
+#include <functional>
 #include <sstream>
 
 ARGON_NAMESPACE_BEGIN
+
+
+
+
+
+    ScopedStackFrame::ScopedStackFrame(Processor &proc)
+        : m_stack(proc.m_stack),
+          m_pos()
+    {
+        m_pos = m_stack.begin();
+    }
+
+    ScopedStackFrame::~ScopedStackFrame(void)
+    {
+        for(Processor::stack_type::iterator i = m_stack.begin();
+            (!m_stack.empty()) && i != m_pos;
+            ++i)
+        {
+            delete (*i);
+            m_stack.erase(i);
+        }
+    }
+
 
 
 //..............................................................................

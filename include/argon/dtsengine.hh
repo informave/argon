@@ -1252,7 +1252,7 @@ public:
     /// @brief Get call stack
     const stack_type& getStack(void);
 
-    void addtoHeap(Element *elem);
+//    void addtoHeap(Element *elem);
 
     void stackPush(Element *elem);
 
@@ -1339,24 +1339,9 @@ private:
 class ScopedStackFrame
 {
 public:
-    ScopedStackFrame(Processor &proc)
-        : m_stack(proc.m_stack),
-          m_pos()
-    {
-        m_pos = m_stack.begin();
-    }
+    ScopedStackFrame(Processor &proc);
 
-    ~ScopedStackFrame(void)
-    {
-
-        for(Processor::stack_type::iterator i = m_stack.begin();
-            (!m_stack.empty()) && i != m_pos;
-            ++i)
-        {
-            delete (*i);
-            m_stack.erase(i);
-        }
-    }
+    ~ScopedStackFrame(void);
 
 protected:
     Processor::stack_type &m_stack;
