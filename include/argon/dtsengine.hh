@@ -192,9 +192,16 @@ public:
     Element* operator&(void);
 
     template<typename T>
-    bool is(void)
+    bool is(void) const
     {
         return dynamic_cast<T*>(m_element) == 0 ? false : true;
+    }
+
+    void mark_dead(void) { this->m_element = 0; }
+
+    inline bool dead(void) const
+    {
+       return this->m_element == 0;
     }
 
 
@@ -333,7 +340,7 @@ class Element
 public:
     friend class Executor;
 
-    typedef std::list<const Ref*> reflist_type;
+    typedef std::list<Ref*> reflist_type;
 
     virtual ~Element(void);
 
@@ -350,9 +357,9 @@ public:
     virtual String   _name(void) const = 0;
     virtual String   _type(void) const = 0;
 
-    void registerRef(const Ref *p);
+    void registerRef(Ref *p);
 
-    void unregisterRef(const Ref *p);
+    void unregisterRef(Ref *p);
 
 protected:
     /// @brief Constructs a new element

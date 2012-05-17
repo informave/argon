@@ -337,19 +337,22 @@ Ref::Ref(const Ref &orig) : m_element(orig.m_element)
 
 Ref::~Ref(void)
 {
-    this->m_element->unregisterRef(this);
+    if(!this->dead())
+      this->m_element->unregisterRef(this);
 }
 
 
 Element*
 Ref::operator->(void)
 {
+    ARGON_ICERR(this->m_element, "Dead reference, the element did not exist!");
     return this->m_element;
 }
 
 const Element*
 Ref::operator->(void) const
 {
+    ARGON_ICERR(this->m_element, "Dead reference, the element did not exist!");
     return this->m_element;
 }
 
@@ -357,6 +360,7 @@ Ref::operator->(void) const
 Element*
 Ref::operator&(void)
 {
+    ARGON_ICERR(this->m_element, "Dead reference, the element did not exist!");
     return this->m_element;
 }
 
@@ -376,17 +380,22 @@ Element::Element(Processor &proc)
 
 Element::~Element(void)
 {
-    std::stringstream ss;
-    ss << "Element '" << typeid(this).name() << "' has " << this->m_references.size()
-       << " active references!";
+    if(this->m_references.size())
+    {
+    std::cerr << "Element '" << typeid(this).name() << "' has " << this->m_references.size()
+       << " active references, now marked as dead!" << std::endl;
+
+
+    std::for_each(this->m_references.begin(), this->m_references.end(), std::mem_fun(&Ref::mark_dead));
+    }
 
     /// @bug better error message
-    ARGON_ICERR(this->m_references.empty(), ss.str());
+    //ARGON_ICERR(this->m_references.empty(), ss.str());
 }
 
 
 void
-Element::registerRef(const Ref *p)
+Element::registerRef(Ref *p)
 {
     this->m_references.push_back(p);
 }
@@ -394,7 +403,7 @@ Element::registerRef(const Ref *p)
 
 
 void
-Element::unregisterRef(const Ref *p)
+Element::unregisterRef(Ref *p)
 {
     this->m_references.remove(p);
 }
