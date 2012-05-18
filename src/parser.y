@@ -95,9 +95,13 @@ langElement(Z) ::= function(A). {
 }
 
 
-function(Z) ::= FUNCTION ID(A) BEGIN END SEP. {
+//..............................................................................
+/////////////////////////////////////////////////////////// Function declaration
+
+function(Z) ::= FUNCTION ID(A) declArgList(C) BEGIN END SEP. {
 	CREATE_NODE(FunctionNode);
 	node->init(A->data());
+	node->addChild(C);
 	Z = node;
 }
 

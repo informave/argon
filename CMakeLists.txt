@@ -257,6 +257,7 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/exceptions.cc
 	${ARGON_MAIN_SRC_DIR}/value.cc
 	${ARGON_MAIN_SRC_DIR}/rtti.cc
+	${ARGON_MAIN_SRC_DIR}/function.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/string.cc
 )
 

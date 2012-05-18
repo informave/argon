@@ -101,9 +101,7 @@ Pass1Visitor::visit(TaskNode *node)
 void
 Pass1Visitor::visit(FunctionNode *node)
 {
-    //Function *elem = new Function(proc());
-    FIXME();
-    //this->proc().getSymbols().add(node->data(), elem);
+    this->proc().getTypes().add(new CustomFunctionType(this->proc(), node->data(), node));
 }
 
 

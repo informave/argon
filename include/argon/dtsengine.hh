@@ -570,7 +570,7 @@ private:
 class Function : public Context
 {
 public:
-    Function(Processor &proc, const ArgumentList &args);
+    Function(Processor &proc, FunctionNode *node, const ArgumentList &args);
 
     virtual ~Function(void)
     {}
@@ -602,12 +602,14 @@ protected:
     /// Functions must be runnable
     virtual Value run(void);
 
-    //TaskNode *m_node;
+    FunctionNode *m_node;
 
 private:
     Function(const Function&);
     Function& operator=(const Function&);
 };
+
+
 
 
 

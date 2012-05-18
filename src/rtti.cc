@@ -90,6 +90,25 @@ BuiltinFunctionType::newInstance(const ArgumentList &args, Type::mode_t mode)
 
 
 
+
+//..............................................................................
+///////////////////////////////////////////////////////////// CustomFunctionType
+
+
+/// @details
+/// 
+Function*
+CustomFunctionType::newInstance(const ArgumentList &args, Type::mode_t mode)
+{
+    return new Function(this->proc(), this->getNode(), args);
+
+    //return this->m_def.factory(this->proc(), args);
+}
+
+
+
+
+
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// TableType
 

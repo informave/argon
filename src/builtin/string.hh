@@ -21,7 +21,7 @@ ARGON_NAMESPACE_BEGIN
 public:                                                                 \
                                                                         \
         func_##name(Processor &proc, const ArgumentList &args)          \
-            : Function(proc, args)                                      \
+            : Function(proc, NULL_NODE, args)                           \
         {}                                                              \
                                                                         \
         virtual ~func_##name(void)                                      \
