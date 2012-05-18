@@ -56,6 +56,25 @@ Pass2Visitor::visit(DeclNode *node)
 }
 
 
+
+/// @details
+/// 
+void
+Pass2Visitor::visit(VarNode *node)
+{
+    ArgumentsNode *argsNode = find_node<ArgumentsNode>(node);
+    assert(argsNode);
+    assert(argsNode->getChilds().size() == 1);
+
+    Node *data = argsNode->getChilds()[0];
+    /// @bug Supports only LiteralNode for initialization
+
+    ValueElement *elem = new ValueElement(this->proc(), String(node_cast<LiteralNode>(data)->data()));
+    this->m_proc.stackPush(elem);
+    this->proc().getSymbols().add(node->data(), Ref(elem));
+}
+
+
 /// @details
 /// 
 void

@@ -128,6 +128,8 @@ public:
         this->m_keywords[ _str<CharT, TraitsT>("PROCEDURE")   ] = ARGON_TOK_PROCEDURE;
 */
 
+        this->m_keywords[ _str<CharT, TraitsT>("VAR")       ] = ARGON_TOK_VAR;
+
         this->m_keywords[ _str<CharT, TraitsT>("SQL")         ] = ARGON_TOK_SQL;
 
         this->m_keywords[ _str<CharT, TraitsT>("ON")         ] = ARGON_TOK_ON;

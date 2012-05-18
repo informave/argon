@@ -309,6 +309,15 @@ FunctionNode::semanticCheck(SemanticCheck &sc)
 /// @details
 /// 
 void
+VarNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+
+/// @details
+/// 
+void
 KeyValueNode::semanticCheck(SemanticCheck &sc)
 {
     assert(this->getChilds().size() == 2);

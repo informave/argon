@@ -88,10 +88,23 @@ langElementList(Z) ::= . {
 
 
 langElement(Z) ::= connDecl(A). { Z = A; }
+langElement(Z) ::= varDef(A). { Z = A; }
 langElement(Z) ::= decl(A). { Z = A; } // obj decl
 langElement(Z) ::= task(A). { Z = A; }
 langElement(Z) ::= function(A). {
 	Z = A;
+}
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////// var definition
+
+
+varDef(Z) ::= VAR ID(A) callArgs(B) SEP. {
+	CREATE_NODE(VarNode);
+	node->init(A->data());
+	node->addChild(B);
+	Z = node;
 }
 
 

@@ -87,6 +87,16 @@ Pass1Visitor::visit(DeclNode *node)
 
 
 
+
+/// @details
+/// 
+void
+Pass1Visitor::visit(VarNode *node)
+{
+    // nothing to do
+}
+
+
 /// @details
 /// 
 void

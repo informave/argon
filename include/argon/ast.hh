@@ -69,6 +69,7 @@ struct FuncCallNode;
 struct ResColumnNode;
 struct ResColumnNumNode;
 struct ResIdNode;
+struct VarNode;
 
 class Visitor;
 class ParseTree;
@@ -201,6 +202,7 @@ public:
     virtual void visit(ResColumnNode *node);
     virtual void visit(ResColumnNumNode *node);
     virtual void visit(ResIdNode *node);
+    virtual void visit(VarNode *node);
 
     void operator()(Node *node);
 
@@ -318,6 +320,7 @@ protected:
 };
 
 
+DefineNode(Var, Identifier);
 
 DefineNode(Program, Identifier);
 DefineNode(Module, Identifier);

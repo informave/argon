@@ -51,6 +51,7 @@ public:
     Pass1Visitor(Processor &proc);
 
     virtual void visit(ConnNode *node);
+    virtual void visit(VarNode *node);
     virtual void visit(TaskNode *node);
     virtual void visit(FunctionNode *node);
     //virtual void visit(ParseTree *node);
@@ -76,6 +77,7 @@ public:
     Pass2Visitor(Processor &proc);
 
     virtual void visit(ConnNode *node);
+    virtual void visit(VarNode *node);
     virtual void visit(TaskNode *node);
     virtual void visit(FunctionNode *node);
     //virtual void visit(ParseTree *node);

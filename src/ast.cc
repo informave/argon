@@ -84,6 +84,8 @@ void KeyValueNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
 void DeclNode::accept(Visitor &visitor)    { visitor.visit(this); }
 
+void VarNode::accept(Visitor &visitor)    { visitor.visit(this); }
+
 
 //String ConnNode::dump(void) const              { return "ConnNode"; }
 //String ConnSpec::dump(void) const              { return "ConnSpec"; }
@@ -276,6 +278,7 @@ DEFAULT_VISIT(TaskFinalNode)
 DEFAULT_VISIT(KeyValueNode)
 
 DEFAULT_VISIT(DeclNode)
+DEFAULT_VISIT(VarNode)
 
 
 /// @details
