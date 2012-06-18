@@ -338,40 +338,19 @@ Table::run(void)
     }
 
 
-/*
-    String s("SELECT * FROM ");
-    //String objname;
-
-    if(dbName.length() > 0)
-        objname.append(dbName);
-
-    if(schemaName.length() > 0)
-        objname.append( (objname.length() > 0 ? String(".") : String("")) + schemaName);
-
-    if(tableName.length() > 0)
-        objname.append( (objname.length() > 0 ? String(".") : String("")) + tableName);
-
-
-    s.append(objname);
-
-*/
-
-    ARGON_DPRINT(ARGON_MOD_PROC, "RUN QUERY: " << sql_query);
-
-
-
-
     this->m_stmt.reset( m_conn->getDbc().newStatement() );
     
-    //m_stmt->prepare("foo"); // invalid read, FIX THIS!
+    try
+    {
+        ARGON_DPRINT(ARGON_MOD_PROC, "RUN QUERY: " << sql_query);
+        m_stmt->prepare(sql_query);
+    }
+    catch(informave::db::ex::exception &e)
+    {
+        /// @bug Workaround, we need a ARGON_ERR_CTX(*this, e) ma
+        ARGON_ICERR_CTX(false, *this, e.what());
+    }
     
-    m_stmt->prepare(sql_query);
-    
-    
-//    if(m_mode == Object::READ_MODE)
-//        m_stmt->execute();
-        
-
     return Value();
 }
 

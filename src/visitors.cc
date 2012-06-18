@@ -161,7 +161,6 @@ EvalExprVisitor::visit(FuncCallNode *node)
     elem = this->m_proc.getTypes().find<FunctionType>(id)->newInstance(al);
 
 
-
     assert(elem);
 
     ScopedStackPush _ssp(this->m_proc, elem);
