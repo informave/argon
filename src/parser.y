@@ -189,25 +189,35 @@ blockItemList ::= blockItem.
 blockItemList ::= blockItemList blockItem.
 
 //blockItem ::= declaration.
-blockItem ::= statement.
+blockItem ::= statement SEP.
 //blockItem ::= .
 
-expressionStatement ::= expression SEP.
+expressionStatement ::= expression.
 //expressionStatement ::= .
 
 
-selectionStatement ::= IF LP expression RP statement SEP.
-selectionStatement ::= IF LP expression RP statement ELSE statement SEP.
+%left IF.
+%left ELSE.
+selectionStatement ::= IF LP expression RP statement ELSE statement.
+selectionStatement ::= IF LP expression RP statement.
+
+
+
+//if (x) if(x) x else foo;
+
+
+//selectionStatement ::= IF LP expression RP statement ELSE statement.
 //switch
 
-iterationStatement ::= WHILE LP expression RP statement SEP.
-iterationStatement ::= REPEAT statement UNTIL LP expression RP SEP.
-iterationStatement ::= FOR LP expression SEP expression SEP expression RP statement SEP.
+iterationStatement ::= WHILE LP expression RP statement.
+iterationStatement ::= REPEAT statement UNTIL LP expression RP.
+iterationStatement ::= FOR LP expression SEP expression SEP expression RP statement.
 
-jumpStatement ::= CONTINUE SEP.
-jumpStatement ::= BREAK SEP.
-jumpStatement ::= RETURN SEP.
-jumpStatement ::= RETURN expression SEP.
+jumpStatement ::= CONTINUE.
+jumpStatement ::= BREAK.
+jumpStatement ::= RETURN.
+jumpStatement ::= RETURN expression.
+
 
 /*
 funcBlock ::= varDef .{
