@@ -111,7 +111,7 @@ varDef(Z) ::= VAR ID(A) callArgs(B) SEP. {
 //..............................................................................
 /////////////////////////////////////////////////////////// Function declaration
 
-function(Z) ::= FUNCTION ID(A) declArgList(C) funcCompoundStatement SEP. {
+function(Z) ::= FUNCTION ID(A) declArgList(C) compoundStatement SEP. {
 	CREATE_NODE(FunctionNode);
 	node->init(A->data());
 	node->addChild(C);
@@ -119,16 +119,97 @@ function(Z) ::= FUNCTION ID(A) declArgList(C) funcCompoundStatement SEP. {
 }
 
 
-funcCompoundStatement ::= BEGIN funcBlockList END. {
-	//
-}
+primaryExpression ::= ID.
+primaryExpression ::= LITERAL.
+primaryExpression ::= NUMBER.
+primaryExpression ::= LP expression RP.
 
-funcBlockList ::= funcBlockList funcBlock. {
-}
 
-funcBlockList ::= . {
-}
+postfixExpression ::= primaryExpression.
 
+unaryExpression ::= postfixExpression.
+unaryExpression ::= unaryOperator castExpression.
+
+unaryOperator ::= PLUS.
+unaryOperator ::= MINUS.
+unaryOperator ::= EXMARK.
+
+castExpression ::= unaryExpression.
+
+multiplicativeExpression ::= castExpression.
+multiplicativeExpression ::= multiplicativeExpression MUL castExpression.
+multiplicativeExpression ::= multiplicativeExpression DIV castExpression.
+multiplicativeExpression ::= multiplicativeExpression MOD castExpression.
+
+additiveExpression ::= multiplicativeExpression.
+additiveExpression ::= additiveExpression PLUS multiplicativeExpression.
+additiveExpression ::= additiveExpression MINUS multiplicativeExpression.
+
+relationalExpression ::= additiveExpression.
+relationalExpression ::= relationalExpression LOWER additiveExpression.
+relationalExpression ::= relationalExpression GREATER additiveExpression.
+relationalExpression ::= relationalExpression LOWEREQUAL additiveExpression.
+relationalExpression ::= relationalExpression GREATEREQUAL additiveExpression.
+
+equalityExpression ::= relationalExpression.
+equalityExpression ::= equalityExpression EQUAL relationalExpression.
+equalityExpression ::= equalityExpression NOTEQUAL relationalExpression.
+
+exclusiveOrExpression ::= equalityExpression.
+exclusiveOrExpression ::= exclusiveOrExpression XOR equalityExpression.
+
+logicalAndExpression ::= exclusiveOrExpression.
+logicalAndExpression ::= logicalAndExpression AND exclusiveOrExpression.
+
+logicalOrExpression ::= logicalAndExpression.
+logicalOrExpression ::= logicalOrExpression OR logicalAndExpression.
+
+conditionalExpression ::= logicalOrExpression.
+conditionalExpression ::= logicalOrExpression QMARK expression COLON conditionalExpression.
+
+assignmentOperator ::= ASSIGN.
+
+assignmentExpression ::= conditionalExpression.
+assignmentExpression ::= unaryExpression assignmentOperator assignmentExpression.
+
+expression ::= assignmentExpression.
+expression ::= expression COMMA assignmentExpression.
+
+
+statement ::= compoundStatement.
+statement ::= expressionStatement.
+statement ::= selectionStatement.
+statement ::= iterationStatement.
+statement ::= jumpStatement.
+
+compoundStatement ::= BEGIN END.
+compoundStatement ::= BEGIN blockItemList END.
+
+blockItemList ::= blockItem.
+blockItemList ::= blockItemList blockItem.
+
+//blockItem ::= declaration.
+blockItem ::= statement.
+//blockItem ::= .
+
+expressionStatement ::= expression SEP.
+//expressionStatement ::= .
+
+
+selectionStatement ::= IF LP expression RP statement SEP.
+selectionStatement ::= IF LP expression RP statement ELSE statement SEP.
+//switch
+
+iterationStatement ::= WHILE LP expression RP statement SEP.
+iterationStatement ::= REPEAT statement UNTIL LP expression RP SEP.
+iterationStatement ::= FOR LP expression SEP expression SEP expression RP statement SEP.
+
+jumpStatement ::= CONTINUE SEP.
+jumpStatement ::= BREAK SEP.
+jumpStatement ::= RETURN SEP.
+jumpStatement ::= RETURN expression SEP.
+
+/*
 funcBlock ::= varDef .{
 }
 
@@ -143,7 +224,7 @@ funcStatement ::= funcReturn SEP.
 funcWhileBlock ::= WHILE expr funcCompoundStatement.
 
 funcReturn ::= RETURN expr.
-
+*/
 
 
 //..............................................................................

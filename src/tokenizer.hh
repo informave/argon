@@ -151,8 +151,22 @@ public:
         this->m_templates[ _str<CharT, TraitsT>("STORE")        ] = ARGON_TOK_TEMPLATE;
         this->m_templates[ _str<CharT, TraitsT>("TRANSFER")     ] = ARGON_TOK_TEMPLATE;
 
-	this->m_templates[ _str<CharT, TraitsT>("RETURN")	] = ARGON_TOK_RETURN;
+	//this->m_templates[ _str<CharT, TraitsT>("RETURN")	] = ARGON_TOK_RETURN;
+	//this->m_templates[ _str<CharT, TraitsT>("WHILE")       ] = ARGON_TOK_WHILE;
+
+	this->m_templates[ _str<CharT, TraitsT>("MOD")       ] = ARGON_TOK_MOD;
+	this->m_templates[ _str<CharT, TraitsT>("AND")       ] = ARGON_TOK_AND;
+	this->m_templates[ _str<CharT, TraitsT>("OR")       ] = ARGON_TOK_OR;
+	this->m_templates[ _str<CharT, TraitsT>("XOR")       ] = ARGON_TOK_XOR;
+	this->m_templates[ _str<CharT, TraitsT>("IF")       ] = ARGON_TOK_IF;
+	this->m_templates[ _str<CharT, TraitsT>("ELSE")       ] = ARGON_TOK_ELSE;
 	this->m_templates[ _str<CharT, TraitsT>("WHILE")       ] = ARGON_TOK_WHILE;
+	this->m_templates[ _str<CharT, TraitsT>("REPEAT")       ] = ARGON_TOK_REPEAT;
+	this->m_templates[ _str<CharT, TraitsT>("UNTIL")       ] = ARGON_TOK_UNTIL;
+	this->m_templates[ _str<CharT, TraitsT>("FOR")       ] = ARGON_TOK_FOR;
+	this->m_templates[ _str<CharT, TraitsT>("CONTINUE")       ] = ARGON_TOK_CONTINUE;
+	this->m_templates[ _str<CharT, TraitsT>("BREAK")       ] = ARGON_TOK_BREAK;
+	this->m_templates[ _str<CharT, TraitsT>("RETURN")       ] = ARGON_TOK_RETURN;
     }
 
 
@@ -261,26 +275,60 @@ public:
         case ':':
             consume();
             return Token(ARGON_TOK_COLON, si, ":");
+	case '!':
+	    consume();
+	    if(m_char == '=')
+	    {
+	    	consume();
+		return Token(ARGON_TOK_NOTEQUAL, si, "!=");
+	    }
+	    else
+	    	return Token(ARGON_TOK_EXMARK, si, "!");
         case '|':
             consume();
             assert(m_char == '|');
             consume();
             return Token(ARGON_TOK_CONCAT, si, "||");
+	case '?':
+	    consume();
+	    return Token(ARGON_TOK_QMARK, si, "?");
         case '=':
             consume();
 	    if(m_char == '>')
 	    {
 	    	consume();
 		return Token(ARGON_TOK_MAPOP, si, "=>");
-	    } else
-            	return Token(ARGON_TOK_ASSIGNOP, si, "=");
+	    }
+	    else if(m_char == '=')
+	    {
+	    	consume();
+		return Token(ARGON_TOK_EQUAL, si, "==");
+	    }
+	    else
+            	return Token(ARGON_TOK_ASSIGN, si, "=");
 
         case '<':
             consume();
-            assert(m_char == '-');
-            consume();
-            return Token(ARGON_TOK_ASSIGNOP, si, "<-");
+            if(m_char == '<')
+	    {
+            	consume();
+            	return Token(ARGON_TOK_ASSIGNOP, si, "<<");
+	    }
+	    else if(m_char == '=')
+	    {
+	    	consume();
+		return Token(ARGON_TOK_LOWEREQUAL, si, "<=");
+	    }
+	    else return Token(ARGON_TOK_LOWER, si, "<");
 
+	case '>':
+	    consume();
+	    if(m_char == '=')
+	    {
+	    	consume();
+		return Token(ARGON_TOK_GREATEREQUAL, si, ">=");
+	    }
+	    else return Token(ARGON_TOK_GREATER, si, ">");
 
         case '$':
             return this->readColumn(start, len, line);
