@@ -111,12 +111,38 @@ varDef(Z) ::= VAR ID(A) callArgs(B) SEP. {
 //..............................................................................
 /////////////////////////////////////////////////////////// Function declaration
 
-function(Z) ::= FUNCTION ID(A) declArgList(C) BEGIN END SEP. {
+function(Z) ::= FUNCTION ID(A) declArgList(C) funcCompoundStatement SEP. {
 	CREATE_NODE(FunctionNode);
 	node->init(A->data());
 	node->addChild(C);
 	Z = node;
 }
+
+
+funcCompoundStatement ::= BEGIN funcBlockList END. {
+	//
+}
+
+funcBlockList ::= funcBlockList funcBlock. {
+}
+
+funcBlockList ::= . {
+}
+
+funcBlock ::= varDef .{
+}
+
+funcBlock ::= funcStatement.
+
+funcStatement ::= funcCall SEP. {}
+
+funcStatement ::= funcWhileBlock SEP.
+
+funcStatement ::= funcReturn SEP.
+
+funcWhileBlock ::= WHILE expr funcCompoundStatement.
+
+funcReturn ::= RETURN expr.
 
 
 

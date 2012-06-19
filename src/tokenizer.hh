@@ -150,6 +150,9 @@ public:
         this->m_templates[ _str<CharT, TraitsT>("FETCH")        ] = ARGON_TOK_TEMPLATE;
         this->m_templates[ _str<CharT, TraitsT>("STORE")        ] = ARGON_TOK_TEMPLATE;
         this->m_templates[ _str<CharT, TraitsT>("TRANSFER")     ] = ARGON_TOK_TEMPLATE;
+
+	this->m_templates[ _str<CharT, TraitsT>("RETURN")	] = ARGON_TOK_RETURN;
+	this->m_templates[ _str<CharT, TraitsT>("WHILE")       ] = ARGON_TOK_WHILE;
     }
 
 
