@@ -119,13 +119,22 @@ function(Z) ::= FUNCTION ID(A) declArgList(C) compoundStatement SEP. {
 }
 
 
-primaryExpression ::= ID.
-primaryExpression ::= LITERAL.
-primaryExpression ::= NUMBER.
+
+
+primaryExpression(A) ::= id(B). { A = B; }
+primaryExpression(A) ::= literal(B). { A = B; }
+primaryExpression(A) ::= number(B). { A = B; }
+primaryExpression(A) ::= column(B). { A = B; }
+primaryExpression(A) ::= rescolumn(B). { A = B; }
 primaryExpression ::= LP expression RP.
 
 
 postfixExpression ::= primaryExpression.
+postfixExpression ::= postfixExpression LP argumentExpressionList RP.
+postfixExpression ::= postfixExpression LP RP.
+
+argumentExpressionList ::= assignmentExpression.
+argumentExpressionList ::= argumentExpressionList COMMA assignmentExpression.
 
 unaryExpression ::= postfixExpression.
 unaryExpression ::= unaryOperator castExpression.

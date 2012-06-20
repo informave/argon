@@ -1,0 +1,18 @@
+
+program function_basic;
+
+
+function test(foo)
+begin
+end;
+
+
+task main : void
+begin
+	//log string.concat("foo", "bar");
+
+	log test("argument1");
+
+	log "foo";
+end;
+

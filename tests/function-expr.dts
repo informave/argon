@@ -1,0 +1,75 @@
+
+program function_basic;
+
+connection c1
+begin
+        "engine"        => "sqlite:libsqlite",
+        "database"      => ":memory:";
+end;
+
+
+
+function test(foo)
+begin
+	x = x + x - a + (x + x / x) * 5 + 3 - 2 / 2 mod 5;
+	x = 
+	x = 
+	x = x = 6 + 5;
+	5 + 5;
+	x = 1, 2, 3, -4;
+	x = x == 5 + 2 * (x <= a) and (x >= b);
+	x = x != x;
+	x = x and x or x xor x < 4 and x > 5;
+	+x = x;
+	x = x > 4 ? 5 : (2, 3, 4);
+	while(x == x and x / x != x)
+	begin
+		x = x;
+		x = y;
+	end;
+	while(x) x = x;
+	
+	for(x; y; z, z, z)
+	begin
+		x = x;
+	end;
+
+	x = foo(1, 2, 3);
+
+	x = foo(x = 2, !(1, 2, 3), x >= y, foo(1));
+	
+	x = $y + foo(%% + %(a)) / $(23 23);
+
+	$1 = !!!!!!$1;
+end;
+
+function leer()
+begin
+end;
+
+
+task bar(arg1) : store[table(c1, "test")]
+begin
+	$name << test(arg1);
+end;
+
+
+task print(dbc, name) : fetch[table(dbc, name)]
+begin
+ rules:
+ 	log "DATA: " || $name;
+end;
+
+
+task main : void
+begin
+	//log string.concat("foo", "bar");
+
+	log test("argument1");
+
+	log "foo";
+	exec sql "CREATE TABLE test(name text)" on c1;
+	exec task bar(test("hallo"));
+	exec task print(c1, "test");
+end;
+

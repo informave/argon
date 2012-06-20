@@ -1,0 +1,53 @@
+
+program function_basic;
+
+connection c1
+begin
+        "engine"        => "sqlite:libsqlite",
+        "database"      => ":memory:";
+end;
+
+
+
+function test(foo)
+begin
+	var x("foo");
+	var y("bar");
+	test(foo);
+	while 5
+	begin
+		var x("foo");
+		while 7
+		begin
+			test("foo");
+		end;
+	end;
+	return "foo";
+end;
+
+
+task bar(arg1) : store[table(c1, "test")]
+begin
+	$name <- test(arg1);
+end;
+
+
+task print(dbc, name) : fetch[table(dbc, name)]
+begin
+ rules:
+ 	log "DATA: " || $name;
+end;
+
+
+task main : void
+begin
+	//log string.concat("foo", "bar");
+
+	log test("argument1");
+
+	log "foo";
+	exec sql "CREATE TABLE test(name text)" on c1;
+	exec task bar(test("hallo"));
+	exec task print(c1, "test");
+end;
+

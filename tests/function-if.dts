@@ -1,0 +1,51 @@
+
+program function_basic;
+
+
+function test(foo)
+begin
+	if (x == x) if (x == x) x = 0 else x = x;
+
+	if (x) begin end;
+
+	if (x) begin end else begin end;
+
+	if (x)
+	begin
+		if (x)
+		begin
+			x;
+		end
+		else
+		begin
+			x = x;
+		end;
+	end
+	else
+		x = x == x;
+
+	begin
+		x = 0;
+	end;
+
+
+	if (x) if(x) x else x else x;
+
+	while(x) if(x) x else begin x; end;
+
+	for(x; x; x)
+	begin
+		continue;
+		break;
+		return;
+		return x+x;
+	end;
+		
+end;
+
+
+task main : void
+begin
+	log test("argument1");
+end;
+
