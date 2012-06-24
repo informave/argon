@@ -111,10 +111,11 @@ varDef(Z) ::= VAR ID(A) callArgs(B) SEP. {
 //..............................................................................
 /////////////////////////////////////////////////////////// Function declaration
 
-function(Z) ::= FUNCTION ID(A) declArgList(C) compoundStatement SEP. {
+function(Z) ::= FUNCTION ID(A) declArgList(C) compoundStatement(B) SEP. {
 	CREATE_NODE(FunctionNode);
 	node->init(A->data());
 	node->addChild(C);
+	node->addChild(B);
 	Z = node;
 }
 
@@ -126,89 +127,278 @@ primaryExpression(A) ::= literal(B). { A = B; }
 primaryExpression(A) ::= number(B). { A = B; }
 primaryExpression(A) ::= column(B). { A = B; }
 primaryExpression(A) ::= rescolumn(B). { A = B; }
-primaryExpression ::= LP expression RP.
+primaryExpression(A) ::= LP expression(B) RP. { A = B; }
 
 
-postfixExpression ::= primaryExpression.
-postfixExpression ::= postfixExpression LP argumentExpressionList RP.
-postfixExpression ::= postfixExpression LP RP.
+postfixExpression(A) ::= primaryExpression(B). { A = B; }
 
-argumentExpressionList ::= assignmentExpression.
-argumentExpressionList ::= argumentExpressionList COMMA assignmentExpression.
 
-unaryExpression ::= postfixExpression.
-unaryExpression ::= unaryOperator castExpression.
+//postfixExpression(A) ::= postfixExpression LP argumentExpressionList RP. {
+postfixExpression(A) ::= ID(B) LP argumentExpressionList(C) RP. {
+	CREATE_NODE(FuncCallNode);
+	node->init(Identifier(B->data()));
+	node->addChild(C);
+	ADD_TOKEN(node, B);
+	A = node;
+}
 
+
+//postfixExpression(A) ::= postfixExpression(B) LP RP. {
+postfixExpression(A) ::= ID(B) LP RP. {
+	CREATE_NODE(FuncCallNode);
+	node->init(Identifier(B->data()));
+	A = node;
+}
+
+
+
+argumentExpressionList(A) ::= assignmentExpression(B). {
+	CREATE_NODE(ArgumentsNode);
+	node->addChild(B);
+	A = node;
+}
+
+
+argumentExpressionList(A) ::= argumentExpressionList(B) COMMA assignmentExpression(C). {
+	A = B;
+	assert(A);
+	A->addChild(C);
+}
+
+
+unaryExpression(A) ::= postfixExpression(B). { A = B; }
+unaryExpression(A) ::= PLUS castExpression(B). {
+	CREATE_NODE(UnaryExprNode);
+	node->init(UNARY_EXPR_PLUS);
+	node->addChild(B);
+	A = node;	
+}
+
+unaryExpression(A) ::= MINUS castExpression(B). {
+	CREATE_NODE(UnaryExprNode);
+	node->init(UNARY_EXPR_MINUS);
+	node->addChild(B);
+	A = node;	
+}
+
+unaryExpression(A) ::= EXMARK castExpression(B). {
+	CREATE_NODE(UnaryExprNode);
+	node->init(UNARY_EXPR_NEG);
+	node->addChild(B);
+	A = node;	
+}
+
+/*
 unaryOperator ::= PLUS.
 unaryOperator ::= MINUS.
 unaryOperator ::= EXMARK.
+*/
 
-castExpression ::= unaryExpression.
+castExpression(A) ::= unaryExpression(B). { A = B; }
 
-multiplicativeExpression ::= castExpression.
-multiplicativeExpression ::= multiplicativeExpression MUL castExpression.
-multiplicativeExpression ::= multiplicativeExpression DIV castExpression.
-multiplicativeExpression ::= multiplicativeExpression MOD castExpression.
+multiplicativeExpression(A) ::= castExpression(B). { A = B; }
 
-additiveExpression ::= multiplicativeExpression.
-additiveExpression ::= additiveExpression PLUS multiplicativeExpression.
-additiveExpression ::= additiveExpression MINUS multiplicativeExpression.
+multiplicativeExpression(A) ::= multiplicativeExpression(B) MUL castExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_MUL);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
 
-relationalExpression ::= additiveExpression.
-relationalExpression ::= relationalExpression LOWER additiveExpression.
-relationalExpression ::= relationalExpression GREATER additiveExpression.
-relationalExpression ::= relationalExpression LOWEREQUAL additiveExpression.
-relationalExpression ::= relationalExpression GREATEREQUAL additiveExpression.
+multiplicativeExpression(A) ::= multiplicativeExpression(B) DIV castExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_DIV);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
 
-equalityExpression ::= relationalExpression.
-equalityExpression ::= equalityExpression EQUAL relationalExpression.
-equalityExpression ::= equalityExpression NOTEQUAL relationalExpression.
 
-exclusiveOrExpression ::= equalityExpression.
-exclusiveOrExpression ::= exclusiveOrExpression XOR equalityExpression.
+multiplicativeExpression(A) ::= multiplicativeExpression(B) MOD castExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_MOD);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
 
-logicalAndExpression ::= exclusiveOrExpression.
-logicalAndExpression ::= logicalAndExpression AND exclusiveOrExpression.
+additiveExpression(A) ::= multiplicativeExpression(B). { A = B; }
 
-logicalOrExpression ::= logicalAndExpression.
-logicalOrExpression ::= logicalOrExpression OR logicalAndExpression.
+additiveExpression(A) ::= additiveExpression(B) PLUS multiplicativeExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_ADD);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
 
-conditionalExpression ::= logicalOrExpression.
+
+additiveExpression(A) ::= additiveExpression(B) MINUS multiplicativeExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_SUB);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+relationalExpression(A) ::= additiveExpression(B). { A = B; }
+
+
+relationalExpression(A) ::= relationalExpression(B) LOWER additiveExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_LESS);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+relationalExpression(A) ::= relationalExpression(B) GREATER additiveExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_GREATER);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+relationalExpression(A) ::= relationalExpression(B) LOWEREQUAL additiveExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_LESSEQUAL);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+relationalExpression(A) ::= relationalExpression(B) GREATEREQUAL additiveExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_GREATEREQUAL);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+
+equalityExpression(A) ::= relationalExpression(B). { A = B; }
+
+equalityExpression(A) ::= equalityExpression(B) EQUAL relationalExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_EQUAL);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+equalityExpression(A) ::= equalityExpression(B) NOTEQUAL relationalExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_NOTEQUAL);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+exclusiveOrExpression(A) ::= equalityExpression(B). { A = B; }
+exclusiveOrExpression(A) ::= exclusiveOrExpression(B) XOR equalityExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_XOR);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+logicalAndExpression(A) ::= exclusiveOrExpression(B). { A = B; }
+logicalAndExpression(A) ::= logicalAndExpression(B) AND exclusiveOrExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_AND);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+logicalOrExpression(A) ::= logicalAndExpression(B). { A = B; }
+logicalOrExpression(A) ::= logicalOrExpression(B) OR logicalAndExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_OR);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
+conditionalExpression(A) ::= logicalOrExpression(B). { A = B; }
 conditionalExpression ::= logicalOrExpression QMARK expression COLON conditionalExpression.
 
-assignmentOperator ::= ASSIGN.
-
-assignmentExpression ::= conditionalExpression.
-assignmentExpression ::= unaryExpression assignmentOperator assignmentExpression.
-
-expression ::= assignmentExpression.
-expression ::= expression COMMA assignmentExpression.
 
 
-statement ::= compoundStatement.
-statement ::= expressionStatement.
-statement ::= selectionStatement.
-statement ::= iterationStatement.
-statement ::= jumpStatement.
+assignmentExpression(A) ::= conditionalExpression(B). { A = B; }
+assignmentExpression(A) ::= unaryExpression(B) ASSIGN assignmentExpression(C). {
+	CREATE_NODE(AssignNode);
+	A = node;
+	A->addChild(B);
+	A->addChild(C);
+}
 
-compoundStatement ::= BEGIN END.
-compoundStatement ::= BEGIN blockItemList END.
+expression(A) ::= assignmentExpression(B). { A = B; }
+//expression ::= expression COMMA assignmentExpression.
 
-blockItemList ::= blockItem.
-blockItemList ::= blockItemList blockItem.
+
+statement(A) ::= compoundStatement(B). { A = B; }
+statement(A) ::= expressionStatement(B). { A = B; }
+statement(A) ::= selectionStatement(B). { A = B; }
+statement(A) ::= iterationStatement(B). { A = B; }
+statement(A) ::= jumpStatement(B). { A = B; }
+
+
+%type blockItemList { NodeList* }
+
+
+compoundStatement(A) ::= BEGIN END. {
+	CREATE_NODE(CompoundNode);
+	A = node;
+}
+
+
+compoundStatement(A) ::= BEGIN blockItemList(B) END. {
+	CREATE_NODE(CompoundNode);
+	A = node;
+	A->addChilds(B);
+}
+
+blockItemList(A) ::= blockItem(B). {
+        A = tree->newNodeList();
+        A->push_back(B);
+}
+
+blockItemList(A) ::= blockItemList(B) blockItem(C). {
+	A = B;
+	A->push_back(C);
+}
 
 //blockItem ::= declaration.
-blockItem ::= statement SEP.
+
+blockItem(A) ::= varDef(B). { A = B; } //FIXME
+blockItem(A) ::= statement(B) SEP. { A = B; assert(A); }
 //blockItem ::= .
 
-expressionStatement ::= expression.
+expressionStatement(A) ::= expression(B). { A = B; }
 //expressionStatement ::= .
 
 
 %left IF.
 %left ELSE.
-selectionStatement ::= IF LP expression RP statement ELSE statement.
-selectionStatement ::= IF LP expression RP statement.
+selectionStatement(A) ::= IF LP expression(B) RP statement(C) ELSE statement(D). {
+	CREATE_NODE(IfelseNode);
+	A = node;
+	A->addChild(B);
+	A->addChild(C);
+	A->addChild(D);
+}
+
+
+selectionStatement(A) ::= IF LP expression(B) RP statement(C). {
+	CREATE_NODE(IfelseNode);
+	A = node;
+	A->addChild(B);
+	A->addChild(C);
+}
 
 
 

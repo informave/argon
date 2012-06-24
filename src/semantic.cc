@@ -318,6 +318,118 @@ VarNode::semanticCheck(SemanticCheck &sc)
 /// @details
 /// 
 void
+BinaryExprNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+
+/// @details
+/// 
+void
+UnaryExprNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+/// @details
+/// 
+void
+AssignNode::semanticCheck(SemanticCheck &sc)
+{
+    // check first node for unary ops
+}
+
+
+
+/// @details
+/// 
+void
+IfelseNode::semanticCheck(SemanticCheck &sc)
+{
+    // check first node for unary ops
+}
+
+
+/// @details
+/// 
+void
+WhileNode::semanticCheck(SemanticCheck &sc)
+{
+    // check first node for unary ops
+}
+
+
+/// @details
+/// 
+void
+RepeatNode::semanticCheck(SemanticCheck &sc)
+{
+    // check first node for unary ops
+}
+
+
+/// @details
+/// 
+void
+ContinueNode::semanticCheck(SemanticCheck &sc)
+{
+    // check first node for unary ops
+}
+
+
+/// @details
+/// 
+void
+BreakNode::semanticCheck(SemanticCheck &sc)
+{
+    // check first node for unary ops
+}
+
+
+
+
+/// @details
+/// 
+void
+ForNode::semanticCheck(SemanticCheck &sc)
+{
+    // check first node for unary ops
+}
+
+
+
+/// @details
+/// 
+void
+ReturnNode::semanticCheck(SemanticCheck &sc)
+{
+    // check first node for unary ops
+}
+
+
+
+
+
+
+
+
+
+
+
+/// @details
+/// 
+void
+CompoundNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+
+
+/// @details
+/// 
+void
 KeyValueNode::semanticCheck(SemanticCheck &sc)
 {
     assert(this->getChilds().size() == 2);

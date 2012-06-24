@@ -86,6 +86,20 @@ void DeclNode::accept(Visitor &visitor)    { visitor.visit(this); }
 
 void VarNode::accept(Visitor &visitor)    { visitor.visit(this); }
 
+void BinaryExprNode::accept(Visitor &visitor)    { visitor.visit(this); }
+void UnaryExprNode::accept(Visitor &visitor)    { visitor.visit(this); }
+
+void CompoundNode::accept(Visitor &visitor)    { visitor.visit(this); }
+void AssignNode::accept(Visitor &visitor)    { visitor.visit(this); }
+
+void IfelseNode::accept(Visitor &visitor)    { visitor.visit(this); }
+void WhileNode::accept(Visitor &visitor)    { visitor.visit(this); }
+void RepeatNode::accept(Visitor &visitor)    { visitor.visit(this); }
+void ForNode::accept(Visitor &visitor)    { visitor.visit(this); }
+void ReturnNode::accept(Visitor &visitor)    { visitor.visit(this); }
+void ContinueNode::accept(Visitor &visitor)    { visitor.visit(this); }
+void BreakNode::accept(Visitor &visitor)    { visitor.visit(this); }
+
 
 //String ConnNode::dump(void) const              { return "ConnNode"; }
 //String ConnSpec::dump(void) const              { return "ConnSpec"; }
@@ -276,6 +290,20 @@ DEFAULT_VISIT(TaskAfterNode)
 DEFAULT_VISIT(TaskFinalNode)
 
 DEFAULT_VISIT(KeyValueNode)
+
+DEFAULT_VISIT(BinaryExprNode)
+DEFAULT_VISIT(UnaryExprNode)
+DEFAULT_VISIT(AssignNode)
+DEFAULT_VISIT(CompoundNode)
+
+    DEFAULT_VISIT(IfelseNode)
+    DEFAULT_VISIT(WhileNode)
+    DEFAULT_VISIT(RepeatNode)
+    DEFAULT_VISIT(ForNode)
+    DEFAULT_VISIT(ReturnNode)
+    DEFAULT_VISIT(ContinueNode)
+    DEFAULT_VISIT(BreakNode)
+
 
 DEFAULT_VISIT(DeclNode)
 DEFAULT_VISIT(VarNode)
@@ -670,11 +698,6 @@ std::ostream& operator<<(std::ostream &o, const Identifier &i)
     o << i.name();
     return o;
 }
-
-
-
-
-
 
 
 
