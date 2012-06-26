@@ -44,7 +44,7 @@ ARGON_NAMESPACE_BEGIN
 class BlockVisitor : public Visitor
 {
 public:
-    BlockVisitor(Processor &proc);
+    BlockVisitor(Processor &proc, Context &ctx);
 
     virtual void visit(VarNode *node);
     //virtual void visit(ReturnNode *node);
@@ -53,9 +53,32 @@ public:
 protected:
     inline Processor& proc(void) { return m_proc; }
     Processor &m_proc;
+    Context   &m_context;
 };
 
 
+BlockVisitor::BlockVisitor(Processor &proc, Context &ctx)
+	: Visitor(ignore_none),
+		m_proc(proc),
+		m_context(ctx)
+{
+}
+
+
+void
+BlockVisitor::visit(VarNode *node)
+{
+    ArgumentsNode *argsNode = find_node<ArgumentsNode>(node);
+    assert(argsNode);
+    assert(argsNode->getChilds().size() == 1);
+
+    Node *data = argsNode->getChilds()[0];
+    /// @bug Supports only LiteralNode for initialization
+
+    ValueElement *elem = new ValueElement(this->proc(), String(node_cast<LiteralNode>(data)->data()));
+    this->m_proc.stackPush(elem); /// @bug check stack scope in functsion
+    this->m_context.getSymbols().add(node->data(), Ref(elem));
+}
 
 
 //..............................................................................
@@ -95,6 +118,14 @@ Function::run(void)
     // just for development tests
     this->resolve<ValueElement>(Identifier("foo"));
 
+    CompoundNode *n = find_node<CompoundNode>(this->m_node);
+    assert(n);
+
+    ARGON_SCOPED_STACKFRAME(this->proc());
+
+    apply_visitor(n->getChilds(), BlockVisitor(this->proc(), *this));
+
+    this->resolve<ValueElement>(Identifier("x"));
 
     return db::Variant(String("func-null-value"));
 }

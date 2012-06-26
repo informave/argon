@@ -408,14 +408,49 @@ selectionStatement(A) ::= IF LP expression(B) RP statement(C). {
 //selectionStatement ::= IF LP expression RP statement ELSE statement.
 //switch
 
-iterationStatement ::= WHILE LP expression RP statement.
-iterationStatement ::= REPEAT statement UNTIL LP expression RP.
-iterationStatement ::= FOR LP expression SEP expression SEP expression RP statement.
+iterationStatement(A) ::= WHILE LP expression(B) RP statement(C). {
+	CREATE_NODE(WhileNode);
+	A = node;
+	A->addChild(B);
+	A->addChild(C);
+}
 
-jumpStatement ::= CONTINUE.
-jumpStatement ::= BREAK.
-jumpStatement ::= RETURN.
-jumpStatement ::= RETURN expression.
+iterationStatement(A) ::= REPEAT statement(B) UNTIL LP expression(C) RP. {
+	CREATE_NODE(RepeatNode);
+	A = node;
+	A->addChild(B);
+	A->addChild(C);
+}
+
+iterationStatement(A) ::= FOR LP expression(B) SEP expression(C) SEP expression(D) RP statement(E). {
+	CREATE_NODE(ForNode);
+	A = node;
+	A->addChild(B);
+	A->addChild(C);
+	A->addChild(D);
+	A->addChild(E);
+}
+
+jumpStatement(A) ::= CONTINUE. { 
+	CREATE_NODE(ContinueNode);
+	A = node;
+}
+
+jumpStatement(A) ::= BREAK. {
+	CREATE_NODE(BreakNode);
+	A = node;
+}
+
+jumpStatement(A) ::= RETURN. {
+	CREATE_NODE(ReturnNode);
+	A = node;
+}
+
+jumpStatement(A) ::= RETURN expression(B). {
+	CREATE_NODE(ReturnNode);
+	A = node;
+	A->addChild(B);
+}
 
 
 /*

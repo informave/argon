@@ -1,0 +1,38 @@
+
+program function_basic;
+
+
+function test(foo)
+begin
+	var x("foo");
+	//x = x + 1;
+	/*
+	x > 5;
+	x < 2;
+	x == 2;
+	x + ( 1 + 2 + 3) / 23 * 23 + 2 +2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2+2;
+
+	x + -x;
+	x + !x;
+	!x = x + x / (1 * 2 * 3 * 4) xor 45;
+
+	x = x = x = x;
+
+	if(x == x)
+	begin
+		x = x+x;
+	end;
+
+	while (5+5)
+	begin
+		x = 3;
+	end;
+	*/
+end;
+
+
+task main : void
+begin
+	log test("argument1");
+end;
+

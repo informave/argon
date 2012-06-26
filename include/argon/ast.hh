@@ -1207,6 +1207,11 @@ inline void apply_visitor(Node *node, Op op)
     foreach_node(node, op, 1);
 }
 
+template<class Op>
+inline void apply_visitor(Node::nodelist_type &list, Op op)
+{
+   foreach_node(list, op, 1);
+}
 
 
 /// @details

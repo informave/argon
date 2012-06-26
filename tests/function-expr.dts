@@ -16,12 +16,12 @@ begin
 	x = 
 	x = x = 6 + 5;
 	5 + 5;
-	x = 1, 2, 3, -4;
+	//x = 1, 2, 3, -4;
 	x = x == 5 + 2 * (x <= a) and (x >= b);
 	x = x != x;
 	x = x and x or x xor x < 4 and x > 5;
 	+x = x;
-	x = x > 4 ? 5 : (2, 3, 4);
+	//x = x > 4 ? 5 : (2, 3, 4);
 	while(x == x and x / x != x)
 	begin
 		x = x;
@@ -29,18 +29,25 @@ begin
 	end;
 	while(x) x = x;
 	
-	for(x; y; z, z, z)
+	for(x; y; zz)
 	begin
 		x = x;
 	end;
 
 	x = foo(1, 2, 3);
 
-	x = foo(x = 2, !(1, 2, 3), x >= y, foo(1));
+	//x = foo(x = 2, !(1, 2, 3), x >= y, foo(1));
 	
 	x = $y + foo(%% + %(a)) / $(23 23);
 
 	$1 = !!!!!!$1;
+
+	repeat
+	begin
+		continue;
+		break;
+		return;
+	end until(x == y);
 end;
 
 function leer()
