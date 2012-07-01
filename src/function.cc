@@ -127,6 +127,8 @@ Function::run(void)
 
     this->resolve<ValueElement>(Identifier("x"));
 
+    this->getSymbols().reset(); // cleanup symbols (refs) to safety restore stack
+
     return db::Variant(String("func-null-value"));
 }
 

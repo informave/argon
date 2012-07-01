@@ -154,21 +154,19 @@ EvalExprVisitor::visit(FuncCallNode *node)
 
 
     Element *elem = 0;
-
-
-
-
+    
     elem = this->m_proc.getTypes().find<FunctionType>(id)->newInstance(al);
-
 
     assert(elem);
 
-    ScopedStackPush _ssp(this->m_proc, elem);
+    ARGON_SCOPED_STACKPUSH(this->m_proc, elem);
 
 
-    /// @bug just call m_proc.call(<function-id>, args)
-    m_value.data() = m_proc.call(*elem).data();
-
+    {
+        /// @bug just call m_proc.call(<function-id>, args)
+        // m_value.data() = this->m_proc.call(id, al).data();
+        m_value.data() = m_proc.call(*elem).data();
+    }
 
     //Function *f = this->m_proc.getSymbols().find<Function>(id);
 
