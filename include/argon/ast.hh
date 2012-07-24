@@ -174,6 +174,7 @@ protected:
 
 
 
+
 //..............................................................................
 //////////////////////////////////////////////////////////////////////// Visitor
 ///
@@ -249,6 +250,31 @@ protected:
     visitor_mode m_mode;
 };
 
+
+template<typename T>
+class CVisitor : public Visitor
+{
+public:
+        CVisitor(Processor &proc, T &context, visitor_mode mode = ignore_none)
+		: Visitor(mode),
+			m_proc(proc),
+			m_context(context)
+	        {}
+
+	inline Processor& proc(void) { return this->m_proc; }
+	inline T& context(void) { return this->m_context; }
+
+private:
+	Processor &m_proc;
+	T &m_context;
+/*
+void
+operator()(Node *node)
+{
+    node->accept(*this);
+    }
+*/
+};
 
 
 //..............................................................................

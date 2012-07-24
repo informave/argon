@@ -41,26 +41,22 @@ ARGON_NAMESPACE_BEGIN
 ///
 /// @since 0.0.1
 /// @brief Processor initial tree walker
-class BlockVisitor : public Visitor
+class BlockVisitor : public CVisitor<Context>
 {
 public:
-    BlockVisitor(Processor &proc, Context &ctx);
+    BlockVisitor(Processor &proc, Context &ctx, Value &returnVal);
 
     virtual void visit(VarNode *node);
+    virtual void visit(BinaryExprNode *node);
+    virtual void visit(AssignNode *node);
     //virtual void visit(ReturnNode *node);
 
-
 protected:
-    inline Processor& proc(void) { return m_proc; }
-    Processor &m_proc;
-    Context   &m_context;
+	Value &returnVal;
 };
 
-
-BlockVisitor::BlockVisitor(Processor &proc, Context &ctx)
-	: Visitor(ignore_none),
-		m_proc(proc),
-		m_context(ctx)
+BlockVisitor::BlockVisitor(Processor &proc, Context &ctx, Value &returnVal)
+	: CVisitor(proc, ctx, ignore_none), returnVal(returnVal)
 {
 }
 
@@ -76,10 +72,49 @@ BlockVisitor::visit(VarNode *node)
     /// @bug Supports only LiteralNode for initialization
 
     ValueElement *elem = new ValueElement(this->proc(), String(node_cast<LiteralNode>(data)->data()));
-    this->m_proc.stackPush(elem); /// @bug check stack scope in functsion
-    this->m_context.getSymbols().add(node->data(), Ref(elem));
+    this->proc().stackPush(elem); /// @bug check stack scope in functsion
+    this->context().getSymbols().add(node->data(), Ref(elem));
 }
 
+void
+BlockVisitor::visit(BinaryExprNode *node)
+{
+	this->returnVal.data() = 5;
+
+	switch(node->data())
+	{
+
+    case BINARY_EXPR_XOR: break;
+    /*
+    BINARY_EXPR_OR,
+    BINARY_EXPR_AND,
+    BINARY_EXPR_MOD,
+    BINARY_EXPR_MUL,
+    BINARY_EXPR_DIV,
+    BINARY_EXPR_ADD,
+    BINARY_EXPR_SUB,
+    BINARY_EXPR_LESS,
+    BINARY_EXPR_LESSEQUAL,
+    BINARY_EXPR_EQUAL,
+    BINARY_EXPR_NOTEQUAL,
+    BINARY_EXPR_GREATER,
+    BINARY_EXPR_GREATEREQUAL
+    */
+	}
+
+}
+
+void
+BlockVisitor::visit(AssignNode *node)
+{
+	assert(node->getChilds().size() == 2);
+	Node *dest = node->getChilds()[0];
+	Node *expr = node->getChilds()[1];
+
+	IdNode *id = node_cast<IdNode>(dest);
+	ValueElement *elem = this->context().resolve<ValueElement>(id->data());
+	elem->getValue().data() = 45;
+}
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////// Function
@@ -123,12 +158,28 @@ Function::run(void)
 
     ARGON_SCOPED_STACKFRAME(this->proc());
 
-    apply_visitor(n->getChilds(), BlockVisitor(this->proc(), *this));
+    Value returnValue;
+
+    apply_visitor(n->getChilds(), BlockVisitor(this->proc(), *this, returnValue));
 
     this->resolve<ValueElement>(Identifier("x"));
 
+    //this->clearSymbolTable(); // prevent "refs to non-existing element" warnings
     this->getSymbols().reset(); // cleanup symbols (refs) to safety restore stack
-
+/*
+    {
+    	ARGON_SCOPED_STACKFRAME(this->proc());
+	ARGON_SCOPED_SYMBOLTABLE(this->m_context);
+	try
+	{
+		apply_visitor(n->getChilds(), BlockVisitor(this->proc(), *this));
+	}
+	catch(ReturnValueException &e)
+	{
+		return db::Variant(String("func-null-value"));
+	}
+    }
+*/
     return db::Variant(String("func-null-value"));
 }
 

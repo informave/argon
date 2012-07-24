@@ -4,7 +4,9 @@ program function_basic;
 
 function test(foo)
 begin
-	var x("foo");
+	var x("5");
+	x > 5;
+	x = x + 1;
 	//var x("foo");
 	//x = x + 1;
 	/*
