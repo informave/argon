@@ -41,13 +41,54 @@ ARGON_NAMESPACE_BEGIN
 /// @details
 /// 
 EvalExprVisitor::EvalExprVisitor(Processor &proc, Context &context, Value &value)
-    : Visitor(ignore_none),
+    : CVisitor(proc, context, ignore_none),
       m_proc(proc),
       m_context(context),
       m_value(value)
 {}
 
+void
+EvalExprVisitor::visit(AssignNode *node)
+{
+	assert(node->getChilds().size() == 2);
+	Node *dest = node->getChilds()[0];
+	Node *expr = node->getChilds()[1];
+
+	IdNode *id = node_cast<IdNode>(dest);
+	ValueElement *elem = this->context().resolve<ValueElement>(id->data());
+	elem->getValue().data() = 45;
+}
     
+
+void
+EvalExprVisitor::visit(BinaryExprNode *node)
+{
+	this->m_value.data() = 5;
+
+	switch(node->data())
+	{
+
+    case BINARY_EXPR_XOR: break;
+    /*
+    BINARY_EXPR_OR,
+    BINARY_EXPR_AND,
+    BINARY_EXPR_MOD,
+    BINARY_EXPR_MUL,
+    BINARY_EXPR_DIV,
+    BINARY_EXPR_ADD,
+    BINARY_EXPR_SUB,
+    BINARY_EXPR_LESS,
+    BINARY_EXPR_LESSEQUAL,
+    BINARY_EXPR_EQUAL,
+    BINARY_EXPR_NOTEQUAL,
+    BINARY_EXPR_GREATER,
+    BINARY_EXPR_GREATEREQUAL
+    */
+	}
+
+}
+
+
 /// @details
 /// 
 void

@@ -103,7 +103,7 @@ protected:
 ///
 /// @note
 /// EvalExprVisitor calls itself to evaluate subnodes
-struct EvalExprVisitor : public Visitor
+struct EvalExprVisitor : public CVisitor<Context>
 {
     EvalExprVisitor(Processor &proc, Context &context, Value &value);
     
@@ -117,6 +117,10 @@ struct EvalExprVisitor : public Visitor
     virtual void visit(ResColumnNode *node);
     virtual void visit(ResColumnNumNode *node);
     virtual void visit(ResIdNode *node);
+
+    //virtual void visit(VarNode *node);
+    virtual void visit(AssignNode *node);
+    virtual void visit(BinaryExprNode *node);
 
 protected:
     Processor &m_proc;

@@ -336,7 +336,12 @@ assignmentExpression(A) ::= unaryExpression(B) ASSIGN assignmentExpression(C). {
 	A->addChild(C);
 }
 
-expression(A) ::= assignmentExpression(B). { A = B; }
+expression(A) ::= assignmentExpression(B). {
+	  //	  CREATE_NODE(ExprNode);
+	  //	  A = node;
+	  //	  A->addChild(B);
+	  A = B;
+}
 //expression ::= expression COMMA assignmentExpression.
 
 

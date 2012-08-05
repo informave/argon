@@ -51,67 +51,37 @@ public:
     BlockVisitor(Processor &proc, Context &ctx, Value &returnVal);
 
     virtual void visit(VarNode *node);
-    virtual void visit(BinaryExprNode *node);
-    virtual void visit(AssignNode *node);
-    virtual void visit(FuncCallNode *node);
+    //virtual void visit(BinaryExprNode *node);
+    //virtual void visit(AssignNode *node);
+    //virtual void visit(FuncCallNode *node);
     //virtual void visit(ReturnNode *node);
 
 protected:
-	Value &returnVal;
+    virtual void fallback_action(Node *node);
+
+	Value &m_returnVal;
 };
 
 BlockVisitor::BlockVisitor(Processor &proc, Context &ctx, Value &returnVal)
-	: CVisitor(proc, ctx, ignore_none), returnVal(returnVal)
+	: CVisitor(proc, ctx, ignore_none), m_returnVal(returnVal)
 {
 }
 
 
-/// @details
+/// @detail
+/// All node types not handled by this visitor assumed to be expression nodes.
+/// The return value is ignored, this example should explain why:
 ///
+/// function foo()
+/// begin
+///    1 + 2;
+/// end;
+/// 
 void
-BlockVisitor::visit(FuncCallNode *node)
+BlockVisitor::fallback_action(Node *node)
 {
-    ArgumentList al;
-    Identifier id = node->data();
-    ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
-    assert(argsnode);
-
-    // Fill argument list with the result of each argument node
-    foreach_node(argsnode->getChilds(), ArgumentsVisitor(proc(), context(), al), 1);
-
-
-
-    // // create new function in current context
-    // std::auto_ptr<Function> fun( m_proc.createFunction(id) );
-
-    // m_value.data() = m_proc.call(fun.get(), al).data();
-
-
-    // resolve<> better?
-
-
-    Element *elem = 0;
-
-    elem = this->proc().getTypes().find<FunctionType>(id)->newInstance(al);
-
-    assert(elem);
-
-    ARGON_SCOPED_STACKPUSH(proc(), elem);
-
-
-    {
-        /// @bug just call m_proc.call(<function-id>, args)
-        // m_value.data() = this->m_proc.call(id, al).data();
-	//
-	Value m_value; /// @bug copied from EvalExprVisitor which can return a value
-        m_value.data() = proc().call(*elem).data();
-    }
-
-    //Function *f = this->m_proc.getSymbols().find<Function>(id);
-
-
-    //m_value.data() = m_proc.call(f, al).data();
-
+    Value value;
+    apply_visitor(node, EvalExprVisitor(proc(), context(), value));
 }
 
 
@@ -130,34 +100,8 @@ BlockVisitor::visit(VarNode *node)
     this->context().getSymbols().add(node->data(), Ref(elem));
 }
 
-void
-BlockVisitor::visit(BinaryExprNode *node)
-{
-	this->returnVal.data() = 5;
 
-	switch(node->data())
-	{
-
-    case BINARY_EXPR_XOR: break;
-    /*
-    BINARY_EXPR_OR,
-    BINARY_EXPR_AND,
-    BINARY_EXPR_MOD,
-    BINARY_EXPR_MUL,
-    BINARY_EXPR_DIV,
-    BINARY_EXPR_ADD,
-    BINARY_EXPR_SUB,
-    BINARY_EXPR_LESS,
-    BINARY_EXPR_LESSEQUAL,
-    BINARY_EXPR_EQUAL,
-    BINARY_EXPR_NOTEQUAL,
-    BINARY_EXPR_GREATER,
-    BINARY_EXPR_GREATEREQUAL
-    */
-	}
-
-}
-
+ /*
 void
 BlockVisitor::visit(AssignNode *node)
 {
@@ -169,6 +113,7 @@ BlockVisitor::visit(AssignNode *node)
 	ValueElement *elem = this->context().resolve<ValueElement>(id->data());
 	elem->getValue().data() = 45;
 }
+ */
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////////// Function
@@ -205,7 +150,7 @@ Function::run(void)
 
 
     // just for development tests
-    this->resolve<ValueElement>(Identifier("foo"));
+    //this->resolve<ValueElement>(Identifier("foo"));
 
     CompoundNode *n = find_node<CompoundNode>(this->m_node);
     assert(n);
@@ -216,7 +161,7 @@ Function::run(void)
 
     apply_visitor(n->getChilds(), BlockVisitor(this->proc(), *this, returnValue));
 
-    this->resolve<ValueElement>(Identifier("x"));
+    //this->resolve<ValueElement>(Identifier("x"));
 
     //this->clearSymbolTable(); // prevent "refs to non-existing element" warnings
     this->getSymbols().reset(); // cleanup symbols (refs) to safety restore stack
