@@ -5,8 +5,10 @@ program function_basic;
 function test(foo)
 begin
 	var x("5");
+	debug(x);
 	x > 5;
-	x = x + 1;
+	x = x + 2;
+	debug(x);
 	//var x("foo");
 	//x = x + 1;
 	/*

@@ -29,6 +29,10 @@
 #include "debug.hh"
 #include "visitors.hh"
 
+#include "argon/rtti.hh"
+#include "builtin/functions.hh"
+
+
 #include <iostream>
 #include <functional>
 #include <sstream>
@@ -49,6 +53,7 @@ public:
     virtual void visit(VarNode *node);
     virtual void visit(BinaryExprNode *node);
     virtual void visit(AssignNode *node);
+    virtual void visit(FuncCallNode *node);
     //virtual void visit(ReturnNode *node);
 
 protected:
@@ -58,6 +63,55 @@ protected:
 BlockVisitor::BlockVisitor(Processor &proc, Context &ctx, Value &returnVal)
 	: CVisitor(proc, ctx, ignore_none), returnVal(returnVal)
 {
+}
+
+
+/// @details
+///
+void
+BlockVisitor::visit(FuncCallNode *node)
+{
+    ArgumentList al;
+    Identifier id = node->data();
+    ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
+    assert(argsnode);
+
+    // Fill argument list with the result of each argument node
+    foreach_node(argsnode->getChilds(), ArgumentsVisitor(proc(), context(), al), 1);
+
+
+
+    // // create new function in current context
+    // std::auto_ptr<Function> fun( m_proc.createFunction(id) );
+
+    // m_value.data() = m_proc.call(fun.get(), al).data();
+
+
+    // resolve<> better?
+
+
+    Element *elem = 0;
+
+    elem = this->proc().getTypes().find<FunctionType>(id)->newInstance(al);
+
+    assert(elem);
+
+    ARGON_SCOPED_STACKPUSH(proc(), elem);
+
+
+    {
+        /// @bug just call m_proc.call(<function-id>, args)
+        // m_value.data() = this->m_proc.call(id, al).data();
+	//
+	Value m_value; /// @bug copied from EvalExprVisitor which can return a value
+        m_value.data() = proc().call(*elem).data();
+    }
+
+    //Function *f = this->m_proc.getSymbols().find<Function>(id);
+
+
+    //m_value.data() = m_proc.call(f, al).data();
+
 }
 
 

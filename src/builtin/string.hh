@@ -37,6 +37,7 @@ namespace string
 {
     ARGON_SIMPLE_FUNCTION(concat);
     ARGON_SIMPLE_FUNCTION(len);
+    ARGON_SIMPLE_FUNCTION(debug1);
 }
 
 
