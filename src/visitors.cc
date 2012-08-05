@@ -51,24 +51,80 @@ void
 EvalExprVisitor::visit(AssignNode *node)
 {
 	assert(node->getChilds().size() == 2);
-	Node *dest = node->getChilds()[0];
-	Node *expr = node->getChilds()[1];
 
-	IdNode *id = node_cast<IdNode>(dest);
+    Node *op0 = node->getChilds().at(0);
+    Node *op1 = node->getChilds().at(1);
+
+	IdNode *id = node_cast<IdNode>(op0);
 	ValueElement *elem = this->context().resolve<ValueElement>(id->data());
-	elem->getValue().data() = 45;
+
+    Value val1;
+    apply_visitor(op1, EvalExprVisitor(proc(), context(), val1));
+
+    elem->getValue().data() = val1.data();
 }
     
 
 void
 EvalExprVisitor::visit(BinaryExprNode *node)
 {
-	this->m_value.data() = 5;
+    assert(node->getChilds().size() == 2);
+
+    Value val0, val1;
+    Node *op0 = node->getChilds().at(0);
+    Node *op1 = node->getChilds().at(1);
+    apply_visitor(op0, EvalExprVisitor(proc(), context(), val0));
+    apply_visitor(op1, EvalExprVisitor(proc(), context(), val1));
+
+    // if one or both operands are NULL, result is undefined (NULL)
+    if(val0.data().isnull() || val1.data().isnull())
+    {
+        this->m_value.data().setNull();
+        return;
+    }
 
 	switch(node->data())
 	{
+    case BINARY_EXPR_ADD:
+        this->m_value.data() = val0.data().asInt() + val1.data().asInt();
+        break;
 
-    case BINARY_EXPR_XOR: break;
+    case BINARY_EXPR_SUB:
+        this->m_value.data() = val0.data().asInt() - val1.data().asInt();
+        break;
+
+    case BINARY_EXPR_MUL:
+        this->m_value.data() = val0.data().asInt() * val1.data().asInt();
+        break;
+
+    case BINARY_EXPR_DIV:
+        this->m_value.data() = val0.data().asInt() / val1.data().asInt();
+        break;
+
+    case BINARY_EXPR_MOD:
+        this->m_value.data() = val0.data().asInt() % val1.data().asInt();
+        break;
+
+    case BINARY_EXPR_CONCAT:
+        this->m_value.data() = val0.data().asStr() + val1.data().asStr();
+        break;
+
+    case BINARY_EXPR_OR:
+        this->m_value.data() = val0.data().asBool() || val1.data().asBool();
+        break;
+
+    case BINARY_EXPR_AND:
+        this->m_value.data() = val0.data().asBool() && val1.data().asBool();
+        break;
+
+    case BINARY_EXPR_XOR:
+        this->m_value.data() = val0.data().asBool() ^ val1.data().asBool();
+        break;
+
+    default:
+        this->m_value.data() = 255;
+
+
     /*
     BINARY_EXPR_OR,
     BINARY_EXPR_AND,
@@ -94,6 +150,9 @@ EvalExprVisitor::visit(BinaryExprNode *node)
 void
 EvalExprVisitor::visit(ExprNode *node)
 {
+    throw -1; /// FIXME remove this handler
+
+
     ARGON_ICERR_CTX(node->getChilds().size() == 2, m_context,
                 "ExprNode must have exactly two childs.");
 
@@ -164,7 +223,7 @@ EvalExprVisitor::visit(IdNode *node)
 {
     Identifier id = node->data();
 
-    Element *elem = m_context.resolve<Element>(id);
+    Element *elem = context().resolve<Element>(id);
     m_value.data() = elem->_value().data();
 }
 

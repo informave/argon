@@ -54,7 +54,7 @@ public:
     //virtual void visit(BinaryExprNode *node);
     //virtual void visit(AssignNode *node);
     //virtual void visit(FuncCallNode *node);
-    //virtual void visit(ReturnNode *node);
+    virtual void visit(ReturnNode *node);
 
 protected:
     virtual void fallback_action(Node *node);
@@ -84,6 +84,25 @@ BlockVisitor::fallback_action(Node *node)
     apply_visitor(node, EvalExprVisitor(proc(), context(), value));
 }
 
+
+void
+BlockVisitor::visit(ReturnNode *node)
+{
+    ARGON_ICERR_CTX(node->getChilds().size() <= 1, context(),
+                "ReturnNode must have 0 or 1 childs.");
+
+    if(node->getChilds().size() == 1)
+    {
+        Node *op0 = node->getChilds().at(0);
+        apply_visitor(op0, EvalExprVisitor(proc(), context(), this->m_returnVal));
+        throw 1;
+    }
+    else
+    {
+        this->m_returnVal.data().setNull();
+        throw 1;
+    }
+}
 
 void
 BlockVisitor::visit(VarNode *node)
@@ -159,7 +178,15 @@ Function::run(void)
 
     Value returnValue;
 
-    apply_visitor(n->getChilds(), BlockVisitor(this->proc(), *this, returnValue));
+    
+    try
+    {
+        apply_visitor(n->getChilds(), BlockVisitor(this->proc(), *this, returnValue));
+    }
+    catch(int&)
+    {
+        // ok, catch return expr.
+    }
 
     //this->resolve<ValueElement>(Identifier("x"));
 
@@ -179,7 +206,9 @@ Function::run(void)
 	}
     }
 */
-    return db::Variant(String("func-null-value"));
+    //return db::Variant(String("func-null-value"));
+
+    return returnValue;
 }
 
 

@@ -143,10 +143,17 @@ postfixExpression(A) ::= ID(B) LP argumentExpressionList(C) RP. {
 }
 
 
-//postfixExpression(A) ::= postfixExpression(B) LP RP. {
-postfixExpression(A) ::= ID(B) LP RP. {
+// workaround
+emptyArgumentList(A) ::= . {
+	CREATE_NODE(ArgumentsNode);
+	A = node;
+}
+
+
+postfixExpression(A) ::= ID(B) LP emptyArgumentList(C) RP. {
 	CREATE_NODE(FuncCallNode);
 	node->init(Identifier(B->data()));
+	node->addChild(C);
 	A = node;
 }
 
@@ -223,6 +230,8 @@ multiplicativeExpression(A) ::= multiplicativeExpression(B) MOD castExpression(C
 	A = node;
 }
 
+
+
 additiveExpression(A) ::= multiplicativeExpression(B). { A = B; }
 
 additiveExpression(A) ::= additiveExpression(B) PLUS multiplicativeExpression(C). {
@@ -241,6 +250,15 @@ additiveExpression(A) ::= additiveExpression(B) MINUS multiplicativeExpression(C
 	node->addChild(C);
 	A = node;
 }
+
+additiveExpression(A) ::= additiveExpression(B) CONCAT multiplicativeExpression(C). {
+	CREATE_NODE(BinaryExprNode);
+	node->init(BINARY_EXPR_CONCAT);
+	node->addChild(B);
+	node->addChild(C);
+	A = node;
+}
+
 
 relationalExpression(A) ::= additiveExpression(B). { A = B; }
 
@@ -510,7 +528,7 @@ mappingList(A) ::= mappingItem(B). {
 	A->push_back(B);
 }
 
-mappingItem(A) ::= literal(B) MAPOP expr(C). {
+mappingItem(A) ::= literal(B) MAPOP expression(C). {
 	CREATE_NODE(KeyValueNode);
 	node->addChild(B);
 	node->addChild(C);
@@ -874,7 +892,7 @@ logArg(A) ::= column(B).  { A = B; }
 logArg(A) ::= number(B).  { A = B; }
 */
 
-logArg(A) ::= expr(B). { A = B; }
+logArg(A) ::= expression(B). { A = B; }
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// EXEC TASK
@@ -904,7 +922,7 @@ colAssignCmd(A) ::= column(B) ASSIGNOP value(C) SEP. {
 	A = node;
 }
 
-value(A) ::= expr(B). { A = B; }
+value(A) ::= expression(B). { A = B; } // FIXME this can be optimized
 
 
 
@@ -946,7 +964,7 @@ declArgItem(A) ::= id(B). { A = B; }
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////// Function call
-
+/*
 %type funcCall { FuncCallNode* }
 funcCall(A) ::= ID(B) LP callArgList(C) RP. {
 	CREATE_NODE(FuncCallNode);
@@ -955,7 +973,7 @@ funcCall(A) ::= ID(B) LP callArgList(C) RP. {
 	ADD_TOKEN(node, B);
 	A = node;
 }
-
+*/
 
 //..............................................................................
 ///////////////////////////////////////////////////////////////////// Identifier
@@ -1074,13 +1092,14 @@ callArgList(A) ::= callArgItem(B). {
 }
 
 
-callArgItem(A) ::= expr(B). { A = B; }
+callArgItem(A) ::= expression(B). { A = B; }
 
 
 
 //..............................................................................
 //////////////////////////////////////////////////////////////////// Expressions
 
+/*
 expr(A) ::= expr(B) PLUS term(C). {
 		  CREATE_NODE(ExprNode);
 		  node->init(ExprNode::plus_expr, B, C);
@@ -1123,4 +1142,4 @@ op(A) ::= literal(B).   { A = B; }
 op(A) ::= column(B).    { A = B; }
 op(A) ::= rescolumn(B). { A = B; }
 op(A) ::= funcCall(B).  { A = B; }
-
+*/
