@@ -74,13 +74,13 @@ typedef std::tr1::shared_ptr<Element> ElementPtr;
 namespace db
 {
     
-    typedef informave::db::dal::IDbc                    Connection;
-    typedef informave::db::dal::IStmt                   Stmt;
-    typedef informave::db::dal::IEnv                    Env;
-    typedef informave::db::dal::IResult                 Resultset;
+    typedef informave::db::IDbc                    Connection;
+    typedef informave::db::IStmt                   Stmt;
+    typedef informave::db::IEnv                    Env;
+    typedef informave::db::IResult                 Resultset;
     typedef std::map<Identifier, Connection*>           ConnectionMap;
     
-    typedef informave::db::Database<informave::db::dal::generic> Database;
+    typedef informave::db::Database<informave::db::generic> Database;
 
     typedef Database::Variant Variant;
     typedef Database::Value   Value;
