@@ -48,6 +48,9 @@ ARGON_NAMESPACE_BEGIN
 
 class RuntimeError;
 
+class ControlException;
+class ReturnControlException;
+
 typedef std::set<Column> ColumnList;
 
 
@@ -1411,6 +1414,43 @@ public:
 protected:
     const Processor::stack_type m_stack;
 };
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////// ControlException
+///
+/// @since 0.0.1
+/// @brief Control exception
+class ControlException
+{
+public:
+	virtual ~ControlException()
+	{}
+};
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////// ReturnControlException
+///
+/// @since 0.0.1
+/// @brief Control exception for return statement
+class ReturnControlException : public ControlException
+{
+public:
+	ReturnControlException(Value retvalue);
+
+	virtual ~ReturnControlException(void);
+
+	virtual Value getValue(void) const;
+
+protected:
+	Value m_value;
+};
+
+
+
 
 
 //..............................................................................

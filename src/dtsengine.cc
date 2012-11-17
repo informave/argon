@@ -203,8 +203,10 @@ DTSEngine::load(std::istreambuf_iterator<wchar_t> in, String sourcename)
     this->m_tree.reset(new ParseTree);
 
 
-
+#ifndef NDEBUG
     p.trace(stdout, "[LEMON] ");
+#endif
+
     do
     {
         t = tz.next();

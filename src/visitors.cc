@@ -121,6 +121,14 @@ EvalExprVisitor::visit(BinaryExprNode *node)
         this->m_value.data() = val0.data().asBool() ^ val1.data().asBool();
         break;
 
+    case BINARY_EXPR_EQUAL:
+    	this->m_value.data() = val0.data().asInt() == val1.data().asInt(); /// FIXME
+	break;
+
+    case BINARY_EXPR_NOTEQUAL:
+        this->m_value.data() = val0.data().asInt() != val1.data().asInt(); /// FIXME
+	break;
+
     default:
         this->m_value.data() = 255;
 

@@ -53,8 +53,9 @@ public:
     virtual void visit(VarNode *node);
     //virtual void visit(BinaryExprNode *node);
     //virtual void visit(AssignNode *node);
-    //virtual void visit(FuncCallNode *node);
+    virtual void visit(WhileNode *node);
     virtual void visit(ReturnNode *node);
+    virtual void visit(IfelseNode *node);
 
 protected:
     virtual void fallback_action(Node *node);
@@ -65,6 +66,44 @@ protected:
 BlockVisitor::BlockVisitor(Processor &proc, Context &ctx, Value &returnVal)
 	: CVisitor(proc, ctx, ignore_none), m_returnVal(returnVal)
 {
+}
+
+void
+BlockVisitor::visit(WhileNode *node)
+{
+	assert(node->getChilds().size() == 2);
+	Node *checkexpr = node->getChilds().at(0);
+	Node *block = node->getChilds().at(1);
+	Value checkresult;
+	apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult));
+	while(checkresult.data().asBool())
+	{
+		apply_visitor(block->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+		apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult)); // check again
+	}
+}
+
+void
+BlockVisitor::visit(IfelseNode *node)
+{
+	assert(node->getChilds().size() >= 2);
+	Node *checkexpr = node->getChilds().at(0);
+	Node *ifblock = node->getChilds().at(1);
+	Node *elseblock = 0;
+	if(node->getChilds().size() == 3)
+		elseblock = node->getChilds().at(2);
+	
+	Value checkresult;
+
+	apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult));
+	if(checkresult.data().asBool())
+	{
+		apply_visitor(ifblock->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+	}
+	else if(elseblock)
+	{
+		apply_visitor(elseblock->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+	}
 }
 
 
@@ -95,12 +134,12 @@ BlockVisitor::visit(ReturnNode *node)
     {
         Node *op0 = node->getChilds().at(0);
         apply_visitor(op0, EvalExprVisitor(proc(), context(), this->m_returnVal));
-        throw 1;
+        throw ReturnControlException(this->m_returnVal);
     }
     else
     {
         this->m_returnVal.data().setNull();
-        throw 1;
+        throw ReturnControlException(this->m_returnVal);
     }
 }
 
@@ -114,7 +153,12 @@ BlockVisitor::visit(VarNode *node)
     Node *data = argsNode->getChilds()[0];
     /// @bug Supports only LiteralNode for initialization
 
-    ValueElement *elem = new ValueElement(this->proc(), String(node_cast<LiteralNode>(data)->data()));
+    Value v;
+
+    apply_visitor(data, EvalExprVisitor(proc(), context(), v));
+
+    //ValueElement *elem = new ValueElement(this->proc(), String(node_cast<LiteralNode>(data)->data()));
+    ValueElement *elem = new ValueElement(proc(), v);
     this->proc().stackPush(elem); /// @bug check stack scope in functsion
     this->context().getSymbols().add(node->data(), Ref(elem));
 }
@@ -183,8 +227,9 @@ Function::run(void)
     {
         apply_visitor(n->getChilds(), BlockVisitor(this->proc(), *this, returnValue));
     }
-    catch(int&)
+    catch(ReturnControlException& e)
     {
+        returnValue = e.getValue();
         // ok, catch return expr.
     }
 

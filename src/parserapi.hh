@@ -51,8 +51,9 @@ void ParseFree(void *p,                    // The parser to be deleted
 
 void *ParseAlloc(void *(*mallocProc)(size_t));
 
+#ifndef NDEBUG
 void ParseTrace(FILE *stream, char *zPrefix);
-
+#endif
 
 ARGON_NAMESPACE_BEGIN
 
@@ -76,10 +77,12 @@ public:
         Parse(m_parser, tid, token, tree);
     }
 
+#ifndef NDEBUG
     inline void trace(FILE *stream, const char *prefix)
     {
         ParseTrace(stream, const_cast<char*>(prefix));
     }
+#endif
 
     ~Parser(void)
     {

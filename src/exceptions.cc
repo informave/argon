@@ -218,6 +218,22 @@ LexicalError::LexicalError(String what, SourceInfo info)
 }
 
 
+ReturnControlException::ReturnControlException(Value retvalue)
+	: ControlException(),
+	m_value(retvalue)
+{}
+
+ReturnControlException::~ReturnControlException(void)
+{}
+
+Value
+ReturnControlException::getValue(void) const
+{
+	return this->m_value;
+}
+
+
+
 
 
 ARGON_NAMESPACE_END
