@@ -145,11 +145,22 @@ Processor::compile(ParseTree *tree)
 //    this->getTypes().add(new FunctionType(*this, Identifier("string.concat"), NULL_NODE));
 
 
-    builtin_func_def *defp = table_string_funcs;
-    while(defp->name)
     {
-        this->getTypes().add(new BuiltinFunctionType(*this, *defp));
-        ++defp;
+        builtin_func_def *defp = table_string_funcs;
+        while(defp->name)
+        {
+            this->getTypes().add(new BuiltinFunctionType(*this, *defp));
+            ++defp;
+        }
+    }
+
+    {
+        builtin_func_def *defp = table_sys_funcs;
+        while(defp->name)
+        {
+            this->getTypes().add(new BuiltinFunctionType(*this, *defp));
+            ++defp;
+        }
     }
 
 
@@ -262,6 +273,17 @@ void Processor::run(void)
             // Pass2Visitor creates symbols, so we have to cleanup all <id, ref> entries
             // before the stackframe is dropped and elements are destroyed.
             this->getSymbols().reset();
+        }
+        catch(TerminateControlException& e)
+        {
+            std::cerr << "Program terminated." << std::endl;
+            std::cerr << "Result is: " << e.getExitcode().data() << std::endl;
+            // If there is an exception, we need to cleanup the symbol table
+            this->getSymbols().reset();
+        }
+        catch(ControlException& e)
+        {
+            std::cerr << "Unhandled control exception. Terminated." << std::endl;
         }
         catch(...)
         {

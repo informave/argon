@@ -236,6 +236,26 @@ ReturnControlException::getValue(void) const
 
 
 
+
+
+TerminateControlException::TerminateControlException(Value exitcode)
+	: ControlException(),
+      m_exitcode(exitcode)
+{}
+
+TerminateControlException::~TerminateControlException(void)
+{}
+
+Value
+TerminateControlException::getExitcode(void) const
+{
+	return this->m_exitcode;
+}
+
+
+
+
+
 ARGON_NAMESPACE_END
 
 

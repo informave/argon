@@ -50,6 +50,7 @@ class RuntimeError;
 
 class ControlException;
 class ReturnControlException;
+class TerminateControlException;
 
 typedef std::set<Column> ColumnList;
 
@@ -1448,6 +1449,26 @@ public:
 protected:
 	Value m_value;
 };
+
+//..............................................................................
+////////////////////////////////////////////////////// TerminateControlException
+///
+/// @since 0.0.1
+/// @brief Control exception for program termination
+class TerminateControlException : public ControlException
+{
+public:
+	TerminateControlException(Value exitcode);
+
+	virtual ~TerminateControlException(void);
+
+	virtual Value getExitcode(void) const;
+
+protected:
+	Value m_exitcode;
+};
+
+
 
 
 
