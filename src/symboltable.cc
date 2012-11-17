@@ -34,23 +34,96 @@
 
 ARGON_NAMESPACE_BEGIN
 
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////// ScopedSubSymbols
+
+/// @details
+/// 
+ScopedSubSymbols::ScopedSubSymbols(SymbolTable &st)
+    : m_subptr(0),
+      m_symbols(st)
+{
+    m_subptr = st.createSub();
+}
+
+
+/// @details
+/// 
+ScopedSubSymbols::~ScopedSubSymbols(void)
+{
+    if(m_subptr)
+        this->m_symbols.deleteSub(this->m_subptr);
+        
+}
+
+
 //..............................................................................
 //////////////////////////////////////////////////////////////////// SymbolTable
 
 /// @details
 /// 
 SymbolTable::SymbolTable(SymbolTable *parent)
-    : m_symbols(),
+    : m_sub_symbols(),
       m_parent(parent)
-{}
+{
+    this->createSub(); // create initial symbol table
+}
 
 
 /// @details
 /// 
 SymbolTable::~SymbolTable(void)
 {
+    ARGON_ICERR(this->m_sub_symbols.size() == 1, "reset() can only called when no sub symboltables active.");
+    delete *this->m_sub_symbols.begin();
+    this->m_sub_symbols.pop_front();
 }
 
+
+
+/// @details
+/// 
+SymbolTable::map_type*
+SymbolTable::createSub(void)
+{
+    map_type *p = new map_type();
+    this->m_sub_symbols.push_front(p);
+    return p;
+}
+
+
+/// @details
+/// 
+void
+SymbolTable::deleteSub(SymbolTable::map_type* ptr)
+{
+    ARGON_ICERR(*this->m_sub_symbols.begin() == ptr, "deleteSub() can only delete the topmost table");
+    delete *this->m_sub_symbols.begin();
+    this->m_sub_symbols.pop_front();
+}
+
+
+
+/// @details
+/// 
+SymbolTable::map_type&
+SymbolTable::getCurrentSub(void)
+{
+    assert(this->m_sub_symbols.size() > 0);
+    return **this->m_sub_symbols.begin();
+}
+
+
+/// @details
+/// 
+const SymbolTable::map_type&
+SymbolTable::getCurrentSub(void) const
+{
+    assert(this->m_sub_symbols.size() > 0);
+    return **this->m_sub_symbols.begin();
+}
 
 
 /// @details
@@ -60,24 +133,24 @@ SymbolTable::add(Identifier name, const Ref &ref)
 {
     assert(name.str().length() > 0);
             
-    element_map::iterator i = this->m_symbols.find(name);
-    if(i != this->m_symbols.end())
+    map_type::iterator i = this->getCurrentSub().find(name);
+    if(i != this->getCurrentSub().end())
         throw std::runtime_error("duplicated symbol error: " + std::string(name.str()));
     //this->m_symbols[name] = ref;
-    this->m_symbols.insert(element_map::value_type(name, ref));
+    this->getCurrentSub().insert(map_type::value_type(name, ref));
 }
 
 
 /// @details
-/// 
+/// @todo iterate over all sub tables
 String
 SymbolTable::str(void) const
 {
     std::wstringstream ss;
     ss << L"SYMBOL TABLE OUTPUT: " << std::endl;
 
-    for(element_map::const_iterator i = m_symbols.begin();
-        i != m_symbols.end();
+    for(map_type::const_iterator i = getCurrentSub().begin();
+        i != getCurrentSub().end();
         ++i)
     {
         ss << i->first.str() << L"\t\t:\t" << i->second->str() << std::endl;
@@ -86,20 +159,35 @@ SymbolTable::str(void) const
 }
 
 
+void
+SymbolTable::reset(void)
+{
+    ARGON_ICERR(this->m_sub_symbols.size() == 1, "reset() can only called when no sub symboltables active.");
+    this->getCurrentSub().clear();
+}
+
+
 /// @details
 /// 
 Ref
 SymbolTable::find_element(Identifier name)
 {
-    element_map::iterator i = this->m_symbols.find(name);
-    if(i != this->m_symbols.end())
+    for(list_map_type::iterator j = this->m_sub_symbols.begin();
+        j != this->m_sub_symbols.end();
+        ++j)
     {
-        Ref ptr = i->second;
-        return ptr;
+        map_type::iterator i = (*j)->find(name);
+        if(i != (*j)->end())
+        {
+            Ref ptr = i->second;
+            return ptr;
+        }
     }
-    else
+     
+    
+
     {
-        /// @bug really required?
+        /// @bug really required? no, but rename it to m_global
         if(this->m_parent)
         {
             return this->m_parent->find_element(name);

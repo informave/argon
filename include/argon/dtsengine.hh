@@ -36,6 +36,7 @@
 #include <deque>
 #include <vector>
 #include <list>
+#include <stack>
 #include <set>
 
 #include <dbwtl/dbobjects>
@@ -230,7 +231,8 @@ typedef std::list<Ref> ArgumentList;
 class SymbolTable
 {
 public:
-    typedef std::map<Identifier, Ref>         element_map;
+    typedef std::map<Identifier, Ref>         map_type;
+    typedef std::list<map_type*>              list_map_type;
     //typedef std::list<Element*>             heap_type;
 
     /// @brief Constructor
@@ -251,17 +253,23 @@ public:
 
 
     /// @brief Clear out all entries and release memory
-    inline void reset(void)
-    {
-        this->m_symbols.clear();
-    }
+    void reset(void);
+
+    map_type& getCurrentSub(void);
+    const map_type& getCurrentSub(void) const;
+
+
+    map_type* createSub(void);
+    void deleteSub(map_type *ptr);
+
 
 protected:
 
     Ref find_element(Identifier id);
 
     /// @brief Symbol list
-    element_map             m_symbols;
+    list_map_type           m_sub_symbols;
+    //map_type                m_symbols;
 
     /// @brief Parent table
     safe_ptr<SymbolTable>   m_parent;
@@ -1236,6 +1244,7 @@ protected:
 
 class ScopedStackPush;
 class ScopedStackFrame;
+class ScopedSubSymbols;
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// Processor
@@ -1363,6 +1372,39 @@ protected:
 
 
 #define ARGON_SCOPED_STACKFRAME(proc) ScopedStackFrame ssf__autogen_##__LINE__ (proc)
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////// ScopedSubSymbols
+///
+/// @since 0.0.1
+/// @brief Scoped sub symbols
+class ScopedSubSymbols
+{
+public:
+    ScopedSubSymbols(SymbolTable &st);
+
+    ~ScopedSubSymbols(void);
+
+protected:
+    SymbolTable::map_type *m_subptr;
+    SymbolTable           &m_symbols;
+/*
+    Processor::stack_type &m_stack;
+    Processor::stack_type::iterator m_pos;
+*/
+
+private:
+    ScopedSubSymbols(const ScopedSubSymbols&);
+    ScopedSubSymbols& operator=(const ScopedSubSymbols&);
+};
+
+
+#define ARGON_SCOPED_SUBSYMBOLS(st) ScopedSubSymbols sss__autogen_##__LINE__ (st)
+
+
+
 
 
 //..............................................................................

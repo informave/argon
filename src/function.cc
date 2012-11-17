@@ -57,6 +57,8 @@ public:
     virtual void visit(ReturnNode *node);
     virtual void visit(IfelseNode *node);
 
+    virtual void visit(CompoundNode *node);
+
 protected:
     virtual void fallback_action(Node *node);
 
@@ -78,7 +80,8 @@ BlockVisitor::visit(WhileNode *node)
 	apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult));
 	while(checkresult.data().asBool())
 	{
-		apply_visitor(block->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+		//apply_visitor(block->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+        apply_visitor(block, BlockVisitor(this->proc(), context(), m_returnVal));
 		apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult)); // check again
 	}
 }
@@ -98,13 +101,31 @@ BlockVisitor::visit(IfelseNode *node)
 	apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult));
 	if(checkresult.data().asBool())
 	{
-		apply_visitor(ifblock->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+        //ARGON_ICERR(is_nodetype<CompoundNode*>(ifblock), "Invalid node");
+		//apply_visitor(ifblock->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+        apply_visitor(ifblock, BlockVisitor(this->proc(), context(), m_returnVal));
 	}
 	else if(elseblock)
 	{
-		apply_visitor(elseblock->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+        //ARGON_ICERR(is_nodetype<CompoundNode*>(elseblock), "Invalid node");
+		//apply_visitor(elseblock->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+        apply_visitor(elseblock, BlockVisitor(this->proc(), context(), m_returnVal));
 	}
 }
+
+
+
+void
+BlockVisitor::visit(CompoundNode *node)
+{
+    ARGON_SCOPED_STACKFRAME(this->proc());
+    ARGON_SCOPED_SUBSYMBOLS(this->context().getSymbols());
+    
+    apply_visitor(node->getChilds(), BlockVisitor(this->proc(),
+                                                  this->context(),
+                                                  this->m_returnVal));
+}
+
 
 
 /// @detail
