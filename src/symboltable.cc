@@ -196,7 +196,7 @@ SymbolTable::find_element(Identifier name)
         {
             String s("element not found: ");
             s.append(name.str());
-            throw std::runtime_error(s);
+            throw std::runtime_error(s); /// @bug custom exception
         }
     }
 }

@@ -7,5 +7,6 @@
 
 #include "string.hh"
 #include "sys.hh"
+#include "debug.hh"
 
 #endif

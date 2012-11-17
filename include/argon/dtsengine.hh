@@ -1246,6 +1246,19 @@ class ScopedStackPush;
 class ScopedStackFrame;
 class ScopedSubSymbols;
 
+
+
+/// @bug add documentation
+struct builtin_func_def
+{
+    const char *name;
+    Function*(*factory)(Processor &, const ArgumentList &);
+    signed int min_arg;
+    signed int max_arg;
+};
+
+
+
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// Processor
 ///
@@ -1295,6 +1308,7 @@ public:
 
 protected:
     db::ConnectionMap& getConnections(void);
+    void addBuiltinFunctiontable(builtin_func_def *ptr);
 
     DTSEngine    &m_engine;
     stack_type    m_stack;
@@ -1309,16 +1323,6 @@ private:
 };
 
 
-
-
-/// @bug add documentation
-struct builtin_func_def
-{
-    const char *name;
-    Function*(*factory)(Processor &, const ArgumentList &);
-    signed int min_arg;
-    signed int max_arg;
-};
 
 
 

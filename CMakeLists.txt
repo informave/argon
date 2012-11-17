@@ -260,6 +260,7 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/function.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/string.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/sys.cc
+	${ARGON_MAIN_SRC_DIR}/builtin/debug.cc
 )
 
 

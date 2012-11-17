@@ -114,6 +114,19 @@ Processor::stackPush(Element *elem)
 }
 
 
+
+
+void
+Processor::addBuiltinFunctiontable(builtin_func_def *ptr)
+{
+    builtin_func_def *defp = ptr;
+    while(defp->name)
+    {
+        this->getTypes().add(new BuiltinFunctionType(*this, *defp));
+        ++defp;
+    }    
+}
+
 /// @details
 /// 
 void
@@ -145,23 +158,10 @@ Processor::compile(ParseTree *tree)
 //    this->getTypes().add(new FunctionType(*this, Identifier("string.concat"), NULL_NODE));
 
 
-    {
-        builtin_func_def *defp = table_string_funcs;
-        while(defp->name)
-        {
-            this->getTypes().add(new BuiltinFunctionType(*this, *defp));
-            ++defp;
-        }
-    }
+    this->addBuiltinFunctiontable(table_string_funcs);
+    this->addBuiltinFunctiontable(table_sys_funcs);
+    this->addBuiltinFunctiontable(table_debug_funcs);
 
-    {
-        builtin_func_def *defp = table_sys_funcs;
-        while(defp->name)
-        {
-            this->getTypes().add(new BuiltinFunctionType(*this, *defp));
-            ++defp;
-        }
-    }
 
 
 
