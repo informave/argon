@@ -499,7 +499,7 @@ Table::newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, D
     
     switch(dbc->getEnv().getEngineType())
     {
-    case informave::db::dal::DAL_ENGINE_SQLITE:
+    case informave::db::DAL_ENGINE_SQLITE:
         return new TableSqlite(proc, args, node, mode);
     default:
     	return new Table(proc, args, node, mode);

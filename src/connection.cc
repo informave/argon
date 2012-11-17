@@ -36,7 +36,7 @@
 ARGON_NAMESPACE_BEGIN
 
 
-typedef informave::db::dal::IDbc::Options dbcopts_t;
+typedef informave::db::IDbc::Options dbcopts_t;
 
 //..............................................................................
 //////////////////////////////////////////////////////////// SemanticCheckRunner
@@ -101,7 +101,7 @@ Connection::Connection(Processor &proc, ConnNode *node, db::ConnectionMap &userC
             throw std::runtime_error("no dbc type given");
         }
 
-        informave::db::dal::IDbc::Options opts;
+        informave::db::IDbc::Options opts;
 
         foreach_node(node->getChilds(), KeyValueCreator(opts), 1); // for each node
 
