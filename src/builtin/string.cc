@@ -46,6 +46,24 @@ namespace string
     }
 
 
+    ARGON_FUNCTION_DEF(debug1)
+    {
+        //std::wstringstream ss;
+
+	assert(m_args.size() == 1);
+	std::cerr << "[debug():] " << "{" << (*m_args.begin())->_value().data().datatype() << "} " <<
+	(*m_args.begin())->_value().str() << std::endl;
+/*
+        for(ArgumentList::const_iterator i = m_args.begin();
+            i != m_args.end();
+            ++i)
+        {
+            ss << (*i)->_value().str();
+        }
+*/
+        //return Value((int)ss.str().length()); /// @bug remove cast
+	return Value();
+    }
 
 }
 
@@ -62,6 +80,7 @@ builtin_func_def table_string_funcs[] =
 {
     { "string.concat",  factory_function<string::func_concat>, 2, -1 },
     { "string.len",     factory_function<string::func_len>,    1,  1 },
+    { "debug",		factory_function<string::func_debug1>,	1, 1 },
     { NULL, NULL, 0, 0 }
 };
 

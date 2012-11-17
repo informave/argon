@@ -64,7 +64,25 @@ struct IdCallNode;
 struct ColumnAssignNode;
 struct ColumnNumNode;
 struct NumberNode;
+
+
 struct ExprNode;
+
+
+struct BinaryExprNode;
+struct UnaryExprNode;
+struct AssignNode;
+
+struct CompoundNode;
+
+struct IfelseNode;
+struct WhileNode;
+struct RepeatNode;
+struct ForNode;
+struct ReturnNode;
+struct ContinueNode;
+struct BreakNode;
+
 struct FuncCallNode;
 struct ResColumnNode;
 struct ResColumnNumNode;
@@ -156,6 +174,7 @@ protected:
 
 
 
+
 //..............................................................................
 //////////////////////////////////////////////////////////////////////// Visitor
 ///
@@ -198,6 +217,21 @@ public:
     virtual void visit(TaskFinalNode *node);
     virtual void visit(NumberNode *node);
     virtual void visit(ExprNode *node);
+
+    virtual void visit(BinaryExprNode *node);
+    virtual void visit(UnaryExprNode *node);
+
+    virtual void visit(CompoundNode *node);
+    virtual void visit(AssignNode *node);
+
+    virtual void visit(IfelseNode *node);
+    virtual void visit(WhileNode *node);
+    virtual void visit(RepeatNode *node);
+    virtual void visit(ForNode *node);
+    virtual void visit(ReturnNode *node);
+    virtual void visit(ContinueNode *node);
+    virtual void visit(BreakNode *node);
+
     virtual void visit(FuncCallNode *node);
     virtual void visit(ResColumnNode *node);
     virtual void visit(ResColumnNumNode *node);
@@ -216,6 +250,31 @@ protected:
     visitor_mode m_mode;
 };
 
+
+template<typename T>
+class CVisitor : public Visitor
+{
+public:
+        CVisitor(Processor &proc, T &context, visitor_mode mode = ignore_none)
+		: Visitor(mode),
+			m_proc(proc),
+			m_context(context)
+	        {}
+
+	inline Processor& proc(void) { return this->m_proc; }
+	inline T& context(void) { return this->m_context; }
+
+private:
+	Processor &m_proc;
+	T &m_context;
+/*
+void
+operator()(Node *node)
+{
+    node->accept(*this);
+    }
+*/
+};
 
 
 //..............................................................................
@@ -910,6 +969,66 @@ struct TaskNode : public Node
 
 
 
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////////// IdCallNode
+///
+/// @since 0.0.1
+/// @brief Node for identifier calls used in template arguments
+
+enum binaryExprTypeEnum
+{
+    BINARY_EXPR_XOR = 1,
+    BINARY_EXPR_OR,
+    BINARY_EXPR_AND,
+    BINARY_EXPR_MOD,
+    BINARY_EXPR_MUL,
+    BINARY_EXPR_DIV,
+    BINARY_EXPR_ADD,
+    BINARY_EXPR_CONCAT,
+    BINARY_EXPR_SUB,
+    BINARY_EXPR_LESS,
+    BINARY_EXPR_LESSEQUAL,
+    BINARY_EXPR_EQUAL,
+    BINARY_EXPR_NOTEQUAL,
+    BINARY_EXPR_GREATER,
+    BINARY_EXPR_GREATEREQUAL
+    
+};
+
+enum unaryExprTypeEnum
+{
+    UNARY_EXPR_PLUS = 1,
+    UNARY_EXPR_MINUS,
+    UNARY_EXPR_NEG
+};
+
+DefineNode(BinaryExpr, binaryExprTypeEnum);
+
+DefineNode(UnaryExpr, unaryExprTypeEnum);
+
+DefineNode(Compound, void);
+
+DefineNode(Assign, void);
+
+DefineNode(Ifelse, void);
+
+DefineNode(While, void);
+
+DefineNode(Repeat, void);
+
+DefineNode(For, void);
+
+DefineNode(Return, void);
+
+DefineNode(Continue, void);
+
+DefineNode(Break, void);
+
+
+
 //..............................................................................
 /////////////////////////////////////////////////////////////////////// ExprNode
 ///
@@ -1115,6 +1234,11 @@ inline void apply_visitor(Node *node, Op op)
     foreach_node(node, op, 1);
 }
 
+template<class Op>
+inline void apply_visitor(Node::nodelist_type &list, Op op)
+{
+   foreach_node(list, op, 1);
+}
 
 
 /// @details

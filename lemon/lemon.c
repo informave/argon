@@ -20,7 +20,13 @@
 #endif
 
 #ifdef __WIN32__
-extern int access();
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern int access(const char *path, int mode);
+#ifdef __cplusplus
+}
+#endif
 #else
 #include <unistd.h>
 #endif
@@ -35,23 +41,6 @@ extern int access();
 #endif
 
 static int showPrecedenceConflict = 0;
-static const char **made_files = NULL;
-static int made_files_count = 0;
-static int successful_exit = 0;
-static void LemonAtExit(void)
-{
-    /* if we failed, delete (most) files we made, to unconfuse build tools. */
-    int i;
-    for (i = 0; i < made_files_count; i++) {
-        if (!successful_exit) {
-            remove(made_files[i]);
-        }
-    }
-    free(made_files);
-    made_files_count = 0;
-    made_files = NULL;
-}
-
 static char *msort(char*,char**,int(*)(const char*,const char*));
 
 /*
@@ -128,8 +117,6 @@ void ResortStates(struct lemon *);
 void  SetSize(int);             /* All sets will be of size N */
 char *SetNew(void);               /* A new set for element 0..N */
 void  SetFree(char*);             /* Deallocate a set */
-
-char *SetNew(void);               /* A new set for element 0..N */
 int SetAdd(char*,int);            /* Add element to a set */
 int SetUnion(char *,char *);    /* A <- A U B, thru element N */
 #define SetFind(X,Y) (X[Y])       /* True if Y is in set X */
@@ -697,8 +684,9 @@ void FindFirstSets(struct lemon *lemp)
     for(rp=lemp->rule; rp; rp=rp->next){
       if( rp->lhs->lambda ) continue;
       for(i=0; i<rp->nrhs; i++){
-         struct symbol *sp = rp->rhs[i];
-         if( sp->type!=TERMINAL || sp->lambda==LEMON_FALSE ) break;
+        struct symbol *sp = rp->rhs[i];
+        assert( sp->type==NONTERMINAL || sp->lambda==LEMON_FALSE );
+        if( sp->lambda==LEMON_FALSE ) break;
       }
       if( i==rp->nrhs ){
         rp->lhs->lambda = LEMON_TRUE;
@@ -979,7 +967,7 @@ void FindFollowSets(struct lemon *lemp)
   }while( progress );
 }
 
-static int resolve_conflict(struct action *,struct action *, struct symbol *);
+static int resolve_conflict(struct action *,struct action *);
 
 /* Compute the reduce actions, and resolve conflicts.
 */
@@ -1033,7 +1021,7 @@ void FindActions(struct lemon *lemp)
       for(nap=ap->next; nap && nap->sp==ap->sp; nap=nap->next){
          /* The two actions "ap" and "nap" have the same lookahead.
          ** Figure out which one should be used */
-         lemp->nconflict += resolve_conflict(ap,nap,lemp->errsym);
+         lemp->nconflict += resolve_conflict(ap,nap);
       }
     }
   }
@@ -1068,8 +1056,7 @@ void FindActions(struct lemon *lemp)
 */
 static int resolve_conflict(
   struct action *apx,
-  struct action *apy,
-  struct symbol *errsym   /* The error symbol (if defined.  NULL otherwise) */
+  struct action *apy
 ){
   struct symbol *spx, *spy;
   int errcnt = 0;
@@ -1427,8 +1414,6 @@ int main(int argc, char **argv)
   int exitcode;
   struct lemon lem;
 
-  atexit(LemonAtExit);
-
   OptInit(argv,options,stderr);
   if( version ){
      printf("Lemon version 1.0\n");
@@ -1531,7 +1516,6 @@ int main(int argc, char **argv)
 
   /* return 0 on success, 1 on failure. */
   exitcode = ((lem.errorcnt > 0) || (lem.nconflict > 0)) ? 1 : 0;
-  successful_exit = (exitcode == 0);
   exit(exitcode);
   return (exitcode);
 }
@@ -1562,7 +1546,7 @@ int main(int argc, char **argv)
 /*
 ** Return a pointer to the next structure in the linked list.
 */
-#define NEXT(A) (*(char**)(((unsigned long)A)+offset))
+#define NEXT(A) (*(char**)(((char*)A)+offset))
 
 /*
 ** Inputs:
@@ -2009,7 +1993,7 @@ static void parseonetoken(struct pstate *psp)
       }else if( x[0]=='{' ){
         if( psp->prevrule==0 ){
           ErrorMsg(psp->filename,psp->tokenlineno,
-"There is no prior rule opon which to attach the code \
+"There is no prior rule upon which to attach the code \
 fragment which begins on this line.");
           psp->errorcnt++;
 	}else if( psp->prevrule->code!=0 ){
@@ -2536,6 +2520,7 @@ void Parse(struct lemon *gp)
     ErrorMsg(ps.filename,0,"Can't allocate %d of memory to hold this file.",
       filesize+1);
     gp->errorcnt++;
+    fclose(fp);
     return;
   }
   if( fread(filebuf,1,filesize,fp)!=filesize ){
@@ -2543,6 +2528,7 @@ void Parse(struct lemon *gp)
       filesize);
     free(filebuf);
     gp->errorcnt++;
+    fclose(fp);
     return;
   }
   fclose(fp);
@@ -2754,23 +2740,6 @@ PRIVATE FILE *file_open(
     fprintf(stderr,"Can't open file \"%s\".\n",lemp->outname);
     lemp->errorcnt++;
     return 0;
-  }
-
-  /* Add files we create to a list, so we can delete them if we fail. This
-  ** is to keep makefiles from getting confused. We don't include .out files,
-  ** though: this is debug information, and you don't want it deleted if there
-  ** was an error you need to track down.
-  */
-  if(( *mode=='w' ) && (strcmp(suffix, ".out") != 0)){
-    const char **ptr = (const char **)
-        realloc(made_files, sizeof (const char **) * (made_files_count + 1));
-    const char *fname = Strsafe(lemp->outname);
-    if ((ptr == NULL) || (fname == NULL)) {
-        free(ptr);
-        memory_error();
-    }
-    made_files = ptr;
-    made_files[made_files_count++] = fname;
   }
   return fp;
 }
@@ -3263,7 +3232,7 @@ PRIVATE char *append_str(const char *zText, int n, int p1, int p2){
     }
     n = lemonStrlen(zText);
   }
-  if( n+sizeof(zInt)*2+used >= alloced ){
+  if( (int) (n+sizeof(zInt)*2+used) >= alloced ){
     alloced = n + sizeof(zInt)*2 + used + 200;
     z = (char *) realloc(z,  alloced);
   }
@@ -3428,6 +3397,10 @@ void print_stack_union(
   /* Allocate and initialize types[] and allocate stddt[] */
   arraysize = lemp->nsymbol * 2;
   types = (char**)calloc( arraysize, sizeof(char*) );
+  if( types==0 ){
+    fprintf(stderr,"Out of memory.\n");
+    exit(1);
+  }
   for(i=0; i<arraysize; i++) types[i] = 0;
   maxdtlength = 0;
   if( lemp->vartype ){
@@ -3441,7 +3414,7 @@ void print_stack_union(
     if( len>maxdtlength ) maxdtlength = len;
   }
   stddt = (char*)malloc( maxdtlength*2 + 1 );
-  if( types==0 || stddt==0 ){
+  if( stddt==0 ){
     fprintf(stderr,"Out of memory.\n");
     exit(1);
   }
@@ -4048,12 +4021,14 @@ void ReportHeader(struct lemon *lemp)
   else                    prefix = "";
   in = file_open(lemp,".h","rb");
   if( in ){
+    int nextChar;
     for(i=1; i<lemp->nterminal && fgets(line,LINESIZE,in); i++){
       sprintf(pattern,"#define %s%-30s %2d\n",prefix,lemp->symbols[i]->name,i);
       if( strcmp(line,pattern) ) break;
     }
+    nextChar = fgetc(in);
     fclose(in);
-    if( i==lemp->nterminal ){
+    if( i==lemp->nterminal && nextChar==EOF ){
       /* No change in the file.  Don't rewrite it. */
       return;
     }

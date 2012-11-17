@@ -41,18 +41,118 @@ ARGON_NAMESPACE_BEGIN
 /// @details
 /// 
 EvalExprVisitor::EvalExprVisitor(Processor &proc, Context &context, Value &value)
-    : Visitor(ignore_none),
+    : CVisitor(proc, context, ignore_none),
       m_proc(proc),
       m_context(context),
       m_value(value)
 {}
 
+void
+EvalExprVisitor::visit(AssignNode *node)
+{
+	assert(node->getChilds().size() == 2);
+
+    Node *op0 = node->getChilds().at(0);
+    Node *op1 = node->getChilds().at(1);
+
+	IdNode *id = node_cast<IdNode>(op0);
+	ValueElement *elem = this->context().resolve<ValueElement>(id->data());
+
+    Value val1;
+    apply_visitor(op1, EvalExprVisitor(proc(), context(), val1));
+
+    elem->getValue().data() = val1.data();
+}
     
+
+void
+EvalExprVisitor::visit(BinaryExprNode *node)
+{
+    assert(node->getChilds().size() == 2);
+
+    Value val0, val1;
+    Node *op0 = node->getChilds().at(0);
+    Node *op1 = node->getChilds().at(1);
+    apply_visitor(op0, EvalExprVisitor(proc(), context(), val0));
+    apply_visitor(op1, EvalExprVisitor(proc(), context(), val1));
+
+    // if one or both operands are NULL, result is undefined (NULL)
+    if(val0.data().isnull() || val1.data().isnull())
+    {
+        this->m_value.data().setNull();
+        return;
+    }
+
+	switch(node->data())
+	{
+    case BINARY_EXPR_ADD:
+        this->m_value.data() = val0.data().asInt() + val1.data().asInt();
+        break;
+
+    case BINARY_EXPR_SUB:
+        this->m_value.data() = val0.data().asInt() - val1.data().asInt();
+        break;
+
+    case BINARY_EXPR_MUL:
+        this->m_value.data() = val0.data().asInt() * val1.data().asInt();
+        break;
+
+    case BINARY_EXPR_DIV:
+        this->m_value.data() = val0.data().asInt() / val1.data().asInt();
+        break;
+
+    case BINARY_EXPR_MOD:
+        this->m_value.data() = val0.data().asInt() % val1.data().asInt();
+        break;
+
+    case BINARY_EXPR_CONCAT:
+        this->m_value.data() = val0.data().asStr() + val1.data().asStr();
+        break;
+
+    case BINARY_EXPR_OR:
+        this->m_value.data() = val0.data().asBool() || val1.data().asBool();
+        break;
+
+    case BINARY_EXPR_AND:
+        this->m_value.data() = val0.data().asBool() && val1.data().asBool();
+        break;
+
+    case BINARY_EXPR_XOR:
+        this->m_value.data() = val0.data().asBool() ^ val1.data().asBool();
+        break;
+
+    default:
+        this->m_value.data() = 255;
+
+
+    /*
+    BINARY_EXPR_OR,
+    BINARY_EXPR_AND,
+    BINARY_EXPR_MOD,
+    BINARY_EXPR_MUL,
+    BINARY_EXPR_DIV,
+    BINARY_EXPR_ADD,
+    BINARY_EXPR_SUB,
+    BINARY_EXPR_LESS,
+    BINARY_EXPR_LESSEQUAL,
+    BINARY_EXPR_EQUAL,
+    BINARY_EXPR_NOTEQUAL,
+    BINARY_EXPR_GREATER,
+    BINARY_EXPR_GREATEREQUAL
+    */
+	}
+
+}
+
+
 /// @details
 /// 
 void
 EvalExprVisitor::visit(ExprNode *node)
 {
+    throw -1; /// FIXME remove this handler
+
+
     ARGON_ICERR_CTX(node->getChilds().size() == 2, m_context,
                 "ExprNode must have exactly two childs.");
 
@@ -123,7 +223,7 @@ EvalExprVisitor::visit(IdNode *node)
 {
     Identifier id = node->data();
 
-    Element *elem = m_context.resolve<Element>(id);
+    Element *elem = context().resolve<Element>(id);
     m_value.data() = elem->_value().data();
 }
 
@@ -154,22 +254,19 @@ EvalExprVisitor::visit(FuncCallNode *node)
 
 
     Element *elem = 0;
-
-
-
-
+    
     elem = this->m_proc.getTypes().find<FunctionType>(id)->newInstance(al);
-
-
 
     assert(elem);
 
-    ScopedStackPush _ssp(this->m_proc, elem);
+    ARGON_SCOPED_STACKPUSH(this->m_proc, elem);
 
 
-    /// @bug just call m_proc.call(<function-id>, args)
-    m_value.data() = m_proc.call(*elem).data();
-
+    {
+        /// @bug just call m_proc.call(<function-id>, args)
+        // m_value.data() = this->m_proc.call(id, al).data();
+        m_value.data() = m_proc.call(*elem).data();
+    }
 
     //Function *f = this->m_proc.getSymbols().find<Function>(id);
 

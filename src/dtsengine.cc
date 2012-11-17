@@ -204,7 +204,7 @@ DTSEngine::load(std::istreambuf_iterator<wchar_t> in, String sourcename)
 
 
 
-    //p.trace(stdout, "[LEMON] ");
+    p.trace(stdout, "[LEMON] ");
     do
     {
         t = tz.next();
