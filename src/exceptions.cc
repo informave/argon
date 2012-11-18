@@ -255,6 +255,25 @@ TerminateControlException::getExitcode(void) const
 
 
 
+ContinueControlException::ContinueControlException(void)
+	: ControlException()
+{}
+
+ContinueControlException::~ContinueControlException(void)
+{}
+
+
+
+BreakControlException::BreakControlException(void)
+	: ControlException()
+{}
+
+BreakControlException::~BreakControlException(void)
+{}
+
+
+
+
 
 ARGON_NAMESPACE_END
 

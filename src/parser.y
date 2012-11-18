@@ -397,9 +397,12 @@ blockItemList(A) ::= blockItemList(B) blockItem(C). {
 
 //blockItem ::= declaration.
 
-blockItem(A) ::= varDef(B). { A = B; } //FIXME
+
 blockItem(A) ::= statement(B) SEP. { A = B; assert(A); }
-//blockItem ::= .
+// variable definition is no regular statement.
+// For blocks, we need to accept it.
+blockItem(A) ::= varDef(B). { A = B; }
+
 
 expressionStatement(A) ::= expression(B). { A = B; }
 //expressionStatement ::= .

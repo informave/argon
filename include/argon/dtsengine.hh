@@ -52,6 +52,8 @@ class RuntimeError;
 class ControlException;
 class ReturnControlException;
 class TerminateControlException;
+class ContinueControlException;
+class BreakControlException;
 
 typedef std::set<Column> ColumnList;
 
@@ -1495,6 +1497,37 @@ public:
 protected:
 	Value m_value;
 };
+
+
+//..............................................................................
+/////////////////////////////////////////////////////// ContinueControlException
+///
+/// @since 0.0.1
+/// @brief Control exception for continue statement
+class ContinueControlException : public ControlException
+{
+public:
+	ContinueControlException(void);
+
+	virtual ~ContinueControlException(void);
+};
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////// BreakControlException
+///
+/// @since 0.0.1
+/// @brief Control exception for break statement
+class BreakControlException : public ControlException
+{
+public:
+	BreakControlException(void);
+
+	virtual ~BreakControlException(void);
+};
+
+
 
 //..............................................................................
 ////////////////////////////////////////////////////// TerminateControlException

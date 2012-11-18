@@ -54,6 +54,8 @@ public:
     //virtual void visit(BinaryExprNode *node);
     //virtual void visit(AssignNode *node);
     virtual void visit(WhileNode *node);
+    virtual void visit(ContinueNode *node);
+    virtual void visit(BreakNode *node);
     virtual void visit(ReturnNode *node);
     virtual void visit(IfelseNode *node);
 
@@ -73,18 +75,48 @@ BlockVisitor::BlockVisitor(Processor &proc, Context &ctx, Value &returnVal)
 void
 BlockVisitor::visit(WhileNode *node)
 {
-	assert(node->getChilds().size() == 2);
+	ARGON_ICERR_CTX(node->getChilds().size() == 2, context(), "Wrong child-node count");
+
 	Node *checkexpr = node->getChilds().at(0);
 	Node *block = node->getChilds().at(1);
 	Value checkresult;
 	apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult));
 	while(checkresult.data().asBool())
 	{
-		//apply_visitor(block->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
-        apply_visitor(block, BlockVisitor(this->proc(), context(), m_returnVal));
-		apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult)); // check again
+        try
+        {
+            //apply_visitor(block->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+            apply_visitor(block, BlockVisitor(this->proc(), context(), m_returnVal));
+        }
+        catch(ContinueControlException&)
+        {
+            // do nothing, end of function evaluates check expr.
+        }
+        catch(BreakControlException&)
+        {
+            break;
+        }
+
+        apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult)); // check again
 	}
 }
+
+
+
+void
+BlockVisitor::visit(ContinueNode *node)
+{
+    throw ContinueControlException();
+}
+
+void
+BlockVisitor::visit(BreakNode *node)
+{
+    throw BreakControlException();
+}
+
+
+
 
 void
 BlockVisitor::visit(IfelseNode *node)
