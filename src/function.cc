@@ -54,6 +54,7 @@ public:
     //virtual void visit(BinaryExprNode *node);
     //virtual void visit(AssignNode *node);
     virtual void visit(WhileNode *node);
+    virtual void visit(RepeatNode *node);
     virtual void visit(ContinueNode *node);
     virtual void visit(BreakNode *node);
     virtual void visit(ReturnNode *node);
@@ -99,6 +100,38 @@ BlockVisitor::visit(WhileNode *node)
 
         apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult)); // check again
 	}
+}
+
+
+
+void
+BlockVisitor::visit(RepeatNode *node)
+{
+	ARGON_ICERR_CTX(node->getChilds().size() == 2, context(), "Wrong child-node count");
+
+	Node *checkexpr = node->getChilds().at(1);
+	Node *block = node->getChilds().at(0);
+	Value checkresult;
+
+    do
+    {
+        try
+        {
+            //apply_visitor(block->getChilds(), BlockVisitor(this->proc(), context(), m_returnVal));
+            apply_visitor(block, BlockVisitor(this->proc(), context(), m_returnVal));
+        }
+        catch(ContinueControlException&)
+        {
+            // do nothing, end of function evaluates check expr.
+        }
+        catch(BreakControlException&)
+        {
+            break;
+        }
+
+        apply_visitor(checkexpr, EvalExprVisitor(this->proc(), context(), checkresult)); // check
+    }
+	while(! checkresult.data().asBool()); // negate expr because we want "UNTIL"
 }
 
 
