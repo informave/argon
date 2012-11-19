@@ -1,0 +1,23 @@
+program common_function_call;
+
+
+
+function g(a2)
+begin
+	return a2;
+end;
+
+function f(a1)
+begin
+	assert(a1 == 5);
+	a1 = a1 + 3;
+	assert(a1 == 8);
+	return g("test ok");
+end;
+
+
+task main : void
+begin
+	log f(5);
+end;
+

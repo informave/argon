@@ -1,0 +1,67 @@
+program common_function_while;
+
+
+function f()
+begin
+	begin
+		var x(5);
+		x = x+x+x;
+		assert(x == 15);
+	end;
+
+	begin
+		var x(10);
+		x = x*x*x;
+		assert(x == 1000);
+	end;
+
+	begin
+		var x(800);
+		x = x/100/2;
+		assert(x == 4);
+	end;
+
+	begin
+		var x(1000);
+		x = x-50-100;
+		assert(x == 850);
+	end;
+
+	begin
+		var x(-34);
+		x = x+35;
+		assert(x == 1);
+	end;
+
+	begin
+		var x(-4 - -5);
+		assert(x == 1);
+	end;
+
+	begin
+		var x(-4 + -5);
+		assert(x == -9);
+	end;
+
+	begin
+		var x(-4 * -5);
+		assert(x == 20);
+	end;
+
+/*
+	begin
+		var x(5);
+		x = !x;
+		assert(x == false);
+	end;
+*/
+
+	return "test ok";
+end;
+
+
+task main : void
+begin
+	log f();
+end;
+

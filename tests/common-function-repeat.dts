@@ -1,0 +1,21 @@
+program common_function_repeat;
+
+
+function f(a1)
+begin
+	assert(a1 == 5);
+	repeat
+	begin
+		a1 = a1 - 1;
+	end
+	until(a1 == 0);
+	assert(a1 == 0);
+	return a1;
+end;
+
+
+task main : void
+begin
+	log f(5);
+end;
+
