@@ -202,7 +202,7 @@ public:
 
     const Element* operator->(void) const;
 
-    Element* operator&(void);
+    //Element* operator&(void);
 
     template<typename T>
     bool is(void) const
@@ -226,7 +226,7 @@ private:
 };
 
 
-typedef std::list<Ref> ArgumentList;
+typedef std::deque<Ref> ArgumentList;
 
 
 

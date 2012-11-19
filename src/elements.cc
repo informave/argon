@@ -223,13 +223,14 @@ Ref::operator->(void) const
 }
 
 
+/*
 Element*
 Ref::operator&(void)
 {
     ARGON_ICERR(this->m_element, "Dead reference, the element did not exist!");
     return this->m_element;
 }
-
+*/
 
 
 
