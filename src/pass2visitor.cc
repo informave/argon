@@ -69,7 +69,15 @@ Pass2Visitor::visit(VarNode *node)
     Node *data = argsNode->getChilds()[0];
     /// @bug Supports only LiteralNode for initialization
 
-    ValueElement *elem = new ValueElement(this->proc(), String(node_cast<LiteralNode>(data)->data()));
+    ValueElement *elem = 0;
+    try
+    {
+    	elem = new ValueElement(this->proc(), String(node_cast<LiteralNode>(data)->data()));
+    }
+    catch(...)
+    {
+    	elem = new ValueElement(this->proc(), node_cast<NumberNode>(data)->data());
+    }
     this->m_proc.stackPush(elem);
     this->proc().getSymbols().add(node->data(), Ref(elem));
 }

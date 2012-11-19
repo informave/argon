@@ -41,6 +41,37 @@ ARGON_NAMESPACE_BEGIN
 
 
 //..............................................................................
+/////////////////////////////////////////////////////////////////// BlockVisitor
+///
+/// @since 0.0.1
+/// @brief Processor initial tree walker
+class BlockVisitor : public CVisitor<Context>
+{
+public:
+    BlockVisitor(Processor &proc, Context &ctx, Value &returnVal);
+
+    virtual void visit(VarNode *node);
+    //virtual void visit(BinaryExprNode *node);
+    //virtual void visit(AssignNode *node);
+    virtual void visit(WhileNode *node);
+    virtual void visit(RepeatNode *node);
+    virtual void visit(ForNode *node);
+    virtual void visit(ContinueNode *node);
+    virtual void visit(BreakNode *node);
+    virtual void visit(ReturnNode *node);
+    virtual void visit(IfelseNode *node);
+
+    virtual void visit(CompoundNode *node);
+
+protected:
+    virtual void fallback_action(Node *node);
+
+	Value &m_returnVal;
+};
+
+
+
+//..............................................................................
 ///////////////////////////////////////////////////////////////// ProcTreeWalker
 ///
 /// @since 0.0.1

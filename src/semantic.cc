@@ -149,6 +149,12 @@ DeclNode::semanticCheck(SemanticCheck &sc)
 }
 
 
+void
+LambdaFuncNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
 /// @details
 /// 
 void

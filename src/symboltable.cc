@@ -141,6 +141,28 @@ SymbolTable::add(Identifier name, const Ref &ref)
 }
 
 
+void
+SymbolTable::cloneSymbols(const SymbolTable &from)
+{
+    for(list_map_type::const_iterator j = from.m_sub_symbols.begin();
+        j != from.m_sub_symbols.end();
+        ++j)
+    {
+        std::for_each((*j)->begin(), (*j)->end(), [this](typename map_type::value_type &v){
+                try
+                {
+                    this->add(v.first, v.second);
+                }
+                catch(std::runtime_error &)
+                {
+                    /// @bug use custom exception, see add() method
+                }
+            });
+    }
+    
+}
+
+
 /// @details
 /// @todo iterate over all sub tables
 String

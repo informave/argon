@@ -208,7 +208,13 @@ Table::run(void)
         /// can be extended to identifiers later.
 
         
-        tableName = (*i)->_value().data().asStr();
+        tableName = (*i++)->_value().data().asStr();
+	if(i != this->getCallArgs().end())
+	{
+		schemaName = (*i++)->_value().data().asStr();
+	}
+
+	
 
 /*
         try

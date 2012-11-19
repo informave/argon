@@ -70,8 +70,41 @@ TaskChildVisitor::visit(ColumnAssignNode *node)
     //Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
 
     Value val;
-    EvalExprVisitor eval(this->m_proc, this->m_context, val);
-    eval(node->getChilds()[1]);
+
+    Node *value_node = node->getChilds()[1];
+
+    if(is_nodetype<LambdaFuncNode*>(value_node))
+    {
+        //assert(1==2);
+
+        Element *elem = new Lambdafunction(this->m_proc, node_cast<LambdaFuncNode>(value_node), this->m_context);
+        ARGON_SCOPED_STACKPUSH(this->m_proc, elem);
+
+        val.data() = m_proc.call(*elem).data();
+
+/*
+    Element *elem = 0;
+    
+    elem = this->m_proc.getTypes().find<FunctionType>(id)->newInstance(al);
+
+    assert(elem);
+
+    ARGON_SCOPED_STACKPUSH(this->m_proc, elem);
+
+
+    {
+        /// @bug just call m_proc.call(<function-id>, args)
+        // m_value.data() = this->m_proc.call(id, al).data();
+        m_value.data() = m_proc.call(*elem).data();
+    }
+*/
+
+    }
+    else
+    {
+        EvalExprVisitor eval(this->m_proc, this->m_context, val);
+        eval(node->getChilds()[1]);
+    }
 
     this->m_context.getDestObject()->setColumn(col, val);
 

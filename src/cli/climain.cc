@@ -117,7 +117,7 @@ int main(int argc, char **argv)
     std::wclog.imbue(std::locale());
 
 
-    std::ios_base::sync_with_stdio(true);
+    std::ios_base::sync_with_stdio(true); /// @todo check if this is correct
     std::cout.setf(std::ios::unitbuf);
     std::wcout.setf(std::ios::unitbuf);
 

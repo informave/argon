@@ -264,6 +264,7 @@ public:
     map_type* createSub(void);
     void deleteSub(map_type *ptr);
 
+    void cloneSymbols(const SymbolTable &from);
 
 protected:
 
@@ -621,6 +622,56 @@ protected:
 private:
     Function(const Function&);
     Function& operator=(const Function&);
+};
+
+
+
+//..............................................................................
+///////////////////////////////////////////////////////////////// Lambdafunction
+///
+/// @since 0.0.1
+/// @brief Lambda function class
+class Lambdafunction : public Context
+{
+public:
+    Lambdafunction(Processor &proc, LambdaFuncNode *node, Context &parent_context);
+
+    virtual ~Lambdafunction(void)
+    {}
+
+    //inline Identifier id(void) const { return m_node->id; }
+
+    virtual String str(void) const;
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
+    virtual Object* getMainObject(void);
+    virtual Object* getResultObject(void);
+    virtual Object* getDestObject(void);
+
+    //virtual Value resolveColumn(const Column &col);
+
+
+protected:
+    /// Functions must be runnable
+    virtual Value run(void);
+
+    LambdaFuncNode *m_node;
+    Context        &m_parent_context;
+
+private:
+    Lambdafunction(const Lambdafunction&);
+    Lambdafunction& operator=(const Lambdafunction&);
 };
 
 

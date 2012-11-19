@@ -68,6 +68,8 @@ struct NumberNode;
 
 struct ExprNode;
 
+struct LambdaFuncNode;
+
 
 struct BinaryExprNode;
 struct UnaryExprNode;
@@ -217,6 +219,8 @@ public:
     virtual void visit(TaskFinalNode *node);
     virtual void visit(NumberNode *node);
     virtual void visit(ExprNode *node);
+
+    virtual void visit(LambdaFuncNode *node);
 
     virtual void visit(BinaryExprNode *node);
     virtual void visit(UnaryExprNode *node);
@@ -452,6 +456,9 @@ struct TaskInitNode : public SimpleNode<void>
 
 
  DefineNode(Decl, Identifier);
+
+
+DefineNode(LambdaFunc, void);
 
 
 //..............................................................................

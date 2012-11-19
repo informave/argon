@@ -127,7 +127,8 @@ StoreTask::run(void)
     foreach_node( this->m_rules_nodes, ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
     this->m_destobject->setColumnList(lclist);
 
-    assert(rclist.size() == 0); // STORE tasks can't contain any column identifiers on right side.
+    ARGON_ICERR_CTX(rclist.size() == 0, *this,
+                    "STORE tasks can't contain any column identifiers on right side.");
 
     
     // Get result columns

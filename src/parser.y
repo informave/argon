@@ -927,6 +927,11 @@ colAssignCmd(A) ::= column(B) ASSIGNOP value(C) SEP. {
 
 value(A) ::= expression(B). { A = B; } // FIXME this can be optimized
 
+value(A) ::= FUNCTION compoundStatement(B). {
+			CREATE_NODE(LambdaFuncNode);
+			node->addChild(B);
+			A = node;
+}
 
 
 //..............................................................................
