@@ -61,12 +61,13 @@ BlockVisitor::visit(AssertNode *node)
 
     ARGON_ICERR_CTX(al.size() > 0 && al.size() <= 2, context(), "Invalid assert() argument count");
 
-    if(! (*al.begin())->_value().data().get<bool>())
+
+    if(! al[0]->_value().data().get<bool>())
     {
         SourceInfo si = node->getSourceInfo();
 
         if(al.size() == 2)
-            throw AssertControlException(node, (*(++al.begin()))->_value().data().asStr());
+            throw AssertControlException(node, al[1]->_value().data().asStr());
         else
             throw AssertControlException(node);
     }
