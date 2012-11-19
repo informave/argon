@@ -65,6 +65,37 @@ EvalExprVisitor::visit(AssignNode *node)
 }
     
 
+
+void
+EvalExprVisitor::visit(UnaryExprNode *node)
+{
+    assert(node->getChilds().size() == 1);
+
+    Value val0;
+    Node *op0 = node->getChilds().at(0);
+    apply_visitor(op0, EvalExprVisitor(proc(), context(), val0));
+
+    // if operand is NULL, result is undefined (NULL)
+    if(val0.data().isnull())
+    {
+        this->m_value.data().setNull();
+        return;
+    }
+
+	switch(node->data())
+	{
+    case UNARY_EXPR_MINUS:
+        this->m_value.data() = - val0.data().asInt();
+        break;
+    case UNARY_EXPR_PLUS:
+        this->m_value.data() = + val0.data().asInt();
+        break;
+    case UNARY_EXPR_NEG:
+        this->m_value.data() = ! val0.data().asBool();
+        break;
+    }
+}
+
 void
 EvalExprVisitor::visit(BinaryExprNode *node)
 {

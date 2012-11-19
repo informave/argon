@@ -27,7 +27,9 @@ namespace debug
 
     ARGON_FUNCTION_DEF(symbol_exists)
     {
-
+        /// @bug this function is buggy. We search for the ID, but
+        /// with this->getSymbols() we dont get the table of the caller,
+        /// we get just our own internal table which is empty!
         assert(m_args.size() == 1);
 
         Identifier id = (*m_args.begin())->_value().data().get<String>();

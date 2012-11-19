@@ -153,6 +153,7 @@ struct EvalExprVisitor : public CVisitor<Context>
     //virtual void visit(VarNode *node);
     virtual void visit(AssignNode *node);
     virtual void visit(BinaryExprNode *node);
+    virtual void visit(UnaryExprNode *node);
 
 protected:
     Processor &m_proc;
