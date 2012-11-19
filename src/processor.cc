@@ -250,7 +250,7 @@ Processor::call(const Identifier &id, ArgumentsNode *argsNode, Context &ctx)
 
 /// @details
 /// 
-void Processor::run(void)
+Value Processor::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running script");
     
@@ -280,6 +280,15 @@ void Processor::run(void)
             std::cerr << "Result is: " << e.getExitcode().data() << std::endl;
             // If there is an exception, we need to cleanup the symbol table
             this->getSymbols().reset();
+            return e.getExitcode();
+        }
+        catch(AssertControlException& e)
+        {
+            std::cerr << e.message() << std::endl;
+            std::cerr << "Program terminated." << std::endl;
+            // If there is an exception, we need to cleanup the symbol table
+            this->getSymbols().reset();
+            return ARGON_EXIT_ASSERT;
         }
         catch(ControlException& e)
         {
@@ -291,8 +300,9 @@ void Processor::run(void)
             this->getSymbols().reset();
             throw;
         }
-    }   
+    }
     assert(this->m_stack.size() == 0);
+    return ARGON_EXIT_SUCCESS;
 }
 
 

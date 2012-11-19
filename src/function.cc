@@ -46,6 +46,33 @@ BlockVisitor::BlockVisitor(Processor &proc, Context &ctx, Value &returnVal)
 {
 }
 
+
+void
+BlockVisitor::visit(AssertNode *node)
+{
+    ArgumentList al;
+    //Identifier id = node->data();
+    ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
+    assert(argsnode);
+
+    // Fill argument list with the result of each argument node
+    foreach_node(argsnode->getChilds(), ArgumentsVisitor(proc(), context(), al), 1);
+
+
+    ARGON_ICERR_CTX(al.size() > 0 && al.size() <= 2, context(), "Invalid assert() argument count");
+
+    if(! (*al.begin())->_value().data().get<bool>())
+    {
+        SourceInfo si = node->getSourceInfo();
+
+        if(al.size() == 2)
+            throw AssertControlException(node, (*(++al.begin()))->_value().data().asStr());
+        else
+            throw AssertControlException(node);
+    }
+}
+
+
 void
 BlockVisitor::visit(WhileNode *node)
 {

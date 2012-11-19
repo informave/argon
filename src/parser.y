@@ -399,9 +399,24 @@ blockItemList(A) ::= blockItemList(B) blockItem(C). {
 
 
 blockItem(A) ::= statement(B) SEP. { A = B; assert(A); }
+
 // variable definition is no regular statement.
 // For blocks, we need to accept it.
 blockItem(A) ::= varDef(B). { A = B; }
+
+
+blockItem(A) ::= assertStatement(B) SEP. {
+				 A = B;
+}
+
+
+
+assertStatement(A) ::= ASSERT LP argumentExpressionList(B) RP. {
+						 CREATE_NODE(AssertNode);
+						 node->addChild(B);
+						 A = node;
+}
+
 
 
 expressionStatement(A) ::= expression(B). { A = B; }

@@ -47,6 +47,11 @@
 
 ARGON_NAMESPACE_BEGIN
 
+
+#define ARGON_EXIT_PARSER_ERROR     1
+#define ARGON_EXIT_ASSERT           2
+#define ARGON_EXIT_SUCCESS          0
+
 class RuntimeError;
 
 class ControlException;
@@ -54,6 +59,7 @@ class ReturnControlException;
 class TerminateControlException;
 class ContinueControlException;
 class BreakControlException;
+class AssertControlException;
 
 typedef std::set<Column> ColumnList;
 
@@ -1335,7 +1341,7 @@ public:
     void compile(ParseTree *tree);
 
     /// @brief Run compiled structure
-    void run(void);
+    Value run(void);
 
     /// @brief Get call stack
     const stack_type& getStack(void);
@@ -1599,6 +1605,28 @@ protected:
 };
 
 
+//..............................................................................
+///////////////////////////////////////////////////////// AssertControlException
+///
+/// @since 0.0.1
+/// @brief Control exception for asserts
+class AssertControlException : public ControlException
+{
+public:
+	AssertControlException(AssertNode *node);
+    AssertControlException(AssertNode *node, const String &comment);
+
+	virtual ~AssertControlException(void);
+
+	virtual String getComment(void) const;
+
+    virtual String message(void) const;
+
+protected:
+    SourceInfo m_sourceinfo;
+    String     m_comment;
+};
+
 
 
 
@@ -1631,7 +1659,7 @@ public:
 
 
     /// @brief Execute the loaded script
-    void exec(void);
+    int exec(void);
 
     /// @brief Get connection by identifier
     Connection& getConn(Identifier id);

@@ -166,12 +166,13 @@ DTSEngine::getConnections(void)
 
 /// @details
 /// 
-void
+int
 DTSEngine::exec(void)
 {
     // this adds included scripts to the tree
     this->m_proc.compile(this->m_tree.get());
-    this->m_proc.run();
+    Value v = this->m_proc.run();
+    return v.data().get<int>();
 }
 
 

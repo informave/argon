@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 
     DTSEngine engine;
 
-
+    int result = ARGON_EXIT_SUCCESS;
 
     if(argc != 2)
     {
@@ -146,27 +146,27 @@ int main(int argc, char **argv)
         {
             engine.load(argv[1]);
         }
-        engine.exec();
-	}
+        result = engine.exec();
+    }
     catch(CompileError &err)
     {
         std::cout << "Compile error:" << std::endl
                   << err.what() << std::endl
                   << "No code was executed." << std::endl;
-        return -1;
+        return ARGON_EXIT_PARSER_ERROR;
     }
     catch(RuntimeError &err)
     {
         std::cout << "Runtime error:" << std::endl
                   << err.what() << std::endl;
-        return -1;
+        return ARGON_EXIT_PARSER_ERROR;
     }
 	catch(std::exception &e)
 	{
 		std::cout << "UNHANDLED EXCEPTION:" << std::endl << e.what() << std::endl;
-        return -1;
+        return ARGON_EXIT_PARSER_ERROR;
 	}
-    return 0;
+    return result;
 }
 
 

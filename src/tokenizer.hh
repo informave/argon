@@ -167,6 +167,7 @@ public:
 	this->m_templates[ _str<CharT, TraitsT>("CONTINUE")       ] = ARGON_TOK_CONTINUE;
 	this->m_templates[ _str<CharT, TraitsT>("BREAK")       ] = ARGON_TOK_BREAK;
 	this->m_templates[ _str<CharT, TraitsT>("RETURN")       ] = ARGON_TOK_RETURN;
+	this->m_templates[ _str<CharT, TraitsT>("ASSERT")       ] = ARGON_TOK_ASSERT;
     }
 
 

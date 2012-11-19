@@ -273,6 +273,43 @@ BreakControlException::~BreakControlException(void)
 
 
 
+AssertControlException::AssertControlException(AssertNode *node)
+	: ControlException(),
+      m_sourceinfo(node->getSourceInfo()),
+      m_comment()
+{}
+
+AssertControlException::AssertControlException(AssertNode *node, const String &comment)
+	: ControlException(),
+      m_sourceinfo(node->getSourceInfo()),
+      m_comment(comment)
+{}
+
+
+AssertControlException::~AssertControlException(void)
+{}
+
+
+
+String
+AssertControlException::getComment(void) const
+{
+    return this->m_comment;
+}
+
+
+
+String
+AssertControlException::message(void) const
+{
+    String msg = String("Assertion failed at: ") + this->m_sourceinfo.str();
+    if(this->m_comment.length())
+        return msg + String(" (") + this->m_comment + ")";
+    else
+        return msg;
+}
+
+
 
 
 ARGON_NAMESPACE_END

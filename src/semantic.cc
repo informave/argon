@@ -154,6 +154,11 @@ LambdaFuncNode::semanticCheck(SemanticCheck &sc)
 {
 }
 
+void
+AssertNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
 
 /// @details
 /// 

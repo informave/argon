@@ -60,6 +60,7 @@ public:
     virtual void visit(BreakNode *node);
     virtual void visit(ReturnNode *node);
     virtual void visit(IfelseNode *node);
+    virtual void visit(AssertNode *node);
 
     virtual void visit(CompoundNode *node);
 
