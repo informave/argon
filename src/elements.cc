@@ -285,9 +285,19 @@ Element::unregisterRef(Ref *p)
 /// 
 Context::Context(Processor &proc, const ArgumentList &args)
     : Element(proc),
-      m_symbols(&proc.getSymbols()), /// @bug good style??
+      m_symbols(&proc.getGlobalContext().getSymbols()),
       m_args(args)
 {}
+
+
+/// @details
+///
+Context::Context(Processor &proc, SymbolTable *parentptr, const ArgumentList &args)
+    : Element(proc),
+      m_symbols(parentptr),
+      m_args(args)
+{}
+
 
 
 /// @details

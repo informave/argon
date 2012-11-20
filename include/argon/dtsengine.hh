@@ -54,6 +54,7 @@ ARGON_NAMESPACE_BEGIN
 
 class RuntimeError;
 
+
 class ControlException;
 class ReturnControlException;
 class TerminateControlException;
@@ -567,7 +568,8 @@ public:
 
 protected:
     /// @brief Hidden constructor, only derived classes can be instantiated
-    Context(Processor &proc, const ArgumentList &args);
+    Context(Processor &proc, const ArgumentList &args = ArgumentList());
+    Context(Processor &proc, SymbolTable *parentptr, const ArgumentList &args = ArgumentList());
 
     /// @brief Context-related symbol table
     SymbolTable m_symbols;
@@ -682,6 +684,52 @@ private:
 
 
 
+//..............................................................................
+///////////////////////////////////////////////////////////////// Lambdafunction
+///
+/// @since 0.0.1
+/// @brief Lambda function class
+class GlobalContext : public Context
+{
+public:
+    GlobalContext(Processor &proc, Node *tree);
+
+    virtual ~GlobalContext(void)
+    {}
+
+    //inline Identifier id(void) const { return m_node->id; }
+
+    virtual String str(void) const;
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
+    virtual Object* getMainObject(void);
+    virtual Object* getResultObject(void);
+    virtual Object* getDestObject(void);
+
+    //virtual Value resolveColumn(const Column &col);
+
+
+protected:
+    /// Functions must be runnable
+    virtual Value run(void);
+
+    Node *m_tree;
+
+private:
+    GlobalContext(const GlobalContext&);
+    GlobalContext& operator=(const GlobalContext&);
+};
 
 
 //..............................................................................
@@ -1356,7 +1404,9 @@ public:
 
     Value call(const Identifier &id, ArgumentsNode *argsNode, Context &ctx);
 
-    SymbolTable& getSymbols(void);
+    //SymbolTable& getSymbols(void);
+
+    GlobalContext& getGlobalContext(void);
 
     TypeTable& getTypes(void);
 
@@ -1373,8 +1423,9 @@ protected:
     stack_type    m_stack;
     heap_type     m_heap;
     ParseTree    *m_tree;
-    SymbolTable   m_symbols;
+    //SymbolTable   m_symbols;
     TypeTable     m_types;
+    GlobalContext *m_globalcontext;
 
 private:
     Processor(const Processor&);
@@ -1413,7 +1464,7 @@ private:
     ScopedStackPush& operator=(const ScopedStackPush&);
 };
 
-#define ARGON_SCOPED_STACKPUSH(proc, element) ScopedStackPush ssp__autogen_##__LINE__ (proc, elem)
+#define ARGON_SCOPED_STACKPUSH(proc, elem) ScopedStackPush ssp__autogen_##__LINE__ (proc, elem)
 
 
 //..............................................................................

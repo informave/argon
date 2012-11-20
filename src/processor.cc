@@ -3,19 +3,19 @@
 //
 // Copyright (C)         informave.org
 //   2010,               Daniel Vogelbacher <daniel@vogelbacher.name>
-// 
+//
 // Lesser GPL 3.0 License
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
@@ -48,7 +48,7 @@ ScopedStackPush::~ScopedStackPush(void)
     LastError e(m_stack);
 
     String s = e.str();
-    
+
     s = String("Stack protection error:") + s;
 
     // If something very bad happens to the stack,
@@ -56,7 +56,7 @@ ScopedStackPush::~ScopedStackPush(void)
     // Main reason is someone has push something to the stack,
     // but has not pop from when finished.
     ARGON_ICERR(m_ptr == elem, s);
-    
+
     delete elem;
     m_stack.pop_front();
 }
@@ -67,19 +67,20 @@ ScopedStackPush::~ScopedStackPush(void)
 ////////////////////////////////////////////////////////////////////// Processor
 
 /// @details
-/// 
+///
 Processor::Processor(DTSEngine &engine)
     : m_engine(engine),
       m_stack(),
       m_heap(),
       m_tree(0),
-      m_symbols(),
-      m_types()
+      //m_symbols(),
+      m_types(),
+      m_globalcontext(0)
 {}
 
 
 /// @details
-/// 
+///
 Function*
 Processor::createFunction(const Identifier &id)
 {
@@ -92,7 +93,7 @@ Processor::createFunction(const Identifier &id)
 
 
 /// @details
-/// 
+///
 db::ConnectionMap&
 Processor::getConnections(void)
 {
@@ -124,11 +125,11 @@ Processor::addBuiltinFunctiontable(builtin_func_def *ptr)
     {
         this->getTypes().add(new BuiltinFunctionType(*this, *defp));
         ++defp;
-    }    
+    }
 }
 
 /// @details
-/// 
+///
 void
 Processor::compile(ParseTree *tree)
 {
@@ -193,7 +194,7 @@ Processor::compile(ParseTree *tree)
 
 
 /// @details
-/// 
+///
 Value
 Processor::call(Element &obj)
 {
@@ -209,7 +210,7 @@ Processor::call(Element &obj)
 
 
 /// @details
-/// 
+///
 Value
 Processor::call(const Identifier &id, const ArgumentList &list)
 {
@@ -247,76 +248,78 @@ Processor::call(const Identifier &id, ArgumentsNode *argsNode, Context &ctx)
 
 
 
-
 /// @details
-/// 
+///
 Value Processor::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running script");
-    
+
+    ARGON_SCOPED_STACKFRAME(*this);
+    Node::nodelist_type childs = this->m_tree->getChilds();
+
+    try
     {
-        ARGON_SCOPED_STACKFRAME(*this);
-        
-        Node::nodelist_type childs = this->m_tree->getChilds();	
-        
-        // Phase 2
-        // for each module and the progam 
-        std::for_each(childs.begin(), childs.end(),
-                      [this](Node::nodelist_type::value_type node){
-                          foreach_node( node->getChilds(), Pass2Visitor(*this), 1);
-                      });
-        
         try
         {
-            Value v = this->call(Identifier("main"));
-            
-            // Pass2Visitor creates symbols, so we have to cleanup all <id, ref> entries
-            // before the stackframe is dropped and elements are destroyed.
-            this->getSymbols().reset();
-        }
-        catch(TerminateControlException& e)
-        {
-            std::cerr << "Program terminated." << std::endl;
-            std::cerr << "Result is: " << e.getExitcode().data() << std::endl;
-            // If there is an exception, we need to cleanup the symbol table
-            this->getSymbols().reset();
-            return e.getExitcode();
-        }
-        catch(AssertControlException& e)
-        {
-            std::cerr << e.message() << std::endl;
-            std::cerr << "Program terminated." << std::endl;
-            // If there is an exception, we need to cleanup the symbol table
-            this->getSymbols().reset();
-            return ARGON_EXIT_ASSERT;
-        }
-        catch(ControlException& e)
-        {
-            std::cerr << "Unhandled control exception. Terminated." << std::endl;
+            GlobalContext *gctx = new GlobalContext(*this, this->m_tree);
+            assert(gctx);
+            this->m_globalcontext = gctx;
+
+            ARGON_SCOPED_STACKPUSH(*this, gctx);
+            Value v = this->call(*gctx).data();
+
+            this->m_globalcontext = 0; // reset, autom. destroyed
         }
         catch(...)
         {
-            // If there is an exception, we need to cleanup the symbol table
-            this->getSymbols().reset();
+            this->m_globalcontext = 0; // reset, autom. destroyed
             throw;
         }
     }
+    catch(TerminateControlException& e)
+    {
+        std::cerr << "Program terminated." << std::endl;
+        std::cerr << "Result is: " << e.getExitcode().data() << std::endl;
+        return e.getExitcode();
+    }
+    catch(AssertControlException& e)
+    {
+        std::cerr << e.message() << std::endl;
+        std::cerr << "Program terminated." << std::endl;
+        return ARGON_EXIT_ASSERT;
+    }
+    catch(ControlException& e)
+    {
+        std::cerr << "Unhandled control exception. Terminated." << std::endl;
+        return ARGON_EXIT_PARSER_ERROR;
+    }
+
     assert(this->m_stack.size() == 0);
     return ARGON_EXIT_SUCCESS;
 }
 
 
 /// @details
-/// 
+///
+/*
 SymbolTable&
 Processor::getSymbols(void)
 {
-    return this->m_symbols;
+    return this->getGlobalContext().getSymbols();
+}
+*/
+
+
+GlobalContext&
+Processor::getGlobalContext(void)
+{
+	ARGON_ICERR(this->m_globalcontext, "No global context");
+	return *this->m_globalcontext;
 }
 
 
 /// @details
-/// 
+///
 TypeTable&
 Processor::getTypes(void)
 {
@@ -325,7 +328,7 @@ Processor::getTypes(void)
 
 
 /// @details
-/// 
+///
 const Processor::stack_type&
 Processor::getStack(void)
 {
@@ -353,7 +356,7 @@ Processor::getEngine(void) const
 ////////////////////////////////////////////////////////////////////// LastError
 
 /// @details
-/// 
+///
 String
 LastError::str(void) const
 {
@@ -375,7 +378,7 @@ LastError::str(void) const
 
 
 /// @details
-/// 
+///
 const Processor::stack_type&
 LastError::getStack(void) const
 {

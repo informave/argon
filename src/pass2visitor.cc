@@ -44,9 +44,10 @@ ARGON_NAMESPACE_BEGIN
 
 /// @details
 /// 
-Pass2Visitor::Pass2Visitor(Processor &proc)
+Pass2Visitor::Pass2Visitor(Processor &proc, Context &context)
     : Visitor(ignore_none),
-      m_proc(proc)
+      m_proc(proc),
+      m_context(context)
 {}
 
 
@@ -67,19 +68,15 @@ Pass2Visitor::visit(VarNode *node)
     assert(argsNode->getChilds().size() == 1);
 
     Node *data = argsNode->getChilds()[0];
-    /// @bug Supports only LiteralNode for initialization
+
+    Value value;
+    apply_visitor(data, EvalExprVisitor(proc(), context(), value));
 
     ValueElement *elem = 0;
-    try
-    {
-    	elem = new ValueElement(this->proc(), String(node_cast<LiteralNode>(data)->data()));
-    }
-    catch(...)
-    {
-    	elem = new ValueElement(this->proc(), node_cast<NumberNode>(data)->data());
-    }
-    this->m_proc.stackPush(elem);
-    this->proc().getSymbols().add(node->data(), Ref(elem));
+    elem = new ValueElement(this->proc(), value);
+
+    this->proc().stackPush(elem);
+    this->proc().getGlobalContext().getSymbols().add(node->data(), Ref(elem));
 }
 
 
@@ -98,7 +95,7 @@ Pass2Visitor::visit(ConnNode *node)
 
     //this->proc().addtoHeap(elem);
 
-    this->proc().getSymbols().add(node->data(), Ref(elem));
+    this->proc().getGlobalContext().getSymbols().add(node->data(), Ref(elem));
 
 /*
     Connection *elem = this->proc().getSymbols().addPtr(
@@ -111,7 +108,7 @@ Pass2Visitor::visit(ConnNode *node)
         throw std::runtime_error("dbc is not connected");
     }
 
-    this->m_proc.getSymbols().find<Element>(node->data());
+    this->m_proc.getGlobalContext().getSymbols().find<Element>(node->data());
 
     //this->m_proc.getSymbol<Task>(id).exec(argumentlist);
 }

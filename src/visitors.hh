@@ -106,7 +106,7 @@ protected:
 class Pass2Visitor : public Visitor
 {
 public:
-    Pass2Visitor(Processor &proc);
+    Pass2Visitor(Processor &proc, Context &context);
 
     virtual void visit(ConnNode *node);
     virtual void visit(VarNode *node);
@@ -122,7 +122,9 @@ public:
 
 protected:
     inline Processor& proc(void) { return m_proc; }
+    inline Context& context(void) { return m_context; }
     Processor &m_proc;
+    Context &m_context;
 };
 
 

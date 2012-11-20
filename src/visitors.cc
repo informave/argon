@@ -153,15 +153,21 @@ EvalExprVisitor::visit(BinaryExprNode *node)
         break;
 
     case BINARY_EXPR_EQUAL:
-    	this->m_value.data() = val0.data().asInt() == val1.data().asInt(); /// FIXME
+        if(val0.data().datatype() == informave::db::DAL_TYPE_STRING)
+            this->m_value.data() = val0.data().asStr() == val1.data().asStr(); /// FIXME
+        else
+            this->m_value.data() = val0.data().asInt() == val1.data().asInt(); /// FIXME
 	break;
 
     case BINARY_EXPR_NOTEQUAL:
-        this->m_value.data() = val0.data().asInt() != val1.data().asInt(); /// FIXME
+        if(val0.data().datatype() == informave::db::DAL_TYPE_STRING)
+            this->m_value.data() = val0.data().asStr().utf8() != val1.data().asStr().utf8(); /// FIXME
+        else
+            this->m_value.data() = val0.data().asInt() != val1.data().asInt(); /// FIXME
 	break;
 
     default:
-        this->m_value.data() = 255;
+        this->m_value.data() = 255; /// @bug fixme
 
 
     /*

@@ -166,7 +166,7 @@ ObjectType::findConnection(const ArgumentList &args)
     
     try
     {
-        Connection *dbc = this->proc().getSymbols().find<Connection>(id);
+        Connection *dbc = this->proc().getGlobalContext().getSymbols().find<Connection>(id);
         return dbc;
     }
     catch(...)

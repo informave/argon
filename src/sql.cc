@@ -338,7 +338,8 @@ Sql::run(void)
     {
         Node::nodelist_type &args = argNode->getChilds();
         safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
-        this->m_conn = this->proc().getSymbols().find<Connection>(node->data());
+        //this->m_conn = this->proc().getSymbols().find<Connection>(node->data());
+	this->m_conn = this->resolve<Connection>(node->data());
     }
 
     // Prepare table name, schema etc.
@@ -546,7 +547,8 @@ Sql::newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, Dec
     {
         Node::nodelist_type &args = argNode->getChilds();
         safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
-        conn = proc.getSymbols().find<Connection>(node->data());
+        conn = proc.getGlobalContext().getSymbols().find<Connection>(node->data());
+	//conn = this->resolve<Connection>(node->data());
     }
 
     }

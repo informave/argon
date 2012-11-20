@@ -278,16 +278,16 @@ BlockVisitor::visit(VarNode *node)
     assert(argsNode->getChilds().size() == 1);
 
     Node *data = argsNode->getChilds()[0];
-    /// @bug Supports only LiteralNode for initialization
 
-    Value v;
+    Value value;
+    apply_visitor(data, EvalExprVisitor(proc(), context(), value));
 
-    apply_visitor(data, EvalExprVisitor(proc(), context(), v));
+    ValueElement *elem = 0;
+    elem = new ValueElement(this->proc(), value);
 
-    //ValueElement *elem = new ValueElement(this->proc(), String(node_cast<LiteralNode>(data)->data()));
-    ValueElement *elem = new ValueElement(proc(), v);
-    this->proc().stackPush(elem); /// @bug check stack scope in functsion
+    this->proc().stackPush(elem);
     this->context().getSymbols().add(node->data(), Ref(elem));
+    this->m_returnVal.data() = value.data();
 }
 
 
