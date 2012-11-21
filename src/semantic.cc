@@ -168,6 +168,24 @@ IdNode::semanticCheck(SemanticCheck &sc)
 }
 
 
+
+/// @details
+///
+void
+BooleanNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+/// @details
+///
+void
+NullNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+
 /// @details
 /// 
 void

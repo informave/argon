@@ -123,6 +123,8 @@ function(Z) ::= FUNCTION ID(A) declArgList(C) compoundStatement(B) SEP. {
 
 
 primaryExpression(A) ::= id(B). { A = B; }
+primaryExpression(A) ::= boolean(B). { A = B; }
+primaryExpression(A) ::= null(B). { A = B; }
 primaryExpression(A) ::= literal(B). { A = B; }
 primaryExpression(A) ::= number(B). { A = B; }
 primaryExpression(A) ::= column(B). { A = B; }
@@ -1037,6 +1039,28 @@ number(A) ::= NUMBER(B). {
 
 
 //..............................................................................
+///////////////////////////////////////////////////////////////////////// Number
+%type boolean { BooleanNode* }
+boolean(A) ::= BOOLEAN(B). {
+	CREATE_NODE(BooleanNode);
+	//node->init(B->data());
+	ADD_TOKEN(node, B);
+	A = node;
+}
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////////////// Null
+
+%type null { NullNode* }
+null(A) ::= NULL(B). {
+        CREATE_NODE(NullNode);
+        ADD_TOKEN(node, B);
+        A = node;
+}
+
+
+//..............................................................................
 ///////////////////////////////////////////////////////////////////////// Column
 
 // %type column { ColumnNode* }
@@ -1053,6 +1077,8 @@ column(A) ::= COLUMN_NUM(B). {
 					ADD_TOKEN(node, B);
                A = node;
 }
+
+
 
 
 

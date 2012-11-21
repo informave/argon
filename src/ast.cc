@@ -79,6 +79,8 @@ void TaskBeforeNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskRulesNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskAfterNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskFinalNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void BooleanNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void NullNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
 void KeyValueNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
@@ -285,7 +287,8 @@ DEFAULT_VISIT(FuncCallNode)
 DEFAULT_VISIT(ResColumnNode)
 DEFAULT_VISIT(ResColumnNumNode)
 DEFAULT_VISIT(ResIdNode)
-
+DEFAULT_VISIT(BooleanNode)
+DEFAULT_VISIT(NullNode)
 DEFAULT_VISIT(LambdaFuncNode)
 DEFAULT_VISIT(AssertNode)
 

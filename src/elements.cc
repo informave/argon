@@ -350,7 +350,10 @@ ValueElement::str(void) const
     //s.append(this->id().str());
     s.append("Value: ");
     //s.append(this->getValue().data().asStr());
-    s.append(this->m_value.data().asStr());
+    if(!this->m_value.data().isnull())
+    	s.append(this->m_value.data().asStr());
+    else
+    	s.append("<NULL>");
     
     return s;
 }
@@ -370,7 +373,10 @@ ValueElement::getSourceInfo(void) const
 String
 ValueElement::name(void) const
 {
-    return this->m_value.data().asStr();
+    if(!this->m_value.data().isnull())
+    	return this->m_value.data().asStr();
+    else
+    	return "<NULL>";
 }
 
 

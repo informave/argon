@@ -49,7 +49,7 @@ bool isnumber(const std::basic_string<T> &s)
         i != s.end();
         ++i)
     {
-        if(! isdigit(*i))
+        if(! (isdigit(*i) || *i == '.'))
             return false;
     }
     return true;
@@ -144,6 +144,8 @@ public:
         this->m_keywords[ _str<CharT, TraitsT>("RULES")        ] = ARGON_TOK_TASK_RULES;
         this->m_keywords[ _str<CharT, TraitsT>("AFTER")        ] = ARGON_TOK_TASK_AFTER;
         this->m_keywords[ _str<CharT, TraitsT>("FINALIZATION")        ] = ARGON_TOK_TASK_FINAL;
+
+	this->m_keywords[ _str<CharT, TraitsT>("NULL")        ] = ARGON_TOK_NULL;
 
         /// Additional map with names
         this->m_templates[ _str<CharT, TraitsT>("VOID")         ] = ARGON_TOK_TEMPLATE;
@@ -600,7 +602,11 @@ public:
             }
         }
 
-        if(isnumber(s))
+	if(s == L"false" || s == L"true") /// @bug fix case
+	{
+	    Token tok(ARGON_TOK_BOOLEAN, SourceInfo(m_srcname, start, len, line), s);
+	}
+        else if(isnumber(s))
         {
             Token tok(ARGON_TOK_NUMBER, SourceInfo(m_srcname, start, len, line), s);
             return tok;

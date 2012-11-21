@@ -142,6 +142,7 @@ struct EvalExprVisitor : public CVisitor<Context>
     EvalExprVisitor(Processor &proc, Context &context, Value &value);
     
     virtual void visit(ExprNode *node);
+    virtual void visit(NullNode *node);
     virtual void visit(NumberNode *node);
     virtual void visit(IdNode *node);
     virtual void visit(LiteralNode *node);

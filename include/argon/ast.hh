@@ -64,7 +64,8 @@ struct IdCallNode;
 struct ColumnAssignNode;
 struct ColumnNumNode;
 struct NumberNode;
-
+struct BooleanNode;
+struct NullNode;
 
 struct ExprNode;
 
@@ -219,6 +220,8 @@ public:
     virtual void visit(TaskAfterNode *node);
     virtual void visit(TaskFinalNode *node);
     virtual void visit(NumberNode *node);
+    virtual void visit(BooleanNode *node);
+    virtual void visit(NullNode *node);
     virtual void visit(ExprNode *node);
 
     virtual void visit(LambdaFuncNode *node);
@@ -391,6 +394,9 @@ DefineNode(Program, Identifier);
 DefineNode(Module, Identifier);
 
 DefineNode(Function, Identifier);
+
+DefineNode(Boolean, bool);
+DefineNode(Null, void);
 
 //..............................................................................
 /////////////////////////////////////////////////////////////////// TaskExecNode

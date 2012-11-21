@@ -47,6 +47,16 @@ EvalExprVisitor::EvalExprVisitor(Processor &proc, Context &context, Value &value
       m_value(value)
 {}
 
+
+
+void
+EvalExprVisitor::visit(NullNode *node)
+{
+	assert(node);
+	this->m_value.data() = db::Variant();
+}
+
+
 void
 EvalExprVisitor::visit(AssignNode *node)
 {
@@ -62,6 +72,7 @@ EvalExprVisitor::visit(AssignNode *node)
     apply_visitor(op1, EvalExprVisitor(proc(), context(), val1));
 
     elem->getValue().data() = val1.data();
+    /// @bug return expr value?
 }
     
 

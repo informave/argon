@@ -205,7 +205,7 @@ DTSEngine::load(std::istreambuf_iterator<wchar_t> in, String sourcename)
 
 
 #ifndef NDEBUG
-    p.trace(stdout, "[LEMON] ");
+    //p.trace(stdout, "[LEMON] ");
 #endif
 
     do

@@ -99,6 +99,8 @@ GlobalContext::run(void)
     ARGON_DPRINT(ARGON_MOD_PROC, "Running script");
 
     ARGON_SCOPED_STACKFRAME(this->proc());
+    ARGON_SCOPED_SUBSYMBOLS(this->getSymbols());
+
     Node::nodelist_type childs = this->m_tree->getChilds();
 
     // Phase 2
