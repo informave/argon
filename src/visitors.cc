@@ -57,6 +57,15 @@ EvalExprVisitor::visit(NullNode *node)
 }
 
 
+
+void
+EvalExprVisitor::visit(BooleanNode *node)
+{
+	assert(node);
+	this->m_value.data() = db::Variant(node->data());
+}
+
+
 void
 EvalExprVisitor::visit(AssignNode *node)
 {
@@ -110,6 +119,7 @@ EvalExprVisitor::visit(UnaryExprNode *node)
 void
 EvalExprVisitor::visit(BinaryExprNode *node)
 {
+    using informave::db::BinaryOperatorVariant;
     assert(node->getChilds().size() == 2);
 
     Value val0, val1;
@@ -125,6 +135,70 @@ EvalExprVisitor::visit(BinaryExprNode *node)
         return;
     }
 
+	switch(node->data())
+	{
+    case BINARY_EXPR_ADD:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_add);
+        break;
+
+    case BINARY_EXPR_SUB:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_sub);
+        break;
+
+    case BINARY_EXPR_MUL:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_mul);
+        break;
+
+    case BINARY_EXPR_DIV:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_div);
+        break;
+
+    case BINARY_EXPR_MOD:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_mod);
+        break;
+
+    case BINARY_EXPR_CONCAT:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_concat);
+        break;
+
+    case BINARY_EXPR_OR:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_or);
+        break;
+
+    case BINARY_EXPR_AND:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_and);
+        break;
+
+    case BINARY_EXPR_XOR:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_xor);
+        break;
+
+    case BINARY_EXPR_EQUAL:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_equal);
+        break;
+
+    case BINARY_EXPR_NOTEQUAL:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_not_equal);
+        break;
+        
+    case BINARY_EXPR_LESS:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_less);
+        break;
+
+    case BINARY_EXPR_LESSEQUAL:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_less_equal);
+        break;
+
+    case BINARY_EXPR_GREATER:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_greater);
+        break;
+
+    case BINARY_EXPR_GREATEREQUAL:
+        this->m_value.data() = apply_binary_method(val0.data(), val1.data(), &BinaryOperatorVariant::binary_greater_equal);
+        break;
+	}
+
+/*
 	switch(node->data())
 	{
     case BINARY_EXPR_ADD:
@@ -166,6 +240,8 @@ EvalExprVisitor::visit(BinaryExprNode *node)
     case BINARY_EXPR_EQUAL:
         if(val0.data().datatype() == informave::db::DAL_TYPE_STRING)
             this->m_value.data() = val0.data().asStr() == val1.data().asStr(); /// FIXME
+        else if(val0.data().datatype() == informave::db::DAL_TYPE_BOOL)
+            this->m_value.data() = val0.data().get<bool>() == val1.data().get<bool>(); /// FIXME
         else
             this->m_value.data() = val0.data().asInt() == val1.data().asInt(); /// FIXME
 	break;
@@ -173,6 +249,8 @@ EvalExprVisitor::visit(BinaryExprNode *node)
     case BINARY_EXPR_NOTEQUAL:
         if(val0.data().datatype() == informave::db::DAL_TYPE_STRING)
             this->m_value.data() = val0.data().asStr().utf8() != val1.data().asStr().utf8(); /// FIXME
+        else if(val0.data().datatype() == informave::db::DAL_TYPE_BOOL)
+            this->m_value.data() = val0.data().get<bool>() != val1.data().get<bool>(); /// FIXME
         else
             this->m_value.data() = val0.data().asInt() != val1.data().asInt(); /// FIXME
 	break;
@@ -181,7 +259,7 @@ EvalExprVisitor::visit(BinaryExprNode *node)
         this->m_value.data() = 255; /// @bug fixme
 
 
-    /*
+    
     BINARY_EXPR_OR,
     BINARY_EXPR_AND,
     BINARY_EXPR_MOD,
@@ -195,9 +273,9 @@ EvalExprVisitor::visit(BinaryExprNode *node)
     BINARY_EXPR_NOTEQUAL,
     BINARY_EXPR_GREATER,
     BINARY_EXPR_GREATEREQUAL
-    */
-	}
 
+	}
+*/
 }
 
 

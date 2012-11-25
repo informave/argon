@@ -602,16 +602,18 @@ public:
             }
         }
 
-	if(s == L"false" || s == L"true") /// @bug fix case
-	{
-	    Token tok(ARGON_TOK_BOOLEAN, SourceInfo(m_srcname, start, len, line), s);
-	}
+        if(up == L"TRUE" || up == L"FALSE")
+        {
+            Token tok(ARGON_TOK_BOOLEAN, SourceInfo(m_srcname, start, len, line), s);
+            tok.setData(up);
+            return tok;
+        }
         else if(isnumber(s))
         {
             Token tok(ARGON_TOK_NUMBER, SourceInfo(m_srcname, start, len, line), s);
             return tok;
         }
-            
+        
         Token tok(ARGON_TOK_ID, SourceInfo(m_srcname, start, len, line));
         tok.setData(s);
         return tok;

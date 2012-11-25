@@ -1043,7 +1043,10 @@ number(A) ::= NUMBER(B). {
 %type boolean { BooleanNode* }
 boolean(A) ::= BOOLEAN(B). {
 	CREATE_NODE(BooleanNode);
-	//node->init(B->data());
+	if(B->data() == "TRUE")
+		  node->init(true);
+	else
+		  node->init(false);
 	ADD_TOKEN(node, B);
 	A = node;
 }

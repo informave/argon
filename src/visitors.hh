@@ -143,6 +143,7 @@ struct EvalExprVisitor : public CVisitor<Context>
     
     virtual void visit(ExprNode *node);
     virtual void visit(NullNode *node);
+    virtual void visit(BooleanNode *node);
     virtual void visit(NumberNode *node);
     virtual void visit(IdNode *node);
     virtual void visit(LiteralNode *node);
