@@ -183,6 +183,15 @@ ExceptNode::semanticCheck(SemanticCheck &sc)
 {
 }
 
+
+/// @details
+/// 
+void
+SequenceNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
 /// @details
 /// 
 void

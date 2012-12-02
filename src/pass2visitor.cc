@@ -89,6 +89,29 @@ Pass2Visitor::visit(VarNode *node)
 /// @details
 /// 
 void
+Pass2Visitor::visit(SequenceNode *node)
+{
+    ArgumentsNode *argsNode = find_node<ArgumentsNode>(node);
+    assert(argsNode);
+    assert(argsNode->getChilds().size() == 1);
+
+    Node *data = argsNode->getChilds()[0];
+
+    Value value;
+    apply_visitor(data, EvalExprVisitor(proc(), context(), value));
+
+    Sequence *elem = 0;
+    elem = new Sequence(this->proc(), value);
+
+    this->proc().stackPush(elem);
+    this->proc().getGlobalContext().getSymbols().add(node->data(), Ref(elem));
+}
+
+
+
+/// @details
+/// 
+void
 Pass2Visitor::visit(ConnNode *node)
 {
 

@@ -89,12 +89,22 @@ langElementList(Z) ::= . {
 
 langElement(Z) ::= connDecl(A). { Z = A; }
 langElement(Z) ::= varDef(A). { Z = A; }
+langElement(Z) ::= sequenceDef(A). { Z = A; }
 langElement(Z) ::= decl(A). { Z = A; } // obj decl
 langElement(Z) ::= exceptionDecl(A). { Z = A; }
 langElement(Z) ::= task(A). { Z = A; }
 langElement(Z) ::= function(A). {
 	Z = A;
 }
+
+
+sequenceDef(A) ::= SEQUENCE ID(B) callArgs(C) SEP. {
+	CREATE_NODE(SequenceNode);
+	node->init(B->data());
+	node->addChild(C);
+	A = node;
+}
+
 
 
 //..............................................................................

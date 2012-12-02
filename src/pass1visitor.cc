@@ -112,6 +112,16 @@ Pass1Visitor::visit(VarNode *node)
 /// @details
 /// 
 void
+Pass1Visitor::visit(SequenceNode *node)
+{
+    // nothing to do
+}
+
+
+
+/// @details
+/// 
+void
 Pass1Visitor::visit(TaskNode *node)
 {
     this->proc().getTypes().add(new TaskType(this->proc(), node->id, node));

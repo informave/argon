@@ -68,6 +68,7 @@ struct BooleanNode;
 struct NullNode;
 
 struct ExprNode;
+struct SequenceNode;
 
 struct LambdaFuncNode;
 struct AssertNode;
@@ -240,6 +241,8 @@ public:
 
     virtual void visit(LambdaFuncNode *node);
     virtual void visit(AssertNode *node);
+
+    virtual void visit(SequenceNode *node);
 
     virtual void visit(TryNode *node);
     virtual void visit(ExceptNode *node);
@@ -483,6 +486,9 @@ DefineNode(TaskFinal, void);
 DefineNode(Throw, void);
 
 DefineNode(ExceptionDecl, Identifier);
+
+
+DefineNode(Sequence, Identifier);
 
  /*
 struct TaskInitNode : public SimpleNode<void>

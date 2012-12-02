@@ -1316,6 +1316,42 @@ inline Value enter_element(const T &f, Element &elem)
 
 
 //..............................................................................
+/////////////////////////////////////////////////////////////////////// Sequence
+///
+/// @since 0.0.1
+/// @brief Sequence Element
+class Sequence : public Element
+{
+public:
+    Sequence(Processor &proc, const Value& value);
+
+    virtual ~Sequence(void)
+    {}
+
+    virtual Value& getValue(void)
+    {
+        return this->m_value;
+    }
+    
+    virtual SourceInfo getSourceInfo(void) const;
+    virtual String str(void) const;
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
+protected:
+    Value m_value;
+};
+
+
+
+//..............................................................................
 ///////////////////////////////////////////////////////////////////////// Column
 ///
 /// @since 0.0.1

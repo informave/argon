@@ -82,6 +82,8 @@ void TaskFinalNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void BooleanNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void NullNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
+void SequenceNode::accept(Visitor &visitor)       { visitor.visit(this); }
+
 void ExceptNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void ExceptIdNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TryNode::accept(Visitor &visitor)       { visitor.visit(this); }
@@ -338,6 +340,7 @@ DEFAULT_VISIT(FinallyNode)
 DEFAULT_VISIT(ThrowNode)
 
     DEFAULT_VISIT(ExceptionDeclNode)
+    DEFAULT_VISIT(SequenceNode)
 
     DEFAULT_VISIT(TaskExceptNode)
     DEFAULT_VISIT(TaskExceptIdNode)

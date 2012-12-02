@@ -86,6 +86,7 @@ public:
 
     virtual void visit(ConnNode *node);
     virtual void visit(VarNode *node);
+    virtual void visit(SequenceNode *node);
     virtual void visit(TaskNode *node);
     virtual void visit(FunctionNode *node);
     //virtual void visit(ParseTree *node);
@@ -113,6 +114,7 @@ public:
 
     virtual void visit(ConnNode *node);
     virtual void visit(VarNode *node);
+    virtual void visit(SequenceNode *node);
     virtual void visit(TaskNode *node);
     virtual void visit(FunctionNode *node);
     //virtual void visit(ParseTree *node);
