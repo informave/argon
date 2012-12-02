@@ -153,19 +153,20 @@ int main(int argc, char **argv)
         std::cout << "Compile error:" << std::endl
                   << err.what() << std::endl
                   << "No code was executed." << std::endl;
-        return ARGON_EXIT_PARSER_ERROR;
+        result = ARGON_EXIT_PARSER_ERROR;
     }
     catch(RuntimeError &err)
     {
         std::cout << "Runtime error:" << std::endl
                   << err.what() << std::endl;
-        return ARGON_EXIT_PARSER_ERROR;
+        result = ARGON_EXIT_PARSER_ERROR;
     }
 	catch(std::exception &e)
 	{
 		std::cout << "UNHANDLED EXCEPTION:" << std::endl << e.what() << std::endl;
-        return ARGON_EXIT_PARSER_ERROR;
+        result = ARGON_EXIT_PARSER_ERROR;
 	}
+    std::cout << "Exiting." << std::endl;
     return result;
 }
 

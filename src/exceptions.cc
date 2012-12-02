@@ -26,6 +26,7 @@
 
 #include "argon/exceptions.hh"
 #include "argon/token.hh"
+#include "argon/rtti.hh"
 
 #include <sstream>
 #include <iostream>
@@ -269,6 +270,15 @@ BreakControlException::BreakControlException(void)
 {}
 
 BreakControlException::~BreakControlException(void)
+{}
+
+
+
+RethrowControlException::RethrowControlException(void)
+	: ControlException()
+{}
+
+RethrowControlException::~RethrowControlException(void)
 {}
 
 

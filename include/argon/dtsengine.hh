@@ -54,6 +54,7 @@ ARGON_NAMESPACE_BEGIN
 
 class RuntimeError;
 
+class ExceptionType;
 
 class ControlException;
 class ReturnControlException;
@@ -519,6 +520,25 @@ protected:
 };
 
 
+class IExceptionInfo
+{
+public:
+    virtual ~IExceptionInfo(void)
+    {}
+};
+
+template<typename T>
+class ExceptionInfo : public IExceptionInfo
+{
+public:
+    ExceptionInfo(T &exception)
+    {}
+
+    virtual ~ExceptionInfo(void)
+    {}
+};
+
+
 //..............................................................................
 //////////////////////////////////////////////////////////////////////// Context
 ///
@@ -566,6 +586,11 @@ public:
     }
 
 
+    void setCurrentException(IExceptionInfo *info);
+    void releaseCurrentException(void);
+    IExceptionInfo& getCurrentException(void);
+    bool hasCurrentException(void) const;
+
 protected:
     /// @brief Hidden constructor, only derived classes can be instantiated
     Context(Processor &proc, const ArgumentList &args = ArgumentList());
@@ -576,6 +601,8 @@ protected:
 
     /// @brief Arguments for this context, used when run() is called
     ArgumentList m_args;
+
+    IExceptionInfo *m_exception_info;
 
 private:
     Context(void); // not implemented
@@ -732,6 +759,8 @@ private:
 };
 
 
+
+
 //..............................................................................
 /////////////////////////////////////////////////////////////////////////// Task
 ///
@@ -760,6 +789,9 @@ protected:
     /// Tasks must be runnable
     virtual Value run(void);
 
+    virtual void processData(void);
+    virtual void do_processData(void) = 0;
+
     TaskNode *m_node;
 
     NodeList m_init_nodes,
@@ -767,6 +799,15 @@ protected:
         m_rules_nodes,
         m_after_nodes,
         m_final_nodes;
+
+typedef std::map<std::string, TaskRuleBlockNode*> exh_sqlstate_nodelist_type;
+typedef std::map<Identifier, TaskRuleBlockNode*>      exh_id_nodelist_type; // @todo String -> Identifier?
+
+
+    exh_sqlstate_nodelist_type  m_exh_sqlstates;
+    exh_id_nodelist_type        m_exh_ids;
+    TaskRuleBlockNode          *m_exh_catchall;
+
     /*
     NodeList  m_pre_nodes;
     NodeList  m_colassign_nodes;
@@ -809,6 +850,8 @@ public:
 protected:
     virtual Value run(void);
 
+    virtual void do_processData(void);
+
     /// @brief Main object
     /// This object only exists while task is running
     Object *m_mainobject;
@@ -849,6 +892,8 @@ public:
 protected:
     virtual Value run(void);
 
+    virtual void do_processData(void);
+
     /// @brief Main object
     /// This object only exists while task is running
     Object *m_destobject;
@@ -887,6 +932,8 @@ public:
 
 protected:
     virtual Value run(void);
+
+    virtual void do_processData(void);
 
     /// This object only exists while task is running
     Object *m_srcobject;
@@ -927,6 +974,8 @@ public:
 
 protected:
     virtual Value run(void);
+
+    virtual void do_processData(void);
 };
 
 
@@ -1352,7 +1401,7 @@ protected:
 class ScopedStackPush;
 class ScopedStackFrame;
 class ScopedSubSymbols;
-
+class ScopedReleaseException;
 
 
 /// @bug add documentation
@@ -1519,6 +1568,27 @@ private:
 
 
 
+//..............................................................................
+///////////////////////////////////////////////////////// ScopedReleaseException
+///
+/// @since 0.0.1
+/// @brief Scoped Release Exception
+class ScopedReleaseException
+{
+public:
+    ScopedReleaseException(Context &ctx);
+
+    ~ScopedReleaseException(void);
+
+protected:
+    Context &m_ctx;
+};
+
+
+#define ARGON_SCOPED_RELEASE_EXCEPTION(ctx) ScopedReleaseException sre__autogen_##__LINE__ (ctx)
+
+
+
 
 
 //..............................................................................
@@ -1570,6 +1640,43 @@ public:
 
 protected:
     const Processor::stack_type m_stack;
+};
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////// CustomException
+///
+/// @since 0.0.1
+/// @brief Control exception
+class CustomException : public std::exception
+{
+public:
+    CustomException(const ExceptionType &type)
+    : m_type(type), m_value()
+    {}
+
+    CustomException(const ExceptionType &type, const Value& val)
+        : m_type(type), m_value(val)
+    {}
+
+	virtual ~CustomException() throw()
+	{}
+
+    const char* what(void) const throw()
+    {
+        /// @bug check for null
+        return m_value.str().utf8();
+    }
+
+    const ExceptionType& getType(void) const
+    {
+        return this->m_type;
+    }
+
+protected:
+    const ExceptionType &m_type;
+    Value m_value;
 };
 
 
@@ -1633,6 +1740,21 @@ public:
 	BreakControlException(void);
 
 	virtual ~BreakControlException(void);
+};
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////// RethrowControlException
+///
+/// @since 0.0.1
+/// @brief Control exception for break statement
+class RethrowControlException : public ControlException
+{
+public:
+	RethrowControlException(void);
+
+	virtual ~RethrowControlException(void);
 };
 
 

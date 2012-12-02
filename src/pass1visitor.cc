@@ -87,6 +87,18 @@ Pass1Visitor::visit(DeclNode *node)
 
 
 
+/// @details
+/// 
+void
+Pass1Visitor::visit(ExceptionDeclNode *node)
+{
+    //Identifier x = find_node<IdNode>(node)->data();
+
+    this->proc().getTypes().add(new CustomExceptionType(this->proc(), node->data(), node));
+}
+
+
+
 
 /// @details
 /// 

@@ -81,7 +81,7 @@ EvalExprVisitor::visit(AssignNode *node)
     apply_visitor(op1, EvalExprVisitor(proc(), context(), val1));
 
     elem->getValue().data() = val1.data();
-    /// @bug return expr value?
+	this->m_value.data() = val1.data();
 }
     
 

@@ -340,6 +340,86 @@ private:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// ExceptionType
+///
+/// @since 0.0.1
+/// @brief ExceptionType
+class ExceptionType : public Type
+{
+public:
+    ExceptionType(Processor &proc, Identifier type_id, ExceptionDeclNode *node)
+        : Type(proc, type_id),
+          m_node(node)
+    {}
+
+    virtual String name(void) const
+    {
+        return "exception";
+    }
+
+
+    virtual Element* newInstance(const ArgumentList &args, Type::mode_t mode = DEFAULT_MODE) = 0;
+
+    virtual void throwException(const ArgumentList &args) const = 0;
+
+
+    virtual ExceptionDeclNode* getNode(void) const { return this->m_node; }
+
+protected:
+    ExceptionDeclNode *m_node;
+
+private:
+    ExceptionType(const ExceptionType &);
+    ExceptionType& operator=(const ExceptionType &);
+};
+
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////// CustomExceptionType
+///
+/// @since 0.0.1
+/// @brief CustomExceptionType
+class CustomExceptionType : public ExceptionType
+{
+public:
+    CustomExceptionType(Processor &proc, Identifier type_id, ExceptionDeclNode *node)
+        : ExceptionType(proc, type_id, node)
+    {}
+
+    virtual String name(void) const
+    {
+        return "custom-exception";
+    }
+
+
+    virtual Element* newInstance(const ArgumentList &args, Type::mode_t mode = DEFAULT_MODE);
+
+    virtual void throwException(const ArgumentList &args) const;
+
+private:
+    CustomExceptionType(const CustomExceptionType &);
+    CustomExceptionType& operator=(const CustomExceptionType &);
+};
+
+
+
 ARGON_NAMESPACE_END
 
 

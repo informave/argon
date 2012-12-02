@@ -71,13 +71,27 @@ struct ExprNode;
 
 struct LambdaFuncNode;
 struct AssertNode;
-
+struct TaskRuleBlockNode;
 
 struct BinaryExprNode;
 struct UnaryExprNode;
 struct AssignNode;
 
 struct CompoundNode;
+
+struct ExceptionDeclNode;
+
+struct TryNode;
+struct ExceptNode;
+struct ExceptIdNode;
+struct ExceptLiteralNode;
+struct FinallyNode;
+struct ThrowNode;
+
+struct TaskExceptNode;
+struct TaskExceptIdNode;
+struct TaskExceptLiteralNode;
+
 
 struct IfelseNode;
 struct WhileNode;
@@ -226,6 +240,21 @@ public:
 
     virtual void visit(LambdaFuncNode *node);
     virtual void visit(AssertNode *node);
+
+    virtual void visit(TryNode *node);
+    virtual void visit(ExceptNode *node);
+    virtual void visit(ExceptIdNode *node);
+    virtual void visit(ExceptLiteralNode *node);
+    virtual void visit(FinallyNode *node);
+    virtual void visit(ThrowNode *node);
+
+    virtual void visit(ExceptionDeclNode *node);
+
+    virtual void visit(TaskRuleBlockNode *node);
+
+    virtual void visit(TaskExceptNode *node);
+    virtual void visit(TaskExceptIdNode *node);
+    virtual void visit(TaskExceptLiteralNode *node);
 
     virtual void visit(BinaryExprNode *node);
     virtual void visit(UnaryExprNode *node);
@@ -398,6 +427,8 @@ DefineNode(Function, Identifier);
 DefineNode(Boolean, bool);
 DefineNode(Null, void);
 
+DefineNode(ExceptLiteral, void);
+
 //..............................................................................
 /////////////////////////////////////////////////////////////////// TaskExecNode
 ///
@@ -440,8 +471,18 @@ DefineNode(TaskRules, void);
 
 DefineNode(TaskAfter, void);
 
+DefineNode(TaskExcept, void);
+
+DefineNode(TaskExceptId, void);
+
+DefineNode(TaskExceptLiteral, void);
+
+
 DefineNode(TaskFinal, void);
 
+DefineNode(Throw, void);
+
+DefineNode(ExceptionDecl, Identifier);
 
  /*
 struct TaskInitNode : public SimpleNode<void>
@@ -469,6 +510,12 @@ struct TaskInitNode : public SimpleNode<void>
 DefineNode(LambdaFunc, void);
 DefineNode(Assert, void);
 
+DefineNode(Try, void);
+DefineNode(Except, void);
+DefineNode(ExceptId, void);
+DefineNode(Finally, void);
+
+DefineNode(TaskRuleBlock, void);
 
 //..............................................................................
 //////////////////////////////////////////////////////////////////// SqlExecNode

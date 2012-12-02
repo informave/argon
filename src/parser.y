@@ -90,6 +90,7 @@ langElementList(Z) ::= . {
 langElement(Z) ::= connDecl(A). { Z = A; }
 langElement(Z) ::= varDef(A). { Z = A; }
 langElement(Z) ::= decl(A). { Z = A; } // obj decl
+langElement(Z) ::= exceptionDecl(A). { Z = A; }
 langElement(Z) ::= task(A). { Z = A; }
 langElement(Z) ::= function(A). {
 	Z = A;
@@ -413,6 +414,107 @@ blockItem(A) ::= assertStatement(B) SEP. {
 
 
 
+blockItem(A) ::= exceptionalStatement(B) SEP. {
+	A = B;
+}
+
+
+blockItem(A) ::= throwStatement(B) SEP. {
+	A = B;
+}
+
+
+throwStatement(A) ::= THROW. {
+	CREATE_NODE(ThrowNode);
+	A = node;
+}
+
+throwStatement(A) ::= THROW id(B) callArgs(C). {
+	CREATE_NODE(ThrowNode);
+	A = node;
+	A->addChild(B);
+	A->addChild(C);
+}
+
+
+exceptionalCompoundBlock(A) ::= blockItemList(B). {
+	CREATE_NODE(CompoundNode);
+	A = node;
+	A->addChilds(B);
+}
+
+tryStatement(A) ::= TRY COLON exceptionalCompoundBlock(B). {
+	CREATE_NODE(TryNode);
+	A = node;
+	A->addChild(B);
+}
+
+exceptStatement(A) ::= EXCEPT COLON exceptionalCompoundBlock(B). {
+	CREATE_NODE(ExceptNode);
+	A = node;
+	A->addChild(B);
+}
+
+exceptStatement(A) ::= EXCEPT id(C) COLON exceptionalCompoundBlock(B). {
+	CREATE_NODE(ExceptIdNode);
+	A = node;
+	A->addChild(C);
+	A->addChild(B);
+}
+
+
+exceptStatement(A) ::= EXCEPT literal(C) COLON exceptionalCompoundBlock(B). {
+	CREATE_NODE(ExceptLiteralNode);
+	A = node;
+	A->addChild(C);
+	A->addChild(B);
+}
+
+
+finallyStatement(A) ::= FINALLY COLON exceptionalCompoundBlock(B). {
+	CREATE_NODE(FinallyNode);
+	A = node;
+	A->addChild(B);
+}
+
+%type exceptStatementList { NodeList* }
+
+exceptStatementList(A) ::= exceptStatementList(B) exceptStatement(C). {
+	A = B;
+   A->push_back(C);
+}
+
+exceptStatementList(A) ::= exceptStatement(B). {
+	A = tree->newNodeList();
+   A->push_back(B);
+}
+
+
+
+
+exceptionalStatement(A) ::= tryStatement(B) exceptStatementList(C) END. {
+	A = B;
+	A->addChilds(C);
+}
+
+
+exceptionalStatement(A) ::= tryStatement(B) exceptStatementList(C) finallyStatement(D) END. {
+	A = B;
+	A->addChilds(C);
+	A->addChild(D);
+}
+
+exceptionalStatement(A) ::= tryStatement(B) finallyStatement(C) END. {
+	A = B;
+	A->addChild(C);
+}
+
+
+
+
+
+
+
 assertStatement(A) ::= ASSERT LP argumentExpressionList(B) RP. {
 						 CREATE_NODE(AssertNode);
 						 node->addChild(B);
@@ -423,6 +525,7 @@ assertStatement(A) ::= ASSERT LP argumentExpressionList(B) RP. {
 
 expressionStatement(A) ::= expression(B). { A = B; }
 //expressionStatement ::= .
+
 
 
 %left IF.
@@ -554,6 +657,16 @@ mappingItem(A) ::= literal(B) MAPOP expression(C). {
 	node->addChild(C);
 	A = node;
 }
+
+
+
+
+exceptionDecl(A) ::= EXCEPTION ID(B) SEP. {
+	CREATE_NODE(ExceptionDeclNode);
+	node->init(Identifier(B->data()));
+	A = node;
+}
+
 
 
 //..............................................................................
@@ -703,8 +816,17 @@ taskBody(A) ::= BEGIN bodySections(B) END. { A = B; }
 bodySections(A) ::= bodyExprList(B). {
 	A = tree->newNodeList();
 	CREATE_NODE(TaskRulesNode); /* If there no sections, we default to RULES. */
+	Node *rbn = tree->newNode<TaskRuleBlockNode>();
+	rbn->addChilds(B);
+	node->addChild(rbn);
+	A->push_back(node);
+/*
+
+ CREATE_NODE(type)  type *node = tree->newNode<type>()
+
 	node->addChilds(B);
    A->push_back(node);
+*/
 }
 
 
@@ -726,8 +848,10 @@ bodySectionList(A) ::= bodySection(B). {
 
 
 bodySection(A) ::= bodySectionKeyword(B) COLON bodyExprList(C). {
+	CREATE_NODE(TaskRuleBlockNode);
 	A = B;
-	A->addChilds(C);
+	A->addChild(node);
+	node->addChilds(C);
 }
 
 
@@ -752,6 +876,26 @@ bodySectionKeyword(A) ::= TASK_AFTER. {
 	A = node;
 }
 
+bodySectionKeyword(A) ::= EXCEPT literal(B). {
+	CREATE_NODE(TaskExceptLiteralNode);
+	A = node;
+	A->addChild(B);
+}
+
+
+bodySectionKeyword(A) ::= EXCEPT id(B). {
+        CREATE_NODE(TaskExceptIdNode);
+        A = node;
+        A->addChild(B);
+}
+
+
+bodySectionKeyword(A) ::= EXCEPT. {
+        CREATE_NODE(TaskExceptNode);
+        A = node;
+}
+
+
 bodySectionKeyword(A) ::= TASK_FINAL. {
 	CREATE_NODE(TaskFinalNode);
 	A = node;
@@ -775,11 +919,13 @@ bodyExprList(A) ::= bodyExprList(B) bodyExpr(C). {
 bodyExprList(A) ::= . { A = tree->newNodeList(); }
 
 
+throwCmd(A) ::= throwStatement(B) SEP. { A = B; }
+
 bodyExpr(A) ::= colAssignCmd(B). { A = B; }
 bodyExpr(A) ::= sqlExecCmd(B).   { A = B; }
 bodyExpr(A) ::= logCmd(B).       { A = B; }
 bodyExpr(A) ::= taskExecCmd(B).  { A = B; }
-
+bodyExpr(A) ::= throwCmd(B).     { A = B; }
 
 //..............................................................................
 ///////////////////////////////////////////////////////////// Template Arguments

@@ -3,19 +3,19 @@
 //
 // Copyright (C)         informave.org
 //   2011,               Daniel Vogelbacher <daniel@vogelbacher.name>
-// 
+//
 // Lesser GPL 3.0 License
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
@@ -47,7 +47,7 @@ typedef TemplateArgVisitor    TransferTemplateArgVisitor;
 /////////////////////////////////////////////////////////////////// TransferTask
 
 /// @details
-/// 
+///
 TransferTask::TransferTask(Processor &proc, TaskNode *node, const ArgumentList &args)
     : Task(proc, node, args),
       m_srcobject(),
@@ -56,31 +56,31 @@ TransferTask::TransferTask(Processor &proc, TaskNode *node, const ArgumentList &
 
 
 /// @details
-/// 
+///
 Object*
-TransferTask::getMainObject(void) 
-{ 
+TransferTask::getMainObject(void)
+{
     assert(this->m_srcobject);
-    return this->m_srcobject; 
+    return this->m_srcobject;
 }
 
 
 /// @details
-/// 
+///
 Object*
-TransferTask::getResultObject(void) 
-{ 
+TransferTask::getResultObject(void)
+{
     assert(this->m_destobject);
     return this->m_destobject;
 /*
-    ARGON_ICERR_CTX(false, *this,
-                "A STORE task does not contains a result object.");
+  ARGON_ICERR_CTX(false, *this,
+  "A STORE task does not contains a result object.");
 */
 }
 
 
 /// @details
-/// 
+///
 Object*
 TransferTask::getDestObject(void)
 {
@@ -89,8 +89,24 @@ TransferTask::getDestObject(void)
 }
 
 
+void
+TransferTask::do_processData(void)
+{
+    // Executes all before instructions
+    foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
+    // Executes all rules instructions
+    foreach_node( this->m_rules_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
+    // Executes the destination object (put data to object)
+    this->getDestObject()->execute();
+
+    // Executes all after instructions
+    foreach_node( this->m_after_nodes, TaskChildVisitor(this->proc(), *this), 1);
+}
+
+
 /// @details
-/// 
+///
 Value
 TransferTask::run(void)
 {
@@ -104,10 +120,10 @@ TransferTask::run(void)
     safe_ptr<TmplArgumentsNode> tmplArgNode = find_node<TmplArgumentsNode>(this->m_node);
 
     ARGON_ICERR_CTX(!!tmplArgNode, *this,
-                "TASK does not have any template arguments");
+                    "TASK does not have any template arguments");
 
     ARGON_ICERR_CTX(tmplArgNode->getChilds().size() == 2, *this,
-                "wrong template argument count");
+                    "wrong template argument count");
 
 
     // Create destination object
@@ -123,19 +139,19 @@ TransferTask::run(void)
 
     ObjectSmartPtr set_destobj(&this->m_destobject, destType->newInstance(destArgs, Type::INSERT_MODE));
     //this->m_destobject.reset(destType->newInstance(Type::INSERT_MODE));
-    
+
     ARGON_ICERR_CTX(this->m_destobject != 0, *this,
-                "Destination object allocation failed");
+                    "Destination object allocation failed");
 /*
 
-    Node *destArgNode = tmplArgNode->getChilds().at(0);
-    foreach_node(destArgNode, TransferTemplateVisitor(this->proc(), *this, destInfoObj), 1);
-    ARGON_ICERR_CTX(destInfoObj != 0, *this,
-                "destination information is not valid");
+  Node *destArgNode = tmplArgNode->getChilds().at(0);
+  foreach_node(destArgNode, TransferTemplateVisitor(this->proc(), *this, destInfoObj), 1);
+  ARGON_ICERR_CTX(destInfoObj != 0, *this,
+  "destination information is not valid");
 
-    this->m_destobject.reset(destInfoObj->newInstance(Object::ADD_MODE));
-    ARGON_ICERR_CTX(this->m_destobject.get() != 0, *this,
-                "Dest object allocation failed");
+  this->m_destobject.reset(destInfoObj->newInstance(Object::ADD_MODE));
+  ARGON_ICERR_CTX(this->m_destobject.get() != 0, *this,
+  "Dest object allocation failed");
 */
 
 
@@ -156,17 +172,17 @@ TransferTask::run(void)
     //this->m_srcobject.reset(srcType->newInstance(Type::READ_MODE));
 
     ARGON_ICERR_CTX(this->m_srcobject != 0, *this,
-                "Source object allocation failed");
+                    "Source object allocation failed");
 
 /*
-    Node *srcArgNode = tmplArgNode->getChilds().at(1);
-    foreach_node(srcArgNode, TransferTemplateVisitor(this->proc(), *this, srcInfoObj), 1);
-    ARGON_ICERR_CTX(srcInfoObj != 0, *this,
-                "source information is not valid");
+  Node *srcArgNode = tmplArgNode->getChilds().at(1);
+  foreach_node(srcArgNode, TransferTemplateVisitor(this->proc(), *this, srcInfoObj), 1);
+  ARGON_ICERR_CTX(srcInfoObj != 0, *this,
+  "source information is not valid");
 
-    this->m_srcobject.reset(srcInfoObj->newInstance(Object::READ_MODE));
-    ARGON_ICERR_CTX(this->m_srcobject.get() != 0, *this,
-                "Source object allocation failed");
+  this->m_srcobject.reset(srcInfoObj->newInstance(Object::READ_MODE));
+  ARGON_ICERR_CTX(this->m_srcobject.get() != 0, *this,
+  "Source object allocation failed");
 */
 
 
@@ -199,24 +215,14 @@ TransferTask::run(void)
     // Execute the main object (mostly this runs the SELECT statement)
     this->getMainObject()->execute();
 
-    
+
     // Executes all init-instructions
     foreach_node( this->m_init_nodes, TaskChildVisitor(this->proc(), *this), 1);
 
     // Iterate over all records in the main object
     while(! this->getMainObject()->eof())
     {
-        // Executes all before instructions
-        foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
-        // Executes all rules instructions
-        foreach_node( this->m_rules_nodes, TaskChildVisitor(this->proc(), *this), 1);
-
-        // Executes the destination object (put data to object)
-        this->getDestObject()->execute();
-
-        // Executes all after instructions
-        foreach_node( this->m_after_nodes, TaskChildVisitor(this->proc(), *this), 1);
-
+        this->processData();
 
         this->getMainObject()->next();
     }
@@ -225,7 +231,7 @@ TransferTask::run(void)
     foreach_node( this->m_final_nodes, TaskChildVisitor(this->proc(), *this), 1);
 
 
-    
+
     //this->m_destobject.reset(0); // workaround
     //this->m_srcobject.reset(0); // workaround
 
@@ -234,19 +240,19 @@ TransferTask::run(void)
 
 
 /// @details
-/// 
+///
 /*
-Value
-TransferTask::resolveColumn(const Column &col)
-{
-    assert(!"not impl");
-    //return Value(this->getMainObject()->getColumn(col));
-}
+  Value
+  TransferTask::resolveColumn(const Column &col)
+  {
+  assert(!"not impl");
+  //return Value(this->getMainObject()->getColumn(col));
+  }
 */
 
 
 /// @details
-/// 
+///
 Value
 TransferTask::_value(void) const
 {
@@ -254,7 +260,7 @@ TransferTask::_value(void) const
 }
 
 /// @details
-/// 
+///
 String
 TransferTask::_string(void) const
 {
@@ -262,7 +268,7 @@ TransferTask::_string(void) const
 }
 
 /// @details
-/// 
+///
 String
 TransferTask::_name(void) const
 {
@@ -270,7 +276,7 @@ TransferTask::_name(void) const
 }
 
 /// @details
-/// 
+///
 String
 TransferTask::_type(void) const
 {

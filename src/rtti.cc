@@ -274,6 +274,27 @@ CustomSqlType::newInstance(const ArgumentList &args, Type::mode_t mode)
 
 
 
+
+Element*
+CustomExceptionType::newInstance(const ArgumentList &args, Type::mode_t mode)
+{
+    throw std::runtime_error("do not use");
+}
+
+void
+CustomExceptionType::throwException(const ArgumentList &args) const
+{
+    assert(args.size() == 0 || args.size() == 1);
+    if(args.size() == 1)
+    {
+        Value v = args.at(0)->_value();
+        throw CustomException(*this, v);
+    }
+    else
+        throw CustomException(*this);
+}
+
+
 ARGON_NAMESPACE_END
 
 

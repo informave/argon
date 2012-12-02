@@ -3,19 +3,19 @@
 //
 // Copyright (C)         informave.org
 //   2010,               Daniel Vogelbacher <daniel@vogelbacher.name>
-// 
+//
 // Lesser GPL 3.0 License
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
@@ -43,7 +43,7 @@ ARGON_NAMESPACE_BEGIN
 /////////////////////////////////////////////////////////////////////// VoidTask
 
 /// @details
-/// 
+///
 VoidTask::VoidTask(Processor &proc, TaskNode *node, const ArgumentList &args)
     : Task(proc, node, args)
 {}
@@ -52,46 +52,59 @@ VoidTask::VoidTask(Processor &proc, TaskNode *node, const ArgumentList &args)
 /// @details
 ///
 /*
-Value
-VoidTask::resolveColumn(const Column &col)
-{
-    throw std::runtime_error("resolve() not allowed on void tasks");
-}
+  Value
+  VoidTask::resolveColumn(const Column &col)
+  {
+  throw std::runtime_error("resolve() not allowed on void tasks");
+  }
 */
 
 
 /// @details
-/// 
+///
 Object*
 VoidTask::getMainObject(void)
 {
     ARGON_ICERR_CTX(false, *this,
-                "A VOID task does not contains a main object.");
+                    "A VOID task does not contains a main object.");
 }
 
 
 /// @details
-/// 
+///
 Object*
-VoidTask::getResultObject(void) 
-{ 
+VoidTask::getResultObject(void)
+{
     ARGON_ICERR_CTX(false, *this,
-                "A VOID task does not contains a result object.");
+                    "A VOID task does not contains a result object.");
 }
 
 
 /// @details
-/// 
+///
 Object*
 VoidTask::getDestObject(void)
 {
     ARGON_ICERR_CTX(false, *this,
-                "A VOID task does not contains a destination object.");
+                    "A VOID task does not contains a destination object.");
+}
+
+
+
+void
+VoidTask::do_processData(void)
+{
+    // Executes all before instructions
+    foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
+    // Executes all rules instructions
+    foreach_node( this->m_rules_nodes, TaskChildVisitor(this->proc(), *this), 1);
+    // Executes all after instructions
+    foreach_node( this->m_after_nodes, TaskChildVisitor(this->proc(), *this), 1);
 }
 
 
 /// @details
-/// 
+///
 Value
 VoidTask::run(void)
 {
@@ -101,14 +114,9 @@ VoidTask::run(void)
 
     // Executes all init-instructions
     foreach_node( this->m_init_nodes, TaskChildVisitor(this->proc(), *this), 1);
-    {
-        // Executes all before instructions
-        foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
-        // Executes all rules instructions
-        foreach_node( this->m_rules_nodes, TaskChildVisitor(this->proc(), *this), 1);
-        // Executes all after instructions
-        foreach_node( this->m_after_nodes, TaskChildVisitor(this->proc(), *this), 1);
-    }
+
+    this->processData();
+
     // Executes all finalize-instructions
     foreach_node( this->m_final_nodes, TaskChildVisitor(this->proc(), *this), 1);
 
@@ -120,7 +128,7 @@ VoidTask::run(void)
 
 
 /// @details
-/// 
+///
 Value
 VoidTask::_value(void) const
 {
@@ -128,7 +136,7 @@ VoidTask::_value(void) const
 }
 
 /// @details
-/// 
+///
 String
 VoidTask::_string(void) const
 {
@@ -136,7 +144,7 @@ VoidTask::_string(void) const
 }
 
 /// @details
-/// 
+///
 String
 VoidTask::_name(void) const
 {
@@ -144,7 +152,7 @@ VoidTask::_name(void) const
 }
 
 /// @details
-/// 
+///
 String
 VoidTask::_type(void) const
 {

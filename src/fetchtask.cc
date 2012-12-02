@@ -3,19 +3,19 @@
 //
 // Copyright (C)         informave.org
 //   2010,               Daniel Vogelbacher <daniel@vogelbacher.name>
-// 
+//
 // Lesser GPL 3.0 License
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
@@ -49,7 +49,7 @@ typedef TemplateArgVisitor    FetchTemplateArgVisitor;
 ////////////////////////////////////////////////////////////////////// FetchTask
 
 /// @details
-/// 
+///
 FetchTask::FetchTask(Processor &proc, TaskNode *node, const ArgumentList &args)
     : Task(proc, node, args),
       m_mainobject()
@@ -57,36 +57,55 @@ FetchTask::FetchTask(Processor &proc, TaskNode *node, const ArgumentList &args)
 
 
 /// @details
-/// 
+///
 Object*
-FetchTask::getMainObject(void) 
-{ 
-    return this->m_mainobject; 
+FetchTask::getMainObject(void)
+{
+    return this->m_mainobject;
 }
 
 
 /// @details
-/// 
+///
 Object*
-FetchTask::getResultObject(void) 
-{ 
+FetchTask::getResultObject(void)
+{
     ARGON_ICERR_CTX(false, *this,
-                "A FETCH task does not contains a result object.");
+                    "A FETCH task does not contains a result object.");
 }
 
 
 /// @details
-/// 
+///
 Object*
 FetchTask::getDestObject(void)
 {
     ARGON_ICERR_CTX(false, *this,
-                "A FETCH task does not contains a destination object.");
+                    "A FETCH task does not contains a destination object.");
+}
+
+
+void
+FetchTask::do_processData(void)
+{
+    // Executes all before instructions
+    foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
+    // Executes all rules instructions
+    foreach_node( this->m_rules_nodes, TaskChildVisitor(this->proc(), *this), 1);
+
+    this->m_mainobject->next();
+
+
+    // at this point, no after nodes should exists...
+    assert(this->m_after_nodes.size() == 0);
+    // Executes all after instructions
+    foreach_node( this->m_after_nodes, TaskChildVisitor(this->proc(), *this), 1);
 }
 
 
 /// @details
-/// 
+///
 Value
 FetchTask::run(void)
 {
@@ -100,10 +119,10 @@ FetchTask::run(void)
     safe_ptr<TmplArgumentsNode> tmplArgNode = find_node<TmplArgumentsNode>(this->m_node);
 
     ARGON_ICERR_CTX(!!tmplArgNode, *this,
-                "TASK does not have any template arguments");
+                    "TASK does not have any template arguments");
 
     ARGON_ICERR_CTX(tmplArgNode->getChilds().size() == 1, *this,
-                "wrong template argument count");
+                    "wrong template argument count");
 
 
     // Create source object
@@ -120,7 +139,7 @@ FetchTask::run(void)
 
 
     ARGON_ICERR_CTX(this->m_mainobject != 0, *this,
-                "Source object allocation failed");
+                    "Source object allocation failed");
 
 
 
@@ -138,7 +157,7 @@ FetchTask::run(void)
     ColumnList reslist;
     foreach_node( this->m_after_nodes, ResColumnVisitor(this->proc(), *this, reslist));
     foreach_node( this->m_final_nodes, ResColumnVisitor(this->proc(), *this, reslist));
-    
+
     assert(reslist.size() == 0); // FETCH tasks can't contain any result columns
 
 
@@ -146,7 +165,7 @@ FetchTask::run(void)
     // Call object to setup initial environment
     // This prepares the SQL statement etc.
     this->proc().call(*this->getMainObject());
-    
+
     //this->m_mainobject.reset(0);
 
 
@@ -158,19 +177,7 @@ FetchTask::run(void)
 
     while(! this->m_mainobject->eof())
     {
-        // Executes all before instructions
-        foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
-
-        // Executes all rules instructions
-        foreach_node( this->m_rules_nodes, TaskChildVisitor(this->proc(), *this), 1);
-
-        this->m_mainobject->next();
-
-
-        // at this point, no after nodes should exists...
-        assert(this->m_after_nodes.size() == 0);
-        // Executes all after instructions
-        foreach_node( this->m_after_nodes, TaskChildVisitor(this->proc(), *this), 1);
+        this->processData();
     }
 
     // Executes all finalize-instructions
@@ -185,18 +192,18 @@ FetchTask::run(void)
 
 
 /// @details
-/// 
+///
 /*
-Value
-FetchTask::resolveColumn(const Column &col)
-{
-    return Value(this->getMainObject()->getColumn(col));
-}
+  Value
+  FetchTask::resolveColumn(const Column &col)
+  {
+  return Value(this->getMainObject()->getColumn(col));
+  }
 */
 
 
 /// @details
-/// 
+///
 Value
 FetchTask::_value(void) const
 {
@@ -204,7 +211,7 @@ FetchTask::_value(void) const
 }
 
 /// @details
-/// 
+///
 String
 FetchTask::_string(void) const
 {
@@ -212,7 +219,7 @@ FetchTask::_string(void) const
 }
 
 /// @details
-/// 
+///
 String
 FetchTask::_name(void) const
 {
@@ -220,7 +227,7 @@ FetchTask::_name(void) const
 }
 
 /// @details
-/// 
+///
 String
 FetchTask::_type(void) const
 {

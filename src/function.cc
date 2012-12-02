@@ -47,6 +47,205 @@ BlockVisitor::BlockVisitor(Processor &proc, Context &ctx, Value &returnVal)
 }
 
 
+
+
+void
+BlockVisitor::visit(ThrowNode *node)
+{
+    assert(node);
+    if(node->getChilds().size() == 2) // throw id;
+    {
+        std::cout << " -THROW ID- " << std::endl;
+        
+        ArgumentList al;
+        Identifier id = find_node<IdNode>(node)->data();
+        ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
+        assert(argsnode);
+
+        // Fill argument list with the result of each argument node
+        foreach_node(argsnode->getChilds(), ArgumentsVisitor(proc(), context(), al), 1);
+
+        // 
+        ExceptionType *type  = this->proc().getTypes().find<ExceptionType>(id);
+
+        type->throwException(al);
+    }
+    else // throw; (re-throw current exception)
+    {
+        throw RethrowControlException();
+    }
+
+    //LogCmd cmd(this->m_proc, m_context, node);
+    //this->m_proc.call(cmd);
+}
+
+
+void
+BlockVisitor::visit(TryNode *node)
+{
+    typedef std::map<std::string, CompoundNode*> exh_sqlstate_nodelist_type;
+    typedef std::map<Identifier, CompoundNode*>      exh_id_nodelist_type; // @todo String -> Identifier?
+
+    exh_sqlstate_nodelist_type exh_sqlstates;
+    exh_id_nodelist_type exh_ids;
+    CompoundNode *exh_catchall = 0;
+
+
+    CompoundNode *block = find_node<CompoundNode>(node);
+    assert(block);
+
+
+    {
+        std::list<ExceptLiteralNode*> a = find_nodes<ExceptLiteralNode>(node);
+        
+        std::for_each(a.begin(), a.end(), [&](Node* n){
+                CompoundNode *cn = 0;
+                if(n && (cn = find_node<CompoundNode>(n)))
+                {
+                    String sqlstate = node_cast<LiteralNode>(n->getChilds().at(0))->data();
+                    std::string s = sqlstate;
+                    exh_sqlstates[s] = cn;
+                }
+            });
+    }
+    
+    {
+        std::list<ExceptIdNode*> a = find_nodes<ExceptIdNode>(node);
+        
+        std::for_each(a.begin(), a.end(), [&](Node* n){
+                CompoundNode *cn = 0;
+                if(n && (cn = find_node<CompoundNode>(n)))
+                {
+                    Identifier id = node_cast<IdNode>(n->getChilds().at(0))->data();
+                   
+                    /// @bug make sure it's an exception type
+                    this->proc().getTypes().find<ExceptionType>(id);
+
+                    exh_ids[id] = cn;
+                }
+            });
+    }
+
+    {               
+        CompoundNode *cn = 0;
+        Node *n = find_node<ExceptNode>(node);
+        if(n && (cn = find_node<CompoundNode>(n)))
+            exh_catchall = cn;
+    }
+
+
+    FinallyNode *finally = find_node<FinallyNode>(node);
+
+
+    try // outer try for 'finally' handling
+    {
+        try
+        {
+            apply_visitor(block, BlockVisitor(this->proc(), context(), m_returnVal));
+        }
+        catch(informave::db::SqlstateException &e)
+        {
+            this->context().setCurrentException(new ExceptionInfo<informave::db::SqlstateException>(e));
+            ARGON_SCOPED_RELEASE_EXCEPTION(this->context());
+            bool rethrow = false;
+
+            try
+            {
+                std::string state = e.diag().getSqlstate().asStr();
+                Node *exhn = exh_sqlstates[state];
+                if(exhn) // exception gets handled
+                {
+                    apply_visitor(exhn, BlockVisitor(this->proc(), context(), m_returnVal));
+                }
+                else
+                {
+                    if(exh_catchall)
+                    {
+                        apply_visitor(exh_catchall,
+                                      BlockVisitor(this->proc(), context(), m_returnVal));
+                    }
+                    else
+                    {
+                        throw; // we can't handle the exception here
+                    }
+                }
+            }
+            catch(RethrowControlException &)
+            {
+                rethrow = true;
+            }
+            if(rethrow) throw;
+        }
+        catch(CustomException &e)
+        {
+            this->context().setCurrentException(new ExceptionInfo<CustomException>(e));
+            ARGON_SCOPED_RELEASE_EXCEPTION(this->context());
+            bool rethrow = false;
+
+            try
+            {
+                Identifier id = e.getType().id();
+                
+                Node *exhn = exh_ids[id];
+                if(exhn) // exception gets handled
+                {
+                    apply_visitor(exhn, BlockVisitor(this->proc(), context(), m_returnVal));
+                }
+                else
+                {
+                    if(exh_catchall)
+                    {
+                        apply_visitor(exh_catchall,
+                                      BlockVisitor(this->proc(), context(), m_returnVal));
+                    }
+                    else
+                    {
+                        throw; // we can't handle the exception here
+                    }
+                }
+            }
+            catch(RethrowControlException &)
+            {
+                rethrow = true;
+            }
+            if(rethrow) throw;
+            
+            //std::cout << "CATCHIT" << std::endl;
+        }
+        catch(ControlException &)
+        {
+            throw;
+        }
+        //catch(ArgonException &) // like SymbolNotFound etc..
+        //catch(engine_error
+        //catch(sqlstate)
+        //catch(
+        catch(...)
+        {
+            throw;
+        }
+    }
+    catch(...) // finally
+    {
+        if(finally)
+        {
+            CompoundNode *finally_block = find_node<CompoundNode>(finally);
+            assert(finally_block);
+            apply_visitor(finally_block, BlockVisitor(this->proc(), context(), m_returnVal));
+        }
+        throw;
+    }
+
+    // if we do not hit any exception
+    if(finally)
+    {
+        CompoundNode *finally_block = find_node<CompoundNode>(finally);
+        assert(finally_block);
+        apply_visitor(finally_block, BlockVisitor(this->proc(), context(), m_returnVal));
+    }
+}
+
+
 void
 BlockVisitor::visit(AssertNode *node)
 {
@@ -246,8 +445,7 @@ BlockVisitor::visit(CompoundNode *node)
 void
 BlockVisitor::fallback_action(Node *node)
 {
-    Value value;
-    apply_visitor(node, EvalExprVisitor(proc(), context(), value));
+    apply_visitor(node, EvalExprVisitor(proc(), context(), this->m_returnVal));
 }
 
 

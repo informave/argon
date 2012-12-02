@@ -286,7 +286,8 @@ Element::unregisterRef(Ref *p)
 Context::Context(Processor &proc, const ArgumentList &args)
     : Element(proc),
       m_symbols(&proc.getGlobalContext().getSymbols()),
-      m_args(args)
+      m_args(args),
+      m_exception_info(0)
 {}
 
 
@@ -295,9 +296,47 @@ Context::Context(Processor &proc, const ArgumentList &args)
 Context::Context(Processor &proc, SymbolTable *parentptr, const ArgumentList &args)
     : Element(proc),
       m_symbols(parentptr),
-      m_args(args)
+      m_args(args),
+      m_exception_info(0)
 {}
 
+
+
+/// @details
+/// 
+void
+Context::setCurrentException(IExceptionInfo *info)
+{
+    assert(this->m_exception_info == 0);
+    this->m_exception_info = info;
+}
+
+
+/// @details
+/// 
+void
+Context::releaseCurrentException(void)
+{
+    assert(this->m_exception_info != 0);
+    delete this->m_exception_info;
+}
+
+
+IExceptionInfo&
+Context::getCurrentException(void)
+{
+    if(this->m_exception_info)
+        return *this->m_exception_info;
+    else
+        throw std::runtime_error("no exception info set");
+}
+
+
+bool
+Context::hasCurrentException(void) const
+{
+    return this->m_exception_info != 0;
+}
 
 
 /// @details
@@ -327,6 +366,15 @@ Element::run()
 }
 
 
+
+ScopedReleaseException::ScopedReleaseException(Context &ctx)
+    : m_ctx(ctx)
+{}
+
+ScopedReleaseException::~ScopedReleaseException(void)
+{
+    this->m_ctx.releaseCurrentException();
+}
 
 
 //..............................................................................

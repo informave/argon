@@ -63,6 +63,8 @@ public:
     virtual void visit(AssertNode *node);
 
     virtual void visit(CompoundNode *node);
+    virtual void visit(TryNode *node);
+    virtual void visit(ThrowNode *node);
 
 protected:
     virtual void fallback_action(Node *node);
@@ -92,6 +94,7 @@ public:
     virtual void visit(LiteralNode *node);
 
     virtual void visit(DeclNode *node);
+    virtual void visit(ExceptionDeclNode *node);
 
 protected:
     inline Processor& proc(void) { return m_proc; }
@@ -119,6 +122,7 @@ public:
 
 
     virtual void visit(DeclNode *node);
+    virtual void visit(ExceptionDeclNode *node);
 
 protected:
     inline Processor& proc(void) { return m_proc; }
@@ -227,6 +231,8 @@ public:
     TaskChildVisitor(Processor &proc, Context &context);
 
     virtual void visit(LogNode *node);
+
+    virtual void visit(ThrowNode *node);
     
     virtual void visit(TaskExecNode *node);
 

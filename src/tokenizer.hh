@@ -147,6 +147,13 @@ public:
 
 	this->m_keywords[ _str<CharT, TraitsT>("NULL")        ] = ARGON_TOK_NULL;
 
+	this->m_keywords[ _str<CharT, TraitsT>("TRY")        ] = ARGON_TOK_TRY;
+	this->m_keywords[ _str<CharT, TraitsT>("EXCEPT")        ] = ARGON_TOK_EXCEPT;
+	this->m_keywords[ _str<CharT, TraitsT>("FINALLY")        ] = ARGON_TOK_FINALLY;
+	this->m_keywords[ _str<CharT, TraitsT>("THROW")        ] = ARGON_TOK_THROW;
+
+	this->m_keywords[ _str<CharT, TraitsT>("EXCEPTION")        ] = ARGON_TOK_EXCEPTION;
+
         /// Additional map with names
         this->m_templates[ _str<CharT, TraitsT>("VOID")         ] = ARGON_TOK_TEMPLATE;
         this->m_templates[ _str<CharT, TraitsT>("FETCH")        ] = ARGON_TOK_TEMPLATE;

@@ -57,6 +57,12 @@ Pass2Visitor::visit(DeclNode *node)
 }
 
 
+void
+Pass2Visitor::visit(ExceptionDeclNode *node)
+{
+}
+
+
 
 /// @details
 /// 

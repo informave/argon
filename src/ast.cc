@@ -82,6 +82,20 @@ void TaskFinalNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void BooleanNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void NullNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
+void ExceptNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void ExceptIdNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void TryNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void FinallyNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void ExceptLiteralNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void ThrowNode::accept(Visitor &visitor)       { visitor.visit(this); }
+
+void TaskRuleBlockNode::accept(Visitor &visitor)       { visitor.visit(this); }
+
+void TaskExceptNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void TaskExceptIdNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void TaskExceptLiteralNode::accept(Visitor &visitor)       { visitor.visit(this); }
+
+
 void KeyValueNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
 void LambdaFuncNode::accept(Visitor &visitor)     { visitor.visit(this); }
@@ -104,6 +118,8 @@ void ForNode::accept(Visitor &visitor)    { visitor.visit(this); }
 void ReturnNode::accept(Visitor &visitor)    { visitor.visit(this); }
 void ContinueNode::accept(Visitor &visitor)    { visitor.visit(this); }
 void BreakNode::accept(Visitor &visitor)    { visitor.visit(this); }
+
+void ExceptionDeclNode::accept(Visitor &visitor)    { visitor.visit(this); }
 
 
 //String ConnNode::dump(void) const              { return "ConnNode"; }
@@ -304,6 +320,7 @@ DEFAULT_VISIT(BinaryExprNode)
 DEFAULT_VISIT(UnaryExprNode)
 DEFAULT_VISIT(AssignNode)
 DEFAULT_VISIT(CompoundNode)
+    DEFAULT_VISIT(TaskRuleBlockNode)
 
     DEFAULT_VISIT(IfelseNode)
     DEFAULT_VISIT(WhileNode)
@@ -312,6 +329,19 @@ DEFAULT_VISIT(CompoundNode)
     DEFAULT_VISIT(ReturnNode)
     DEFAULT_VISIT(ContinueNode)
     DEFAULT_VISIT(BreakNode)
+
+    DEFAULT_VISIT(TryNode)
+    DEFAULT_VISIT(ExceptNode)
+    DEFAULT_VISIT(ExceptIdNode)
+    DEFAULT_VISIT(ExceptLiteralNode)
+DEFAULT_VISIT(FinallyNode)
+DEFAULT_VISIT(ThrowNode)
+
+    DEFAULT_VISIT(ExceptionDeclNode)
+
+    DEFAULT_VISIT(TaskExceptNode)
+    DEFAULT_VISIT(TaskExceptIdNode)
+    DEFAULT_VISIT(TaskExceptLiteralNode)
 
 
 DEFAULT_VISIT(DeclNode)

@@ -137,7 +137,7 @@ Processor::compile(ParseTree *tree)
 
     // print node tree
 #if defined(ARGON_DEV_DEBUG) || 1
-//    foreach_node(this->m_tree, PrintTreeVisitor(*this, std::wcout), 1);
+    foreach_node(this->m_tree, PrintTreeVisitor(*this, std::wcout), 1);
 #endif
 
 //    ::abort();
