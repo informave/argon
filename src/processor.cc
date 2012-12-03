@@ -216,7 +216,8 @@ Value
 Processor::call(const Identifier &id, const ArgumentList &list)
 {
     Element *elem = 0;
-    elem = this->getTypes().find<TaskType>(id)->newInstance(list);
+    //elem = this->getTypes().find<TaskType>(id)->newInstance(list);
+    elem = this->getTypes().find<Type>(id)->newInstance(list);
     assert(elem);
     ARGON_SCOPED_STACKPUSH(*this, elem);
 
