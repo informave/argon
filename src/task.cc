@@ -57,6 +57,7 @@ TaskChildVisitor::visit(LogNode *node)
     this->m_proc.call(cmd);
 }
 
+
 void
 TaskChildVisitor::visit(ThrowNode *node)
 {
@@ -157,6 +158,21 @@ TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
 
     this->m_proc.call(node->data(), argsnode.get(), this->m_context);
 }
+
+
+
+void
+TaskChildVisitor::TaskChildVisitor::visit(ExecFunctionCmdNode *node)
+{
+    //ARGON_DPRINT(ARGON_MOD_PROC, "Calling function " << node->taskid().str());
+
+    safe_ptr<IdNode> idnode = find_node<IdNode>(node);
+
+    safe_ptr<ArgumentsNode> argsnode = find_node<ArgumentsNode>(node);
+
+    this->m_proc.call(idnode->data(), argsnode.get(), this->m_context);
+}
+
 
 
 void

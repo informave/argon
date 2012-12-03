@@ -937,6 +937,8 @@ bodyExpr(A) ::= logCmd(B).       { A = B; }
 bodyExpr(A) ::= taskExecCmd(B).  { A = B; }
 bodyExpr(A) ::= throwCmd(B).     { A = B; }
 
+bodyExpr(A) ::= execFunctionCmd(B). { A = B; }
+
 //..............................................................................
 ///////////////////////////////////////////////////////////// Template Arguments
 
@@ -1079,6 +1081,24 @@ logArg(A) ::= expression(B). { A = B; }
 taskExecCmd(A) ::= EXEC(Y) TASK ID(B) callArgs(C) SEP(Z). { 
                 CREATE_NODE(TaskExecNode);
                 node->init(B->data());
+                node->addChild(C);
+                ADD_TOKEN(node, Y);
+                ADD_TOKEN(node, Z);
+                A = node;
+}
+
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////// EXEC FUNCTION
+
+%type execFunctionCmd { ExecFunctionCmdNode* }
+
+
+execFunctionCmd(A) ::= EXEC(Y) FUNCTION id(B) callArgs(C) SEP(Z). { 
+                CREATE_NODE(ExecFunctionCmdNode);
+					 //                node->init(B->data());
+                node->addChild(B);
                 node->addChild(C);
                 ADD_TOKEN(node, Y);
                 ADD_TOKEN(node, Z);

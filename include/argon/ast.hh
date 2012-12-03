@@ -67,6 +67,8 @@ struct NumberNode;
 struct BooleanNode;
 struct NullNode;
 
+struct ExecFunctionCmdNode;
+
 struct ExprNode;
 struct SequenceNode;
 
@@ -264,6 +266,8 @@ public:
 
     virtual void visit(CompoundNode *node);
     virtual void visit(AssignNode *node);
+
+    virtual void visit(ExecFunctionCmdNode *node);
 
     virtual void visit(IfelseNode *node);
     virtual void visit(WhileNode *node);
@@ -489,6 +493,8 @@ DefineNode(ExceptionDecl, Identifier);
 
 
 DefineNode(Sequence, Identifier);
+
+DefineNode(ExecFunctionCmd, void);
 
  /*
 struct TaskInitNode : public SimpleNode<void>

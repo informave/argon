@@ -246,6 +246,8 @@ public:
 
     virtual void visit(ColumnAssignNode *node);
 
+    virtual void visit(ExecFunctionCmdNode *node);
+
 
 private:
     Processor &m_proc;

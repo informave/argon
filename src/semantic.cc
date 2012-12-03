@@ -168,6 +168,15 @@ IdNode::semanticCheck(SemanticCheck &sc)
 }
 
 
+/// @details
+/// 
+void
+ExecFunctionCmdNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+
 
 /// @details
 /// 

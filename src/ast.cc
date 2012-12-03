@@ -83,6 +83,7 @@ void BooleanNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void NullNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
 void SequenceNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void ExecFunctionCmdNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
 void ExceptNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void ExceptIdNode::accept(Visitor &visitor)       { visitor.visit(this); }
@@ -338,6 +339,8 @@ DEFAULT_VISIT(CompoundNode)
     DEFAULT_VISIT(ExceptLiteralNode)
 DEFAULT_VISIT(FinallyNode)
 DEFAULT_VISIT(ThrowNode)
+
+    DEFAULT_VISIT(ExecFunctionCmdNode)
 
     DEFAULT_VISIT(ExceptionDeclNode)
     DEFAULT_VISIT(SequenceNode)
