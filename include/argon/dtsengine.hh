@@ -1323,10 +1323,12 @@ inline Value enter_element(const T &f, Element &elem)
 class Sequence : public Element
 {
 public:
-    Sequence(Processor &proc, const Value& value);
+    Sequence(Processor &proc, const Value& value, const Value &inc_by);
 
     virtual ~Sequence(void)
     {}
+
+    void nextValue(void);
 
     virtual Value& getValue(void)
     {
@@ -1347,6 +1349,7 @@ public:
 
 protected:
     Value m_value;
+    Value m_inc_by;
 };
 
 

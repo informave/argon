@@ -41,10 +41,18 @@ ARGON_NAMESPACE_BEGIN
 
 /// @details
 /// 
-Sequence::Sequence(Processor &proc, const Value &val)
+Sequence::Sequence(Processor &proc, const Value &val, const Value &inc_by)
     : Element(proc),
-      m_value(val)
+      m_value(val),
+      m_inc_by(inc_by)
 {
+}
+
+
+void
+Sequence::nextValue(void)
+{
+    this->m_value.data() = this->m_value.data().get<int>() + this->m_inc_by.data().get<int>();
 }
 
 

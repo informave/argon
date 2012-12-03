@@ -8,5 +8,6 @@
 #include "string.hh"
 #include "sys.hh"
 #include "debug.hh"
+#include "seq.hh"
 
 #endif

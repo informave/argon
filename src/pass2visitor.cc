@@ -93,15 +93,21 @@ Pass2Visitor::visit(SequenceNode *node)
 {
     ArgumentsNode *argsNode = find_node<ArgumentsNode>(node);
     assert(argsNode);
-    assert(argsNode->getChilds().size() == 1);
+    assert(argsNode->getChilds().size() == 1 || argsNode->getChilds().size() == 2);
 
     Node *data = argsNode->getChilds()[0];
 
-    Value value;
+    Value value, inc(int(1));
     apply_visitor(data, EvalExprVisitor(proc(), context(), value));
 
+    if(argsNode->getChilds().size() == 2)
+    {
+    	Node *incby = argsNode->getChilds()[1];
+    	apply_visitor(incby, EvalExprVisitor(proc(), context(), inc));
+    }
+
     Sequence *elem = 0;
-    elem = new Sequence(this->proc(), value);
+    elem = new Sequence(this->proc(), value, inc);
 
     this->proc().stackPush(elem);
     this->proc().getGlobalContext().getSymbols().add(node->data(), Ref(elem));
