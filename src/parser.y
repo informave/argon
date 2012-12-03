@@ -1013,7 +1013,7 @@ tmplArgItem(A) ::= anonymousObj(B). {
 %type sqlExecCmd { SqlExecNode* }
 %type sqlExecParams { ArgumentsNode* }
 
-sqlExecCmd(A) ::= EXEC(Y) SQL LITERAL(B) ON ID(C) sqlExecParams(D) SEP(Z). {
+sqlExecCmd(A) ::= EXEC(Y) SQL ON ID(C) sqlExecParams(D) LITERAL(B) SEP(Z). {
 					CREATE_NODE(SqlExecNode);
 					node->init(B->data(), C->data());
 					node->addChild(D);
