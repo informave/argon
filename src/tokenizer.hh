@@ -146,6 +146,8 @@ public:
         this->m_keywords[ _str<CharT, TraitsT>("AFTER")        ] = ARGON_TOK_TASK_AFTER;
         this->m_keywords[ _str<CharT, TraitsT>("FINALIZATION")        ] = ARGON_TOK_TASK_FINAL;
 
+        this->m_keywords[ _str<CharT, TraitsT>("CONDITION")        ] = ARGON_TOK_CONDITION;
+
 	this->m_keywords[ _str<CharT, TraitsT>("NULL")        ] = ARGON_TOK_NULL;
 
 	this->m_keywords[ _str<CharT, TraitsT>("TRY")        ] = ARGON_TOK_TRY;

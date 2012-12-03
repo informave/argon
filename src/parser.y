@@ -938,6 +938,7 @@ bodyExpr(A) ::= taskExecCmd(B).  { A = B; }
 bodyExpr(A) ::= throwCmd(B).     { A = B; }
 
 bodyExpr(A) ::= execFunctionCmd(B). { A = B; }
+bodyExpr(A) ::= conditionCmd(B). { A = B; }
 
 //..............................................................................
 ///////////////////////////////////////////////////////////// Template Arguments
@@ -1102,6 +1103,21 @@ execFunctionCmd(A) ::= EXEC(Y) FUNCTION id(B) callArgs(C) SEP(Z). {
                 node->addChild(C);
                 ADD_TOKEN(node, Y);
                 ADD_TOKEN(node, Z);
+                A = node;
+}
+
+
+//..............................................................................
+////////////////////////////////////////////////////////////////////// CONDITION
+
+%type conditionCmd { ConditionCmdNode* }
+
+
+conditionCmd(A) ::= CONDITION expression(B) SEP. { 
+                CREATE_NODE(ConditionCmdNode);
+                node->addChild(B);
+					 //ADD_TOKEN(node, Y);
+                //ADD_TOKEN(node, Z);
                 A = node;
 }
 

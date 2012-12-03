@@ -98,6 +98,8 @@ void TaskExceptNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskExceptIdNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskExceptLiteralNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
+void ConditionCmdNode::accept(Visitor &visitor)       { visitor.visit(this); }
+
 
 void KeyValueNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
@@ -341,6 +343,7 @@ DEFAULT_VISIT(FinallyNode)
 DEFAULT_VISIT(ThrowNode)
 
     DEFAULT_VISIT(ExecFunctionCmdNode)
+    DEFAULT_VISIT(ConditionCmdNode)
 
     DEFAULT_VISIT(ExceptionDeclNode)
     DEFAULT_VISIT(SequenceNode)

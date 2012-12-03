@@ -68,6 +68,7 @@ struct BooleanNode;
 struct NullNode;
 
 struct ExecFunctionCmdNode;
+struct ConditionCmdNode;
 
 struct ExprNode;
 struct SequenceNode;
@@ -245,6 +246,8 @@ public:
     virtual void visit(AssertNode *node);
 
     virtual void visit(SequenceNode *node);
+    
+    virtual void visit(ConditionCmdNode *node);
 
     virtual void visit(TryNode *node);
     virtual void visit(ExceptNode *node);
@@ -495,6 +498,8 @@ DefineNode(ExceptionDecl, Identifier);
 DefineNode(Sequence, Identifier);
 
 DefineNode(ExecFunctionCmd, void);
+
+DefineNode(ConditionCmd, void);
 
  /*
 struct TaskInitNode : public SimpleNode<void>

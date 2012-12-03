@@ -273,6 +273,14 @@ BreakControlException::~BreakControlException(void)
 {}
 
 
+ConditionControlException::ConditionControlException(void)
+	: ControlException()
+{}
+
+ConditionControlException::~ConditionControlException(void)
+{}
+
+
 
 RethrowControlException::RethrowControlException(void)
 	: ControlException()

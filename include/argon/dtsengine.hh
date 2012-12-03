@@ -1769,6 +1769,21 @@ public:
 
 
 //..............................................................................
+////////////////////////////////////////////////////// ConditionControlException
+///
+/// @since 0.0.1
+/// @brief Control exception condition command
+class ConditionControlException : public ControlException
+{
+public:
+	ConditionControlException(void);
+
+	virtual ~ConditionControlException(void);
+};
+
+
+
+//..............................................................................
 ////////////////////////////////////////////////////////// BreakControlException
 ///
 /// @since 0.0.1

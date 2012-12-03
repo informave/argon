@@ -58,6 +58,21 @@ TaskChildVisitor::visit(LogNode *node)
 }
 
 
+
+void
+TaskChildVisitor::visit(ConditionCmdNode *node)
+{
+    assert(node);
+    assert(node->getChilds().size() == 1);
+    Value val;
+    apply_visitor(node->getChilds()[0], EvalExprVisitor(m_proc, m_context, val));
+    if(val.data().isnull() || val.data().get<bool>() == false)
+    {
+        throw ConditionControlException();
+    }
+}
+
+
 void
 TaskChildVisitor::visit(ThrowNode *node)
 {
@@ -237,6 +252,10 @@ Task::processData(void)
     {
         // implemented by derived task types.
         this->do_processData();
+    }
+    catch(ConditionControlException &e)
+    {
+        // nothing to do
     }
     catch(informave::db::SqlstateException &e)
     {

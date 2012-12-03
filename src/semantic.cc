@@ -168,6 +168,16 @@ IdNode::semanticCheck(SemanticCheck &sc)
 }
 
 
+
+/// @details
+/// 
+void
+ConditionCmdNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+
 /// @details
 /// 
 void

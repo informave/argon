@@ -248,6 +248,8 @@ public:
 
     virtual void visit(ExecFunctionCmdNode *node);
 
+    virtual void visit(ConditionCmdNode *node);
+
 
 private:
     Processor &m_proc;
