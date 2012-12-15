@@ -1082,6 +1082,7 @@ enum unaryExprTypeEnum
 {
     UNARY_EXPR_PLUS = 1,
     UNARY_EXPR_MINUS,
+    UNARY_EXPR_DEFAULTOP,
     UNARY_EXPR_NEG
 };
 

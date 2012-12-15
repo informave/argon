@@ -201,6 +201,14 @@ unaryExpression(A) ::= MINUS castExpression(B). {
 	A = node;	
 }
 
+
+unaryExpression(A) ::= DEFAULTOP castExpression(B). {
+	CREATE_NODE(UnaryExprNode);
+	node->init(UNARY_EXPR_DEFAULTOP);
+	node->addChild(B);
+	A = node;	
+}
+
 unaryExpression(A) ::= EXMARK castExpression(B). {
 	CREATE_NODE(UnaryExprNode);
 	node->init(UNARY_EXPR_NEG);

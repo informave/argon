@@ -96,7 +96,7 @@ EvalExprVisitor::visit(UnaryExprNode *node)
     apply_visitor(op0, EvalExprVisitor(proc(), context(), val0));
 
     // if operand is NULL, result is undefined (NULL)
-    if(val0.data().isnull())
+    if(val0.data().isnull() && node->data() != UNARY_EXPR_DEFAULTOP)
     {
         this->m_value.data().setNull();
         return;
@@ -109,6 +109,13 @@ EvalExprVisitor::visit(UnaryExprNode *node)
         break;
     case UNARY_EXPR_PLUS:
         this->m_value.data() = + val0.data().asInt();
+        break;
+    case UNARY_EXPR_DEFAULTOP:
+        /// @bug fix default types
+        if(this->m_value.data().datatype() == informave::db::DAL_TYPE_STRING)
+            this->m_value.data() = val0.data().isnull() ? db::Variant(String()) : val0.data();
+        else
+            this->m_value.data() = val0.data().isnull() ? db::Variant(int(0)) : val0.data();
         break;
     case UNARY_EXPR_NEG:
         this->m_value.data() = ! val0.data().asBool();

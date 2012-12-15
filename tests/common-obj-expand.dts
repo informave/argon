@@ -23,7 +23,7 @@ begin
 	$item_id	<< item_id;
 	$property	<< $1;
  after:
- 	log "added property: " || %property;
+ 	log "added property: " || @%property;
 end;
 
 
@@ -50,7 +50,7 @@ end;
 
 task show_data : fetch [sql(odb, "SELECT * FROM otest INNER JOIN otest_prop USING (item_id)")]
 begin
-	log "ROW: " || $item_id || " " || $name || " " || $property;
+	log "ROW: " || $item_id || " " || $name || " " || @$property;
 end;
 
 

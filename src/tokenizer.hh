@@ -261,6 +261,9 @@ public:
         case ';':
             consume();
             return Token(ARGON_TOK_SEP, si, ";");
+        case '@':
+            consume();
+            return Token(ARGON_TOK_DEFAULTOP, si, "@");
         case '(':
             consume();
             return Token(ARGON_TOK_LP, si, "(");
