@@ -1189,6 +1189,81 @@ private:
 
 
 
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// GenRange
+///
+/// @since 0.0.1
+/// @brief GEN_RANGE
+class GenRange : public Object
+{
+public:
+    static GenRange* newInstance(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode);
+
+    GenRange(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode); // change node
+
+    virtual ~GenRange(void) 
+    {}
+
+    virtual String str(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+    inline Identifier id(void) const { return m_node->data(); } /// @bug is this correct?
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
+
+    virtual void setColumn(const Column &col, const Value &v);
+
+    virtual const db::Value& getColumn(Column col);
+
+    virtual void execute(void);
+
+    virtual bool next(void);
+
+    virtual bool eof(void) const;
+
+    virtual void setColumnList(const ColumnList &list);
+
+    virtual void setResultList(const ColumnList &list);
+
+    virtual Value lastInsertRowId(void);
+
+/*
+    String generateSelect(String objname);
+
+    String generateInsert(String objname);
+*/  
+
+protected:
+    virtual Value run(void);
+
+    String m_objname;
+    db::Value m_start;
+    signed int m_stop;
+    signed int m_step;
+
+    Type::mode_t m_mode;
+
+    //NodeList  m_prepost_nodes;
+    //NodeList  m_colassign_nodes;
+
+private:
+    GenRange(const GenRange&);
+    GenRange& operator=(const GenRange&);
+};
+
+
+
+
 //..............................................................................
 ///////////////////////////////////////////////////////////////////////// LogCmd
 ///

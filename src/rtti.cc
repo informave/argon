@@ -139,6 +139,40 @@ TableType::newInstance(const ArgumentList &args, Type::mode_t mode)
 
 
 //..............................................................................
+/////////////////////////////////////////////////////////////////// GenRangeType
+
+
+
+ /// @details
+/// 
+Object*
+GenRangeType::newInstance(const ArgumentList &args, Type::mode_t mode)
+{
+    Object *tmp = 0;
+ 
+    assert(this->getNode() == NULL);
+
+
+    assert(args.size() > 0);
+
+    tmp = GenRange::newInstance(this->proc(), args, NULL_NODE, mode);
+    assert(tmp);
+    return tmp;
+
+/*
+    ArgumentList::const_iterator i = args.begin();
+    dbc = i->cast<Connection>();    
+    assert(dbc);
+
+    tmp = Table::newInstance(this->proc(), args, dbc, NULL_NODE, mode);
+    assert(tmp);
+    return tmp;
+*/
+}
+
+
+
+//..............................................................................
 ///////////////////////////////////////////////////////////////////// ObjectType
 
 
@@ -169,7 +203,7 @@ ObjectType::findConnection(const ArgumentList &args)
         Connection *dbc = this->proc().getGlobalContext().getSymbols().find<Connection>(id);
         return dbc;
     }
-    catch(...)
+    catch(...) /// @bug check this?!
     {
         assert(args.size() > 0);
 

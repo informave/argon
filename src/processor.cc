@@ -154,6 +154,8 @@ Processor::compile(ParseTree *tree)
     this->getTypes().add(new TableType(*this, Identifier("table"), NULL_NODE));
     this->getTypes().add(new SqlType(*this, Identifier("sql"), NULL_NODE));
 
+    this->getTypes().add(new GenRangeType(*this, Identifier("gen_range"), NULL_NODE));
+
 
 
 //    this->getTypes().add(new FunctionType(*this, Identifier("string.concat"), NULL_NODE));

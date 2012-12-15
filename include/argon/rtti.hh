@@ -110,6 +110,41 @@ private:
 };
 
 
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////// GenRangeType
+///
+/// @since 0.0.1
+/// @brief TableType
+class GenRangeType : public ObjectType
+{
+public:
+    GenRangeType(Processor &proc, Identifier type_id, DeclNode *node)
+        : ObjectType(proc, type_id),
+          m_node(node)
+    {}
+
+    virtual String name(void) const
+    {
+        return "gen_range";
+    }
+
+
+    virtual Object* newInstance(const ArgumentList &args, Type::mode_t mode = DEFAULT_MODE);
+
+
+    virtual DeclNode* getNode(void) const { return this->m_node; }
+
+protected:
+    DeclNode *m_node;
+
+private:
+    GenRangeType(const GenRangeType &);
+    GenRangeType& operator=(const GenRangeType &);
+};
+
+
+
 //..............................................................................
 ////////////////////////////////////////////////////////////////////// TableType
 ///
