@@ -1,0 +1,72 @@
+program common_condition_test;
+
+connection idb
+begin
+        "engine"        => "sqlite:libsqlite",
+        "database"      => ":memory:";
+end;
+
+connection odb
+begin
+	"engine"	=> "sqlite:libsqlite",
+	"database"	=> ":memory:";
+end;
+
+sequence otest_seq;
+sequence otest_prop_seq;
+
+
+task transfer_properties(item_id, properties) : transfer [table(odb, "otest_prop"), expand(properties, ",")]
+begin
+ rules:
+ 	$prop_id	<< seq.next(otest_prop_seq);
+	$item_id	<< item_id;
+	$property	<< $1;
+ after:
+ 	log "added property: " || %property;
+end;
+
+
+
+task transfer_items : transfer [table(odb, "otest"), sql(idb, "SELECT * FROM itest WHERE properties NOT NULL")]
+begin
+ rules:
+	$item_id	<< seq.next(otest_seq);
+	$name		<< $name;
+ after:
+ 	log "transferred: " || $name || " with new sequence id " || otest_seq;
+	exec task transfer_properties(%item_id, $properties);
+end;
+
+
+
+task testdata(name, properties) : store [table(idb, "itest")]
+begin
+	$name		<< name;
+	$properties	<< properties;
+end;
+
+
+
+task show_data : fetch [sql(odb, "SELECT * FROM otest INNER JOIN otest_prop USING (item_id)")]
+begin
+	log "ROW: " || $item_id || " " || $name || " " || $property;
+end;
+
+
+task main : void
+begin
+ rules:
+	exec sql on idb "CREATE TABLE itest (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name text, properties text);";
+	exec task testdata("item1", "a, b, c");
+	exec task testdata("item2", "a,  , y");
+	exec task testdata("item3", "r, w, b");
+	
+	exec sql on odb "CREATE TABLE otest (item_id INTEGER PRIMARY KEY NOT NULL, name text)";
+	exec sql on odb "CREATE TABLE otest_prop (prop_id INTEGER PRIMARY KEY NOT NULL, item_id INTEGER, property text)";
+	
+	exec task transfer_items;
+
+	exec task show_data;
+end;
+

@@ -1,0 +1,35 @@
+program common_condition_test;
+
+connection idb
+begin
+        "engine"        => "sqlite:libsqlite",
+        "database"      => ":memory:";
+end;
+
+connection odb
+begin
+	"engine"	=> "sqlite:libsqlite",
+	"database"	=> ":memory:";
+end;
+
+
+var tmpvar(NULL);
+
+task testdata(arg) : store [compact(tmpvar, ",")]
+begin
+	$1	<< arg;
+end;
+
+task main : void
+begin
+ rules:
+	exec sql on idb "CREATE TABLE itest (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name text, properties text);";
+
+	exec task testdata("item1");
+	exec task testdata("item2");
+	exec task testdata(NULL);
+	exec task testdata("item3");
+
+	log "tmpvar: " || tmpvar;
+end;
+

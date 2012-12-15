@@ -9,6 +9,17 @@ begin
 	begin
 		a1 = a1+3;
 	end;
+
+	try:
+		var x(0);
+		f(x);
+	finally:
+		
+	except myexception:
+
+	end;
+
+
 	assert(a1 == (5 + ((50-10)/2)*3));
 
 	return a1;

@@ -63,6 +63,8 @@ class ContinueControlException;
 class BreakControlException;
 class AssertControlException;
 
+class ValueElement;
+
 typedef std::set<Column> ColumnList;
 
 
@@ -1263,6 +1265,153 @@ private:
 
 
 
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// Expand
+///
+/// @since 0.0.1
+/// @brief GEN_RANGE
+class Expand : public Object
+{
+public:
+    static Expand* newInstance(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode);
+
+    Expand(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode); // change node
+
+    virtual ~Expand(void) 
+    {}
+
+    virtual String str(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+    inline Identifier id(void) const { return m_node->data(); } /// @bug is this correct?
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
+
+    virtual void setColumn(const Column &col, const Value &v);
+
+    virtual const db::Value& getColumn(Column col);
+
+    virtual void execute(void);
+
+    virtual bool next(void);
+
+    virtual bool eof(void) const;
+
+    virtual void setColumnList(const ColumnList &list);
+
+    virtual void setResultList(const ColumnList &list);
+
+    virtual Value lastInsertRowId(void);
+
+/*
+    String generateSelect(String objname);
+
+    String generateInsert(String objname);
+*/  
+
+protected:
+    virtual Value run(void);
+
+    String m_objname;
+    std::wstring m_value;
+    std::wstring m_sep;
+    std::wstring::const_iterator m_start, m_end;
+    db::Value m_curval;
+
+    Type::mode_t m_mode;
+
+    //NodeList  m_prepost_nodes;
+    //NodeList  m_colassign_nodes;
+
+private:
+    Expand(const Expand&);
+    Expand& operator=(const Expand&);
+};
+
+
+
+//..............................................................................
+/////////////////////////////////////////////////////////////////////// Compact
+///
+/// @since 0.0.1
+/// @brief COMPACT
+class Compact : public Object
+{
+public:
+    static Compact* newInstance(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode);
+
+    Compact(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode); // change node
+
+    virtual ~Compact(void) 
+    {}
+
+    virtual String str(void) const;
+
+    virtual SourceInfo getSourceInfo(void) const;
+
+    inline Identifier id(void) const { return m_node->data(); } /// @bug is this correct?
+
+    virtual String name(void) const;
+
+    virtual String type(void) const;
+
+    virtual Value    _value(void) const;
+    virtual String   _string(void) const;
+    virtual String   _name(void) const;
+    virtual String   _type(void) const;
+
+
+    virtual void setColumn(const Column &col, const Value &v);
+
+    virtual const db::Value& getColumn(Column col);
+
+    virtual void execute(void);
+
+    virtual bool next(void);
+
+    virtual bool eof(void) const;
+
+    virtual void setColumnList(const ColumnList &list);
+
+    virtual void setResultList(const ColumnList &list);
+
+    virtual Value lastInsertRowId(void);
+
+/*
+    String generateSelect(String objname);
+
+    String generateInsert(String objname);
+*/  
+
+protected:
+    virtual Value run(void);
+
+    String m_objname;
+    db::Value m_value;
+    ValueElement *m_ref;
+    String m_sep;
+
+    Type::mode_t m_mode;
+
+    //NodeList  m_prepost_nodes;
+    //NodeList  m_colassign_nodes;
+
+private:
+    Compact(const Compact&);
+    Compact& operator=(const Compact&);
+};
+
+
+
 
 //..............................................................................
 ///////////////////////////////////////////////////////////////////////// LogCmd
@@ -1363,6 +1512,11 @@ public:
     virtual Value& getValue(void)
     {
         return this->m_value;
+    }
+
+    virtual void setValue(const Value& value)
+    {
+        this->m_value = value;
     }
     
     virtual SourceInfo getSourceInfo(void) const;

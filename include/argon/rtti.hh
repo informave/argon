@@ -146,6 +146,74 @@ private:
 
 
 //..............................................................................
+///////////////////////////////////////////////////////////////////// ExpandType
+///
+/// @since 0.0.1
+/// @brief ExpandType
+class ExpandType : public ObjectType
+{
+public:
+    ExpandType(Processor &proc, Identifier type_id, DeclNode *node)
+        : ObjectType(proc, type_id),
+          m_node(node)
+    {}
+
+    virtual String name(void) const
+    {
+        return "expand";
+    }
+
+
+    virtual Object* newInstance(const ArgumentList &args, Type::mode_t mode = DEFAULT_MODE);
+
+
+    virtual DeclNode* getNode(void) const { return this->m_node; }
+
+protected:
+    DeclNode *m_node;
+
+private:
+    ExpandType(const ExpandType &);
+    ExpandType& operator=(const ExpandType &);
+};
+
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// CompactType
+///
+/// @since 0.0.1
+/// @brief CompactType
+class CompactType : public ObjectType
+{
+public:
+    CompactType(Processor &proc, Identifier type_id, DeclNode *node)
+        : ObjectType(proc, type_id),
+          m_node(node)
+    {}
+
+    virtual String name(void) const
+    {
+        return "compact";
+    }
+
+
+    virtual Object* newInstance(const ArgumentList &args, Type::mode_t mode = DEFAULT_MODE);
+
+
+    virtual DeclNode* getNode(void) const { return this->m_node; }
+
+protected:
+    DeclNode *m_node;
+
+private:
+    CompactType(const CompactType &);
+    CompactType& operator=(const CompactType &);
+};
+
+
+
+//..............................................................................
 ////////////////////////////////////////////////////////////////////// TableType
 ///
 /// @since 0.0.1

@@ -155,6 +155,8 @@ Processor::compile(ParseTree *tree)
     this->getTypes().add(new SqlType(*this, Identifier("sql"), NULL_NODE));
 
     this->getTypes().add(new GenRangeType(*this, Identifier("gen_range"), NULL_NODE));
+    this->getTypes().add(new ExpandType(*this, Identifier("expand"), NULL_NODE));
+    this->getTypes().add(new CompactType(*this, Identifier("compact"), NULL_NODE));
 
 
 
@@ -165,7 +167,6 @@ Processor::compile(ParseTree *tree)
     this->addBuiltinFunctiontable(table_sys_funcs);
     this->addBuiltinFunctiontable(table_debug_funcs);
     this->addBuiltinFunctiontable(table_seq_funcs);
-
 
 
 

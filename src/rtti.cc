@@ -173,6 +173,75 @@ GenRangeType::newInstance(const ArgumentList &args, Type::mode_t mode)
 
 
 //..............................................................................
+///////////////////////////////////////////////////////////////////// ExpandType
+
+
+
+ /// @details
+/// 
+Object*
+ExpandType::newInstance(const ArgumentList &args, Type::mode_t mode)
+{
+    Object *tmp = 0;
+ 
+    assert(this->getNode() == NULL);
+
+
+    assert(args.size() > 0);
+
+    tmp = Expand::newInstance(this->proc(), args, NULL_NODE, mode);
+    assert(tmp);
+    return tmp;
+
+/*
+    ArgumentList::const_iterator i = args.begin();
+    dbc = i->cast<Connection>();    
+    assert(dbc);
+
+    tmp = Table::newInstance(this->proc(), args, dbc, NULL_NODE, mode);
+    assert(tmp);
+    return tmp;
+*/
+}
+
+
+//..............................................................................
+//////////////////////////////////////////////////////////////////// CompactType
+
+
+
+ /// @details
+/// 
+Object*
+CompactType::newInstance(const ArgumentList &args, Type::mode_t mode)
+{
+    Object *tmp = 0;
+ 
+    assert(this->getNode() == NULL);
+
+
+    assert(args.size() > 0);
+
+    tmp = Compact::newInstance(this->proc(), args, NULL_NODE, mode);
+    assert(tmp);
+    return tmp;
+
+/*
+    ArgumentList::const_iterator i = args.begin();
+    dbc = i->cast<Connection>();    
+    assert(dbc);
+
+    tmp = Table::newInstance(this->proc(), args, dbc, NULL_NODE, mode);
+    assert(tmp);
+    return tmp;
+*/
+}
+
+
+
+
+
+//..............................................................................
 ///////////////////////////////////////////////////////////////////// ObjectType
 
 

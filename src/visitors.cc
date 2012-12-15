@@ -536,6 +536,7 @@ ArgumentsVisitor::visit(IdNode *node)
 
     Element *elem = m_context.resolve<Element>(id);
 
+
     m_list.push_back(Ref(elem));
 
 //    m_value.data() = elem->_value().data();

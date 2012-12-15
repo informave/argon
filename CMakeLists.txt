@@ -247,6 +247,8 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/sqlexec.cc
 	${ARGON_MAIN_SRC_DIR}/connection.cc
 	${ARGON_MAIN_SRC_DIR}/genrange.cc
+	${ARGON_MAIN_SRC_DIR}/expand.cc
+	${ARGON_MAIN_SRC_DIR}/compact.cc
 	${ARGON_MAIN_SRC_DIR}/table.cc
 	${ARGON_MAIN_SRC_DIR}/table_sqlite.cc
 	${ARGON_MAIN_SRC_DIR}/sql.cc
