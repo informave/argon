@@ -45,20 +45,22 @@ ScopedStackPush::~ScopedStackPush(void)
 {
     Element *elem = m_stack.front();
 
-    LastError e(m_stack);
-
-    String s = e.str();
-
-    s = String("Stack protection error:") + s;
-
-    // If something very bad happens to the stack,
-    // the value we pop is not the same as we pushed before.
-    // Main reason is someone has push something to the stack,
-    // but has not pop from when finished.
-    ARGON_ICERR(m_ptr == elem, s);
-
-    delete elem;
-    m_stack.pop_front();
+    if(this->m_ptr != elem) // something bad happens
+    {
+        String s("Stack protection error: ");
+        s.append(LastError(this->m_stack).str());
+        
+        // If something very bad happens to the stack,
+        // the value we pop is not the same as we pushed before.
+        // Main reason is someone has push something to the stack,
+        // but has not pop from when finished.
+        ARGON_ICERR(m_ptr == elem, s);        
+    }
+    else
+    {
+        delete elem;
+        m_stack.pop_front();
+    }
 }
 
 
