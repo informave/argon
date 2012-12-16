@@ -102,6 +102,11 @@ Table::Table(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mo
 {}
 
 
+Table::~Table(void)
+{
+    this->m_stmt->close();
+}
+
 /// @details
 /// The column list is a list of column names or position numbers. These columns
 /// are used in the TASK as source columns (we must build up a SQL SELECT statement)

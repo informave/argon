@@ -161,6 +161,7 @@ SqlExecCmd::run(void)
     ARGON_DPRINT(ARGON_MOD_PROC, "Exec SQL on " << this->m_node->connid().str());
 
     this->m_stmt->execute();
+    this->m_stmt->close();
     this->m_stmt.reset(0);
 
     return Value();

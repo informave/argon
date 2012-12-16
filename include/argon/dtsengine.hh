@@ -1055,8 +1055,7 @@ public:
 
     Table(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode); // change node
 
-    virtual ~Table(void) 
-    {}
+    virtual ~Table(void);
 
     virtual String str(void) const;
 

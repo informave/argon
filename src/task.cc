@@ -247,7 +247,6 @@ Task::run(void)
 void
 Task::processData(void)
 {
-
     try
     {
         // implemented by derived task types.
