@@ -359,11 +359,13 @@ DEFAULT_VISIT(VarNode)
 
 /// @details
 /// 
+/*
 void
 Visitor::operator()(Node *node)
 {
     node->accept(*this);
 }
+*/
 
 
 //..............................................................................
