@@ -200,9 +200,9 @@ GenRange::run(void)
         ArgumentList::const_iterator i = this->getCallArgs().begin();
         ArgumentList::const_iterator end = this->getCallArgs().end();
         
-        if(i != end) this->m_start = (i++)->cast<ValueElement>()->_value().data().get<int>();
-        if(i != end) this->m_stop = (i++)->cast<ValueElement>()->_value().data().get<int>();
-        if(i != end) this->m_step = (i++)->cast<ValueElement>()->_value().data().get<int>();
+        if(i != end) this->m_start = (i++)->cast<ValueElement>()->getValue().data().get<int>();
+        if(i != end) this->m_stop = (i++)->cast<ValueElement>()->getValue().data().get<int>();
+        if(i != end) this->m_step = (i++)->cast<ValueElement>()->getValue().data().get<int>();
     }
     else
     {
