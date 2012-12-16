@@ -1762,7 +1762,7 @@ private:
 class ScopedStackPush
 {
 public:
-    ScopedStackPush(Processor &proc, Element *elem)
+    inline ScopedStackPush(Processor &proc, Element *elem)
         : m_ptr(elem),
           m_stack(proc.m_stack)
     {
