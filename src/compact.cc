@@ -194,7 +194,7 @@ Compact::run(void)
         ArgumentList::const_iterator end = this->getCallArgs().end();
         
         this->m_ref = (i++)->cast<ValueElement>();
-        this->m_sep = (i++)->cast<ValueElement>()->_value().data().get<String>();
+        this->m_sep = (i++)->cast<ValueElement>()->getValue().data().get<String>();
     }
     else
     {
@@ -254,6 +254,54 @@ Compact::run(void)
 void
 Compact::execute(void)
 {
+    using informave::db::variant_value;
+    assert(this->m_ref);
+
+    variant_value<String> *p = 0;
+
+    if(this->m_value.isnull()) return;
+    
+    if(!this->m_ref->getValue().data().isnull())
+        p = dynamic_cast<variant_value<String>*>(this->m_ref->getValue().data().get_storage());
+
+    if(p) // using optimized method
+    {
+        String &s = p->get_value();
+
+        if(!s.empty())
+            s += this->m_sep;
+
+        s += this->m_value.get<String>();
+    }
+    else
+    {
+
+        String s;
+        try
+        {
+            s = this->m_ref->getValue().data().get<String>();
+        }
+        catch(informave::db::NullException&)
+        {}
+        
+        if(s.empty())
+            s = this->m_value.get<String>();
+        else
+        {
+            s += this->m_sep;
+            s += this->m_value.get<String>();
+        }
+        
+        this->m_ref->setValue(String(s));
+    }
+}
+
+
+
+/*
+void
+Compact::execute(void)
+{
     assert(this->m_ref);
 
     if(this->m_value.isnull())
@@ -277,7 +325,7 @@ Compact::execute(void)
 
     this->m_ref->setValue(String(s));
 }
-
+*/
 
 
 /// @details
