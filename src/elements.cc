@@ -319,6 +319,7 @@ Context::releaseCurrentException(void)
 {
     assert(this->m_exception_info != 0);
     delete this->m_exception_info;
+    this->m_exception_info = 0;
 }
 
 
