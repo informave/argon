@@ -1091,7 +1091,7 @@ public:
 
     String generateSelect(String objname);
 
-    String generateInsert(String objname);
+    virtual String generateInsert(String objname);
     
 
 protected:

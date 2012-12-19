@@ -31,6 +31,7 @@
 #include "visitors.hh"
 
 #include "table_sqlite.hh"
+#include "table_firebird.hh"
 
 #include <iostream>
 #include <sstream>
@@ -152,7 +153,20 @@ Table::setColumn(const Column &col, const Value &v)
 const db::Value&
 Table::getColumn(Column col)
 {
-    return col.getFrom(m_stmt->resultset(), *this);
+    if(this->m_mode == Type::INSERT_MODE)
+    {
+        // we assume that that SQL was something like SELECT * FROM X RETURNING A, B
+        if(this->m_result_columns.size() > 0)
+        {
+            return col.getFrom(m_stmt->resultset(), *this);
+        }
+        else
+        {
+            assert(!"BUG");
+        }
+    }
+    else
+        return col.getFrom(m_stmt->resultset(), *this);
 }
 
 
@@ -423,6 +437,9 @@ void
 Table::execute(void)
 {
     m_stmt->execute();
+    m_stmt->resultset().first();
+    //assert(! m_stmt->resultset().eof());
+    //std::cout << "Data:" << m_stmt->resultset().column("NAME") << std::endl;
 }
 
 
@@ -434,7 +451,7 @@ Table::str(void) const
 {
     String s;
     //s.append(this->id().str());
-    s.append("[TASK]");
+    s.append("[TABLE]");
     return s;
 }
 
@@ -507,11 +524,14 @@ Table*
 Table::newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, DeclNode *node, Type::mode_t mode)
 {
     assert(dbc);
-    
+   
+
     switch(dbc->getEnv().getEngineType())
     {
     case informave::db::DAL_ENGINE_SQLITE:
         return new TableSqlite(proc, args, node, mode);
+    case informave::db::DAL_ENGINE_FIREBIRD:
+        return new TableFirebird(proc, args, node, mode);
     default:
     	return new Table(proc, args, node, mode);
     }
