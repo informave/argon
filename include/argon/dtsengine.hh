@@ -43,6 +43,12 @@
 #include <dbwtl/dal/engines/generic>
 
 
+namespace strutils
+{
+    template<typename T> class split;
+}
+
+
 
 
 ARGON_NAMESPACE_BEGIN
@@ -1323,10 +1329,12 @@ protected:
     String m_objname;
     std::wstring m_value;
     std::wstring m_sep;
-    std::wstring::const_iterator m_start, m_end;
-    db::Value m_curval;
 
-    Type::mode_t m_mode;
+    std::auto_ptr<strutils::split<std::wstring> > m_splitter;
+
+    bool          m_eof;
+    db::Value     m_curval;
+    Type::mode_t  m_mode;
 
     //NodeList  m_prepost_nodes;
     //NodeList  m_colassign_nodes;

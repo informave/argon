@@ -32,6 +32,8 @@
 
 #include "table_sqlite.hh"
 
+#include "strutils.hh"
+
 #include <iostream>
 #include <sstream>
 #include <list>
@@ -50,8 +52,8 @@ Expand::Expand(Processor &proc, const ArgumentList &args, DeclNode *node, Type::
       m_objname(),
       m_value(),
       m_sep(),
-      m_start(),
-      m_end(),
+      m_splitter(),
+      m_eof(false),
       m_curval(),
       m_mode(mode)
       //m_prepost_nodes(),
@@ -163,29 +165,12 @@ Expand::lastInsertRowId(void)
 bool
 Expand::next(void)
 {
-    this->m_start = this->m_end;
-
-    if(this->eof())
-        return false;
-
-    ++this->m_start; // skip sep
-    while(std::isspace(*this->m_start)) ++this->m_start;
-
-    this->m_end = this->m_start;
-
-    while(this->m_end != this->m_value.end() && *this->m_end != this->m_sep[0])
+    m_eof = !this->m_splitter->next();
+    if(!m_eof)
     {
-        ++this->m_end;
+        m_curval = String(this->m_splitter->get_string());
     }
-
-    std::wstring data(this->m_start, this->m_end);
-    if(data.empty())
-        this->m_curval.setNull();
-    else
-        this->m_curval = String(data);
-
-
-    return true;
+    return m_eof;
 }
 
 
@@ -194,10 +179,8 @@ Expand::next(void)
 bool
 Expand::eof(void) const
 {
-    return this->m_start == this->m_value.end();
+    return this->m_eof;
 }
-
-
 
 
 
@@ -216,27 +199,19 @@ Expand::run(void)
         ArgumentList::const_iterator arg = this->getCallArgs().begin();
 
         this->m_value = (arg++)->cast<ValueElement>()->_value().data().get<String>();
-        this->m_start = this->m_value.begin();
-        this->m_end = this->m_value.begin();
-        this->m_sep = (arg++)->cast<ValueElement>()->_value().data().get<String>();
-        
-        ARGON_ICERR_CTX(this->m_sep.size() == 1, *this,
-                        "expand() separator must be of length 1");
+        this->m_sep   = (arg++)->cast<ValueElement>()->_value().data().get<String>();
 
+        ARGON_ICERR_CTX(this->m_sep.size() >= 1, *this,
+                        "expand() separator must be of length >= 1");
 
-        if(!this->eof())
-        {
-            while(this->m_end != this->m_value.end() && *this->m_end != this->m_sep[0])
-            {
-                ++this->m_end;
-            }
-
-            this->m_curval = String(std::wstring(this->m_start, this->m_end));
-        }
-
+        this->m_splitter.reset(new strutils::split<std::wstring>(
+                                   m_value.begin(), m_value.end(),
+                                   m_sep));
+        this->next();
     }
     else
     {
+        assert(!"bug");
 
 /*
     //foreach_node( this->m_node->getChilds(), SqlObjectChildVisitor(this->proc(), *this, *this), 1);
