@@ -2104,7 +2104,7 @@ class DTSEngine
 {
     friend class Processor;
 
-    typedef void (*logger_callback_t)(const String &msg);
+    typedef void (*logger_callback_t)(const String &msg, void *arg);
 
 public:
     DTSEngine(void);
@@ -2112,7 +2112,7 @@ public:
     /// @brief Adds a new connection to the internal connection list
     void addConnection(String name, db::Connection *dbc);
 
-    void registerLogger(logger_callback_t callback);
+    void registerLogger(logger_callback_t callback, void *arg);
 
     void writeLog(const String &what) const;
 
@@ -2147,6 +2147,7 @@ protected:
     Processor                   m_proc;
     function_map                m_functions;
     logger_callback_t           m_logger_callback;
+    void                       *m_logger_cb_arg;
 
 private:
     DTSEngine(const DTSEngine&);

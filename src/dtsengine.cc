@@ -90,7 +90,8 @@ DTSEngine::DTSEngine(void)
       m_userConns(),
       m_proc(*this),
       m_functions(),
-      m_logger_callback(0)
+      m_logger_callback(0),
+      m_logger_cb_arg(0)
 {
 #define ADD_FUNCTION(id, type) m_functions[Identifier(id)] = new_function<type>
 /*
@@ -111,9 +112,10 @@ DTSEngine::addConnection(String name, db::Connection *dbc)
 /// @details
 ///
 void
-DTSEngine::registerLogger(logger_callback_t callback)
+DTSEngine::registerLogger(logger_callback_t callback, void *arg)
 {
 	this->m_logger_callback = callback;
+    this->m_logger_cb_arg = arg;
 }
 
 
@@ -124,7 +126,7 @@ DTSEngine::writeLog(const String &what) const
 {
 	if(this->m_logger_callback)
 	{
-		this->m_logger_callback(what);
+		this->m_logger_callback(what, this->m_logger_cb_arg);
 	}
 	else
 		std::cout << "[LOG] " << what << std::endl;
