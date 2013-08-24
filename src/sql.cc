@@ -448,6 +448,7 @@ void
 Sql::execute(void)
 {
     m_stmt->execute();
+    m_stmt->resultset().first();
 }
 
 

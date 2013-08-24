@@ -447,6 +447,7 @@ void
 Table::execute(void)
 {
     m_stmt->execute();
+    m_stmt->resultset().first();
     //assert(! m_stmt->resultset().eof());
     //std::cout << "Data:" << m_stmt->resultset().column("NAME") << std::endl;
 }
