@@ -47,6 +47,23 @@ namespace sys
         return String(s);
     }
 
+
+    ARGON_FUNCTION_DEF(coalesce)
+    {
+        ARGON_ICERR_CTX(m_args.size() >= 1, *this, "invalid args count");
+        
+        
+
+        for(auto i = m_args.begin(); i != m_args.end(); ++i)
+        {
+            if(!(*i)->_value().data().isnull())
+                return (*i)->_value();
+        }
+
+        return Value();
+    }
+
+
     ARGON_FUNCTION_DEF(byteseq)
     {
         ARGON_ICERR(m_args.size() >= 1, "invalid args count");
@@ -84,6 +101,7 @@ static Function* factory_function(Processor &proc, const ArgumentList &args)
 builtin_func_def table_sys_funcs[] =
 {
     { "isnull", factory_function<sys::func_isnull>, 1, 1},
+    { "coalesce",  factory_function<sys::func_coalesce>, 1, -1 },
     { "sys.terminate",  factory_function<sys::func_terminate>, 0, 1 },
     { "sys.charseq", factory_function<sys::func_charseq>, 1, -1},
     { "sys.byteseq", factory_function<sys::func_byteseq>, 1, -1},

@@ -170,6 +170,8 @@ Processor::compile(ParseTree *tree)
     this->addBuiltinFunctiontable(table_sys_funcs);
     this->addBuiltinFunctiontable(table_debug_funcs);
     this->addBuiltinFunctiontable(table_seq_funcs);
+    this->addBuiltinFunctiontable(table_sql_funcs);
+
 
 
 

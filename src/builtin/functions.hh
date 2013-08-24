@@ -9,5 +9,7 @@
 #include "sys.hh"
 #include "debug.hh"
 #include "seq.hh"
+#include "sql.hh"
+
 
 #endif

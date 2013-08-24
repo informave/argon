@@ -37,6 +37,7 @@ namespace sys
 {
     ARGON_SIMPLE_FUNCTION(terminate);
     ARGON_SIMPLE_FUNCTION(isnull);
+    ARGON_SIMPLE_FUNCTION(coalesce);
     ARGON_SIMPLE_FUNCTION(charseq);
     ARGON_SIMPLE_FUNCTION(byteseq);
     ARGON_SIMPLE_FUNCTION(newline);

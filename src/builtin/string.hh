@@ -37,6 +37,14 @@ namespace string
 {
     ARGON_SIMPLE_FUNCTION(concat);
     ARGON_SIMPLE_FUNCTION(len);
+
+    ARGON_SIMPLE_FUNCTION(truncate);
+    ARGON_SIMPLE_FUNCTION(substr);
+    ARGON_SIMPLE_FUNCTION(find);
+    //ARGON_SIMPLE_FUNCTION(find_nth);
+    ARGON_SIMPLE_FUNCTION(char);
+    ARGON_SIMPLE_FUNCTION(contains);
+
     ARGON_SIMPLE_FUNCTION(debug1);
 }
 
