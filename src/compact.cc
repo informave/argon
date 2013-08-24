@@ -61,7 +61,7 @@ Compact::Compact(Processor &proc, const ArgumentList &args, DeclNode *node, Type
 /*
     NodeList childs = node->getChilds();
 
-    assert(childs.size() >= 2);
+    //assert(childs.size() >= 2);
 
     // Skip first two arguments. Checked by semantic checker, too. TODO!
     size_t c = 3;
@@ -85,7 +85,7 @@ Compact::Compact(Processor &proc, const ArgumentList &args, DeclNode *node, Type
     }
     
     // All childs must been processed.
-    assert(c > childs.size());
+    //assert(c > childs.size());
 */
     }
 }
@@ -163,6 +163,14 @@ bool
 Compact::next(void)
 {
     ARGON_ICERR(false, "next() not supported for store-only objects");
+}
+
+/// @details
+/// 
+void
+Compact::first(void)
+{
+    ARGON_ICERR(false, "first() not supported for store-only objects");
 }
 
 
@@ -255,7 +263,7 @@ void
 Compact::execute(void)
 {
     using informave::db::variant_value;
-    assert(this->m_ref);
+	ARGON_ICERR(this->m_ref, "Invalid ref");
 
     variant_value<String> *p = 0;
 
@@ -302,7 +310,7 @@ Compact::execute(void)
 void
 Compact::execute(void)
 {
-    assert(this->m_ref);
+    //assert(this->m_ref);
 
     if(this->m_value.isnull())
         return;
@@ -364,7 +372,7 @@ Compact::type(void) const
 SourceInfo
 Compact::getSourceInfo(void) const
 {
-    assert(this->m_node);
+    ARGON_ICERR(this->m_node, "invalid node");
     return this->m_node->getSourceInfo();
 }
 

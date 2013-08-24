@@ -70,8 +70,8 @@ void
 Pass2Visitor::visit(VarNode *node)
 {
     ArgumentsNode *argsNode = find_node<ArgumentsNode>(node);
-    assert(argsNode);
-    assert(argsNode->getChilds().size() == 1);
+    ARGON_ICERR(argsNode, "invalid node");
+    ARGON_ICERR(argsNode->getChilds().size() == 1, "invalid child count");
 
     Node *data = argsNode->getChilds()[0];
 
@@ -92,8 +92,8 @@ void
 Pass2Visitor::visit(SequenceNode *node)
 {
     ArgumentsNode *argsNode = find_node<ArgumentsNode>(node);
-    assert(argsNode);
-    assert(argsNode->getChilds().size() <= 2);
+    ARGON_ICERR(argsNode, "invalid node");
+    ARGON_ICERR(argsNode->getChilds().size() <= 2, "invalid child count");
 
 
     Value value(int(0)), inc(int(1));

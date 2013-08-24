@@ -15,11 +15,11 @@ namespace seq
 
     ARGON_FUNCTION_DEF(next)
     {
-        assert(m_args.size() == 1);
+        ARGON_ICERR(m_args.size() == 1, "invalid args count");
 
         Ref x = m_args[0];
         Sequence *p = x.cast<Sequence>();
-        assert(p);
+        ARGON_ICERR(p, "invalid seq ptr");
         p->nextValue();
         return p->_value();
     }

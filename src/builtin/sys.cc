@@ -16,7 +16,7 @@ namespace sys
 
     ARGON_FUNCTION_DEF(terminate)
     {
-        assert(m_args.size() <= 1);
+        ARGON_ICERR(m_args.size() <= 1, "invalid args count");
         if(m_args.size())
         {
             throw TerminateControlException((*m_args.begin())->_value());
@@ -27,13 +27,13 @@ namespace sys
 
     ARGON_FUNCTION_DEF(isnull)
     {
-        assert(m_args.size() == 1);
+        ARGON_ICERR(m_args.size() == 1, "invalid args count");
         return m_args[0]->_value().data().isnull();
     }
 
     ARGON_FUNCTION_DEF(charseq)
     {
-        assert(m_args.size() >= 1);
+        ARGON_ICERR(m_args.size() >= 1, "invalid args count");
         
         std::wstring s;
         s.resize(m_args.size());
@@ -49,7 +49,7 @@ namespace sys
 
     ARGON_FUNCTION_DEF(byteseq)
     {
-        assert(m_args.size() >= 1);
+        ARGON_ICERR(m_args.size() >= 1, "invalid args count");
         
         std::basic_string<unsigned char> s;
         s.resize(m_args.size());
@@ -65,7 +65,7 @@ namespace sys
 
     ARGON_FUNCTION_DEF(newline)
     {
-        assert(m_args.size() == 0);
+        ARGON_ICERR(m_args.size() == 0, "invalid args count");
         return String(std::string("\r\n")); /// @bug fixme
     }
 

@@ -52,7 +52,7 @@ BlockVisitor::BlockVisitor(Processor &proc, Context &ctx, Value &returnVal)
 void
 BlockVisitor::visit(ThrowNode *node)
 {
-    assert(node);
+    ARGON_ICERR(node, "invalid node");
     if(node->getChilds().size() == 2) // throw id;
     {
         std::cout << " -THROW ID- " << std::endl;
@@ -60,7 +60,7 @@ BlockVisitor::visit(ThrowNode *node)
         ArgumentList al;
         Identifier id = find_node<IdNode>(node)->data();
         ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
-        assert(argsnode);
+        ARGON_ICERR(argsnode, "invalid node");
 
         // Fill argument list with the result of each argument node
         foreach_node(argsnode->getChilds(), ArgumentsVisitor(proc(), context(), al), 1);
@@ -92,7 +92,7 @@ BlockVisitor::visit(TryNode *node)
 
 
     CompoundNode *block = find_node<CompoundNode>(node);
-    assert(block);
+    ARGON_ICERR(block, "invalid block");
 
 
     {
@@ -230,7 +230,7 @@ BlockVisitor::visit(TryNode *node)
         if(finally)
         {
             CompoundNode *finally_block = find_node<CompoundNode>(finally);
-            assert(finally_block);
+            ARGON_ICERR(finally_block, "invalid block");
             apply_visitor(finally_block, BlockVisitor(this->proc(), context(), m_returnVal));
         }
         throw;
@@ -240,7 +240,7 @@ BlockVisitor::visit(TryNode *node)
     if(finally)
     {
         CompoundNode *finally_block = find_node<CompoundNode>(finally);
-        assert(finally_block);
+        ARGON_ICERR(finally_block, "invalid block");
         apply_visitor(finally_block, BlockVisitor(this->proc(), context(), m_returnVal));
     }
 }
@@ -252,7 +252,7 @@ BlockVisitor::visit(AssertNode *node)
     ArgumentList al;
     //Identifier id = node->data();
     ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
-    assert(argsnode);
+    ARGON_ICERR(argsnode, "invalid node");
 
     // Fill argument list with the result of each argument node
     foreach_node(argsnode->getChilds(), ArgumentsVisitor(proc(), context(), al), 1);
@@ -394,7 +394,7 @@ BlockVisitor::visit(BreakNode *node)
 void
 BlockVisitor::visit(IfelseNode *node)
 {
-	assert(node->getChilds().size() >= 2);
+	ARGON_ICERR(node->getChilds().size() >= 2, "invalid child count");
 	Node *checkexpr = node->getChilds().at(0);
 	Node *ifblock = node->getChilds().at(1);
 	Node *elseblock = 0;
@@ -472,8 +472,8 @@ void
 BlockVisitor::visit(VarNode *node)
 {
     ArgumentsNode *argsNode = find_node<ArgumentsNode>(node);
-    assert(argsNode);
-    assert(argsNode->getChilds().size() == 1);
+    ARGON_ICERR(argsNode, "invalid node");
+    ARGON_ICERR(argsNode->getChilds().size() == 1, "invalid child count");
 
     Node *data = argsNode->getChilds()[0];
 
@@ -493,7 +493,7 @@ BlockVisitor::visit(VarNode *node)
 void
 BlockVisitor::visit(AssignNode *node)
 {
-	assert(node->getChilds().size() == 2);
+	//assert(node->getChilds().size() == 2);
 	Node *dest = node->getChilds()[0];
 	Node *expr = node->getChilds()[1];
 
@@ -521,7 +521,7 @@ Function::run(void)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Running function " << this->id());
 
-    assert(this->m_node);
+    ARGON_ICERR(this->m_node, "invalid node");
 
     safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
 
@@ -541,7 +541,7 @@ Function::run(void)
     //this->resolve<ValueElement>(Identifier("foo"));
 
     CompoundNode *n = find_node<CompoundNode>(this->m_node);
-    assert(n);
+    ARGON_ICERR(n, "invalid node");
 
     ARGON_SCOPED_STACKFRAME(this->proc());
 

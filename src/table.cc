@@ -105,7 +105,8 @@ Table::Table(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mo
 
 Table::~Table(void)
 {
-    this->m_stmt->close();
+    if(this->m_stmt.get())
+	    this->m_stmt->close();
 }
 
 /// @details
@@ -125,7 +126,7 @@ Table::setColumnList(const ColumnList &list)
 void
 Table::setResultList(const ColumnList &list)
 {
-	assert(this->m_mode == Type::INSERT_MODE);
+	ARGON_ICERR(this->m_mode == Type::INSERT_MODE, "invalid mode");
     this->m_result_columns = list;
 }
 
@@ -136,10 +137,10 @@ Table::setResultList(const ColumnList &list)
 void
 Table::setColumn(const Column &col, const Value &v)
 {
-	assert(this->m_mode == Type::INSERT_MODE);
+	ARGON_ICERR(this->m_mode == Type::INSERT_MODE, "invalid mode");
     int i = this->getBindPosition(col);
 
-    assert(i > 0);
+    ARGON_ICERR(i > 0, "invalid bind position");
 
     this->m_stmt->bind(i, v.data());
 
@@ -162,7 +163,7 @@ Table::getColumn(Column col)
         }
         else
         {
-            assert(!"BUG");
+			ARGON_ICERR(false, "getColumn() bug");
         }
     }
     else
@@ -193,6 +194,15 @@ Table::next(void)
     //std::cout << m_stmt->resultset().column(1) << std::endl;
 }
 
+
+/// @details
+/// 
+void
+Table::first(void)
+{
+    m_stmt->resultset().first();
+}
+    
 
 /// @details
 /// 
@@ -402,7 +412,7 @@ Table::generateInsert(String objname)
     //this->m_column_values["number"] = Value(23);
     //this->m_column_values["value"] = Value(String("foo"));
 
-	assert(! this->m_columns.empty());
+	ARGON_ICERR(! this->m_columns.empty(), "columns empty");
 
 	String column_list, param_list;
 
@@ -437,7 +447,6 @@ void
 Table::execute(void)
 {
     m_stmt->execute();
-    m_stmt->resultset().first();
     //assert(! m_stmt->resultset().eof());
     //std::cout << "Data:" << m_stmt->resultset().column("NAME") << std::endl;
 }
@@ -480,7 +489,7 @@ Table::type(void) const
 SourceInfo
 Table::getSourceInfo(void) const
 {
-    assert(this->m_node);
+    ARGON_ICERR(this->m_node, "invalid node");
     return this->m_node->getSourceInfo();
 }
 
@@ -523,7 +532,7 @@ Table::_type(void) const
 Table*
 Table::newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, DeclNode *node, Type::mode_t mode)
 {
-    assert(dbc);
+    ARGON_ICERR(dbc, "invalid dbc");
    
 
     switch(dbc->getEnv().getEngineType())

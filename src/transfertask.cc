@@ -60,7 +60,7 @@ TransferTask::TransferTask(Processor &proc, TaskNode *node, const ArgumentList &
 Object*
 TransferTask::getMainObject(void)
 {
-    assert(this->m_srcobject);
+    ARGON_ICERR(this->m_srcobject, "invalid src obj");
     return this->m_srcobject;
 }
 
@@ -70,7 +70,7 @@ TransferTask::getMainObject(void)
 Object*
 TransferTask::getResultObject(void)
 {
-    assert(this->m_destobject);
+    ARGON_ICERR(this->m_destobject, "invalid dest obj");
     return this->m_destobject;
 /*
   ARGON_ICERR_CTX(false, *this,
@@ -84,7 +84,7 @@ TransferTask::getResultObject(void)
 Object*
 TransferTask::getDestObject(void)
 {
-    assert(this->m_destobject);
+    ARGON_ICERR(this->m_destobject, "invalid dest obj");
     return this->m_destobject;
 }
 
@@ -220,6 +220,7 @@ TransferTask::run(void)
     foreach_node( this->m_init_nodes, TaskChildVisitor(this->proc(), *this), 1);
 
     // Iterate over all records in the main object
+	this->getMainObject()->first();
     while(! this->getMainObject()->eof())
     {
         this->processData();
@@ -245,7 +246,7 @@ TransferTask::run(void)
   Value
   TransferTask::resolveColumn(const Column &col)
   {
-  assert(!"not impl");
+  //assert(!"not impl");
   //return Value(this->getMainObject()->getColumn(col));
   }
 */

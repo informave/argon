@@ -50,7 +50,7 @@ namespace string
     {
         //std::wstringstream ss;
 
-	assert(m_args.size() == 1);
+	ARGON_ICERR(m_args.size() == 1, "invalid args count");
 	std::cerr << "[debug():] " << "{" << (*m_args.begin())->_value().data().datatype() << "} " <<
 	(*m_args.begin())->_value().str() << std::endl;
 /*

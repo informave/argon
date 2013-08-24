@@ -88,7 +88,7 @@ TaskExecNode::semanticCheck(SemanticCheck &sc)
 
 
     ArgumentsNode *argsnode = find_node<ArgumentsNode>(this);
-    assert(argsnode);
+    ARGON_ICERR(argsnode, "invalid node");
 
     if(argsnode->getChilds().size() != node_cast<ArgumentsSpecNode>(task->getChilds()[0])->getChilds().size())
         ARGON_SC_ADD(sc, SC_ERROR, "Argument count mismatch", this->getSourceInfo());
@@ -573,7 +573,7 @@ CompoundNode::semanticCheck(SemanticCheck &sc)
 void
 KeyValueNode::semanticCheck(SemanticCheck &sc)
 {
-    assert(this->getChilds().size() == 2);
+    ARGON_ICERR(this->getChilds().size() == 2, "invalid child count");
 
     Node * n = this->getChilds()[1];
 
@@ -582,7 +582,7 @@ KeyValueNode::semanticCheck(SemanticCheck &sc)
         ARGON_SC_ADD(sc, SC_ERROR, "Expression values are currenty not supported for keys", this->getSourceInfo());
 
 
-//    assert(1 !=1 );
+	//assert(1 !=1 );
 }
 
 

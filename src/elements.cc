@@ -41,20 +41,54 @@ ARGON_NAMESPACE_BEGIN
 
     ScopedStackFrame::ScopedStackFrame(Processor &proc)
         : m_stack(proc.m_stack),
-          m_pos()
+          m_saved_size(m_stack.size())
     {
-        m_pos = m_stack.begin();
+	//        m_pos = m_stack.size();
     }
 
     ScopedStackFrame::~ScopedStackFrame(void)
     {
+        //assert(!m_stack.empty());
+	ARGON_ICERR(m_stack.size() >= m_saved_size, "Stack error");
+
+	while((!m_stack.empty()) && m_stack.size() > m_saved_size)
+	{
+		Element *ptr = *m_stack.rbegin();
+		m_stack.pop_back();
+		delete ptr;
+	}
+
+/*
+		while((!m_stack.empty()) && m_stack.begin() != m_pos)
+		{
+			Element *ptr = *m_stack.begin();
+			m_stack.pop_front();
+			delete ptr;
+		}
+		*/
+			/*
         for(Processor::stack_type::iterator i = m_stack.begin();
             (!m_stack.empty()) && i != m_pos;
-            ++i)
+             ++i )
         {
+			Element *ptr = m_stack.pop_front();
+			delete (*i);
+			*i = 0;
+			m_stack.pop_front();
+
+			m_stack.erase(i);
+			
+			i = m_stack.begin();
+
+
+		
             delete (*i);
-            m_stack.erase(i);
+			Processor::stack_type::iterator j = i;
+			++i;
+            m_stack.erase(j);
+			
         }
+		*/
     }
 
 
@@ -191,13 +225,13 @@ Object::addBindPosition(const Column &col, int pos)
 
 Ref::Ref(Element *elem) : m_element(elem)
 {
-    assert(elem);
+    ARGON_ICERR(elem, "invalid element");
     this->m_element->registerRef(this);
 }
 
 Ref::Ref(const Ref &orig) : m_element(orig.m_element)
 {
-    assert(m_element);
+    ARGON_ICERR(m_element, "Invalid element");
     this->m_element->registerRef(this);
 }
 
@@ -206,6 +240,23 @@ Ref::~Ref(void)
     if(!this->dead())
       this->m_element->unregisterRef(this);
 }
+
+
+Ref&
+Ref::operator=(const Ref& r)
+	{
+		if(!this->dead())
+		{
+			this->m_element->unregisterRef(this);
+			this->m_element = 0;
+		}
+		if(!r.dead())
+		{
+			this->m_element = r.m_element;
+			this->m_element->registerRef(this);
+		}
+		return *this;
+	}
 
 
 Element*
@@ -307,7 +358,7 @@ Context::Context(Processor &proc, SymbolTable *parentptr, const ArgumentList &ar
 void
 Context::setCurrentException(IExceptionInfo *info)
 {
-    assert(this->m_exception_info == 0);
+    ARGON_ICERR(this->m_exception_info == 0, "exception info is null");
     this->m_exception_info = info;
 }
 
@@ -317,7 +368,7 @@ Context::setCurrentException(IExceptionInfo *info)
 void
 Context::releaseCurrentException(void)
 {
-    assert(this->m_exception_info != 0);
+    ARGON_ICERR(this->m_exception_info != 0, "exception info");
     delete this->m_exception_info;
     this->m_exception_info = 0;
 }

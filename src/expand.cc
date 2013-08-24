@@ -65,7 +65,7 @@ Expand::Expand(Processor &proc, const ArgumentList &args, DeclNode *node, Type::
 /*
     NodeList childs = node->getChilds();
 
-    assert(childs.size() >= 2);
+    //assert(childs.size() >= 2);
 
     // Skip first two arguments. Checked by semantic checker, too. TODO!
     size_t c = 3;
@@ -89,10 +89,15 @@ Expand::Expand(Processor &proc, const ArgumentList &args, DeclNode *node, Type::
     }
     
     // All childs must been processed.
-    assert(c > childs.size());
+    //assert(c > childs.size());
 */
     }
 }
+
+
+
+Expand::~Expand(void)
+{}
 
 
 /// @details
@@ -173,6 +178,17 @@ Expand::next(void)
     return m_eof;
 }
 
+/// @details
+/// 
+void
+Expand::first(void)
+{ 
+        this->m_splitter.reset(new strutils::split<std::wstring>(
+                                   m_value.begin(), m_value.end(),
+                                   m_sep));
+		this->next();
+}
+
 
 /// @details
 /// 
@@ -204,14 +220,11 @@ Expand::run(void)
         ARGON_ICERR_CTX(this->m_sep.size() >= 1, *this,
                         "expand() separator must be of length >= 1");
 
-        this->m_splitter.reset(new strutils::split<std::wstring>(
-                                   m_value.begin(), m_value.end(),
-                                   m_sep));
-        this->next();
+
     }
     else
     {
-        assert(!"bug");
+        ARGON_ICERR(false, "not implemented");
 
 /*
     //foreach_node( this->m_node->getChilds(), SqlObjectChildVisitor(this->proc(), *this, *this), 1);
@@ -309,7 +322,7 @@ Expand::type(void) const
 SourceInfo
 Expand::getSourceInfo(void) const
 {
-    assert(this->m_node);
+    ARGON_ICERR(this->m_node, "invalid node");
     return this->m_node->getSourceInfo();
 }
 

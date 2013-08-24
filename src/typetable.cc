@@ -76,7 +76,7 @@ TypeTable::freeHeap(void)
 void
 TypeTable::add(Type *type)
 {
-    assert(type->id().str().length() > 0);
+    ARGON_ICERR(type->id().str().length() > 0, "empty type id");
             
     element_map::iterator i = this->m_types.find(type->id());
     if(i != this->m_types.end())

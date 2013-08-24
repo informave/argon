@@ -17,7 +17,7 @@ namespace debug
     ARGON_FUNCTION_DEF(echo)
     {
 
-        assert(m_args.size() == 1);
+        ARGON_ICERR(m_args.size() == 1, "invalid argument count");
         std::cerr << "[debug():] " << "{"
                   << (*m_args.begin())->_value().data().datatype() << "} "
                   << (*m_args.begin())->_value().str() << std::endl;
@@ -30,7 +30,7 @@ namespace debug
         /// @bug this function is buggy. We search for the ID, but
         /// with this->getSymbols() we dont get the table of the caller,
         /// we get just our own internal table which is empty!
-        assert(m_args.size() == 1);
+        ARGON_ICERR(m_args.size() == 1, "invalid argument count");
 
         Identifier id = (*m_args.begin())->_value().data().get<String>();
         

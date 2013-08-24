@@ -61,7 +61,7 @@ GenRange::GenRange(Processor &proc, const ArgumentList &args, DeclNode *node, Ty
 /*
     NodeList childs = node->getChilds();
 
-    assert(childs.size() >= 2);
+    //assert(childs.size() >= 2);
 
     // Skip first two arguments. Checked by semantic checker, too. TODO!
     size_t c = 3;
@@ -85,7 +85,7 @@ GenRange::GenRange(Processor &proc, const ArgumentList &args, DeclNode *node, Ty
     }
     
     // All childs must been processed.
-    assert(c > childs.size());
+    //assert(c > childs.size());
 */
     }
 }
@@ -172,6 +172,13 @@ GenRange::next(void)
     //std::cout << m_stmt->resultset().column(1) << std::endl;
 }
 
+/// @details
+/// 
+void
+GenRange::first(void)
+{
+	// nothing to do
+}
 
 /// @details
 /// 
@@ -303,7 +310,7 @@ GenRange::type(void) const
 SourceInfo
 GenRange::getSourceInfo(void) const
 {
-    assert(this->m_node);
+    ARGON_ICERR(this->m_node, "invalid node");
     return this->m_node->getSourceInfo();
 }
 

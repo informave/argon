@@ -99,7 +99,7 @@ public:
 
     virtual void visit(ColumnAssignNode *node)
     {
-        assert(node->getChilds().size() == 2);
+        ARGON_ICERR(node->getChilds().size() == 2, "invalid child count");
         
         //ColumnAssignOp op(this->m_proc, m_context, node);
         //this->m_proc.call(op);
@@ -164,7 +164,7 @@ Sql::Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t
 
     NodeList childs = node->getChilds();
 
-    assert(childs.size() >= 2);
+    ARGON_ICERR(childs.size() >= 2, "invalid child count");
 
     // Skip first two arguments. Checked by semantic checker, too. TODO!
     size_t c = 3;
@@ -188,7 +188,7 @@ Sql::Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t
     }
     
     // All childs must been processed.
-    assert(c > childs.size());
+    ARGON_ICERR(c > childs.size(), "unprocessed childs");
     }
 }
 
@@ -210,7 +210,7 @@ Sql::setColumnList(const ColumnList &list)
 void
 Sql::setResultList(const ColumnList &list)
 {
-	assert(this->m_mode == Type::INSERT_MODE);
+	ARGON_ICERR(this->m_mode == Type::INSERT_MODE, "invalid mode");
     this->m_result_columns = list;
 }
 
@@ -224,7 +224,7 @@ Sql::setColumn(const Column &col, const Value &v)
     // removed because param binding works for both moded
 	//assert(this->m_mode == Object::ADD_MODE);
     
-    assert(col.mode() == Column::by_number);
+    ARGON_ICERR(col.mode() == Column::by_number, "invalid column mode");
 
     // can be used later if engine can tell name of parameters
     //int i = this->getBindPosition(col);
@@ -267,6 +267,14 @@ Sql::next(void)
     return !m_stmt->resultset().eof();
     
     //std::cout << m_stmt->resultset().column(1) << std::endl;
+}
+
+/// @details
+/// 
+void
+Sql::first(void)
+{
+    m_stmt->resultset().first();
 }
 
 
@@ -480,7 +488,7 @@ Sql::type(void) const
 SourceInfo
 Sql::getSourceInfo(void) const
 {
-    assert(this->m_node);
+    ARGON_ICERR(this->m_node, "invalid node");
     return this->m_node->getSourceInfo();
 }
 

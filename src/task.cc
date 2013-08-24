@@ -62,8 +62,8 @@ TaskChildVisitor::visit(LogNode *node)
 void
 TaskChildVisitor::visit(ConditionCmdNode *node)
 {
-    assert(node);
-    assert(node->getChilds().size() == 1);
+    ARGON_ICERR(node, "invalid node");
+    ARGON_ICERR(node->getChilds().size() == 1, "invalid child size");
     Value val;
     apply_visitor(node->getChilds()[0], EvalExprVisitor(m_proc, m_context, val));
     if(val.data().isnull() || val.data().get<bool>() == false)
@@ -76,13 +76,13 @@ TaskChildVisitor::visit(ConditionCmdNode *node)
 void
 TaskChildVisitor::visit(ThrowNode *node)
 {
-    assert(node);
+    ARGON_ICERR(node, "invalid node");
     if(node->getChilds().size() == 2) // throw id;
     {
         ArgumentList al;
         Identifier id = find_node<IdNode>(node)->data();
         ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
-        assert(argsnode);
+        ARGON_ICERR(argsnode, "invalid node");
 
         // Fill argument list with the result of each argument node
         foreach_node(argsnode->getChilds(), ArgumentsVisitor(m_proc, m_context, al), 1);
@@ -107,7 +107,7 @@ TaskChildVisitor::visit(ThrowNode *node)
 void
 TaskChildVisitor::visit(ColumnAssignNode *node)
 {
-    assert(node->getChilds().size() == 2);
+    ARGON_ICERR(node->getChilds().size() == 2, "invalid child count");
 
     //ColumnAssignOp op(this->m_proc, m_context, node);
     //this->m_proc.call(op);
@@ -135,7 +135,7 @@ TaskChildVisitor::visit(ColumnAssignNode *node)
 
   elem = this->m_proc.getTypes().find<FunctionType>(id)->newInstance(al);
 
-  assert(elem);
+  //assert(elem);
 
   ARGON_SCOPED_STACKPUSH(this->m_proc, elem);
 
@@ -165,7 +165,7 @@ TaskChildVisitor::visit(ColumnAssignNode *node)
 
 
 void
-TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
+TaskChildVisitor::visit(TaskExecNode *node)
 {
     ARGON_DPRINT(ARGON_MOD_PROC, "Calling task " << node->taskid().str());
 
@@ -177,7 +177,7 @@ TaskChildVisitor::TaskChildVisitor::visit(TaskExecNode *node)
 
 
 void
-TaskChildVisitor::TaskChildVisitor::visit(ExecFunctionCmdNode *node)
+TaskChildVisitor::visit(ExecFunctionCmdNode *node)
 {
     //ARGON_DPRINT(ARGON_MOD_PROC, "Calling function " << node->taskid().str());
 
@@ -362,18 +362,18 @@ Task::Task(Processor &proc, TaskNode *node, const ArgumentList &args)
 {
     NodeList childs = node->getChilds();
 
-    assert(childs.size() >= 2);
+    ARGON_ICERR(childs.size() >= 2, "invalid child count");
 
     {
         Node *n = find_node<TaskInitNode>(this->m_node);
         if(n && (n = find_node<TaskRuleBlockNode>(n)))
         {
             this->m_init_nodes = n->getChilds();
-            assert(find_nodes<ColumnNode>(n).empty());
-            assert(find_nodes<ColumnNumNode>(n).empty());
-            assert(find_nodes<ResColumnNode>(n).empty());
-            assert(find_nodes<ResColumnNumNode>(n).empty());
-            assert(find_nodes<ColumnAssignNode>(n).empty());
+            ARGON_ICERR(find_nodes<ColumnNode>(n).empty(), "column node not empty");
+            ARGON_ICERR(find_nodes<ColumnNumNode>(n).empty(), "columnnum node not empty");
+            ARGON_ICERR(find_nodes<ResColumnNode>(n).empty(), "columnres node not empty");
+            ARGON_ICERR(find_nodes<ResColumnNumNode>(n).empty(), "columnresnum node not empty");
+            ARGON_ICERR(find_nodes<ColumnAssignNode>(n).empty(), "columnassign node not empty");
         }
 
     }
@@ -383,9 +383,9 @@ Task::Task(Processor &proc, TaskNode *node, const ArgumentList &args)
         if(n && (n = find_node<TaskRuleBlockNode>(n)))
         {
             this->m_before_nodes = n->getChilds();
-            assert(find_nodes<ResColumnNode>(n).empty());
-            assert(find_nodes<ResColumnNumNode>(n).empty());
-            assert(find_nodes<ColumnAssignNode>(n).empty());
+            ARGON_ICERR(find_nodes<ResColumnNode>(n).empty(), "rescolumn node not empty");
+            ARGON_ICERR(find_nodes<ResColumnNumNode>(n).empty(), "rescolumnnum node not empty");
+            ARGON_ICERR(find_nodes<ColumnAssignNode>(n).empty(), "columnassign node not empty");
         }
     }
 
@@ -394,8 +394,8 @@ Task::Task(Processor &proc, TaskNode *node, const ArgumentList &args)
         if(n && (n = find_node<TaskRuleBlockNode>(n)))
         {
             this->m_rules_nodes = n->getChilds();
-            assert(find_nodes<ResColumnNode>(n).empty());
-            assert(find_nodes<ResColumnNumNode>(n).empty());
+            ARGON_ICERR(find_nodes<ResColumnNode>(n).empty(), "rescolumn node not empty");
+            ARGON_ICERR(find_nodes<ResColumnNumNode>(n).empty(), "rescolumnnum node not empty");
         }
     }
 
@@ -476,7 +476,7 @@ m_post_nodes.push_back(childs[c-1]);
 }
 
 // All childs must been processed.
-assert(c > childs.size());
+//assert(c > childs.size());
 */
     }
 

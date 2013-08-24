@@ -48,7 +48,7 @@ ARGON_NAMESPACE_BEGIN
 Task*
 TaskType::newInstance(const ArgumentList &args, Type::mode_t mode)
 {
-    assert(! this->getNode()->id.str().empty());
+    ARGON_ICERR(! this->getNode()->id.str().empty(), "invalid id");
 
     Task *elem = 0;
 
@@ -67,7 +67,7 @@ TaskType::newInstance(const ArgumentList &args, Type::mode_t mode)
     	elem = new TransferTask(this->proc(), this->getNode(), args);
         break;
     }
-    assert(elem);
+    ARGON_ICERR(elem, "invalid element");
     return elem;
 }
 
@@ -121,17 +121,17 @@ TableType::newInstance(const ArgumentList &args, Type::mode_t mode)
 {
     Object *tmp = 0;
  
-    assert(this->getNode() == NULL);
+    ARGON_ICERR(this->getNode() == NULL, "invalid node");
 
     Connection *dbc = NULL;
 
-    assert(args.size() > 0);
+    ARGON_ICERR(args.size() > 0, "invalid args count");
     ArgumentList::const_iterator i = args.begin();
     dbc = i->cast<Connection>();    
-    assert(dbc);
+    ARGON_ICERR(dbc, "invalid dbc");
 
     tmp = Table::newInstance(this->proc(), args, dbc, NULL_NODE, mode);
-    assert(tmp);
+    ARGON_ICERR(tmp, "invalid table instance");
     return tmp;
 }
 
@@ -150,22 +150,22 @@ GenRangeType::newInstance(const ArgumentList &args, Type::mode_t mode)
 {
     Object *tmp = 0;
  
-    assert(this->getNode() == NULL);
+    ARGON_ICERR(this->getNode() == NULL, "invalid node");
 
 
-    assert(args.size() > 0);
+    ARGON_ICERR(args.size() > 0, "invalid child count");
 
     tmp = GenRange::newInstance(this->proc(), args, NULL_NODE, mode);
-    assert(tmp);
+    ARGON_ICERR(tmp, "invalid range obj");
     return tmp;
 
 /*
     ArgumentList::const_iterator i = args.begin();
     dbc = i->cast<Connection>();    
-    assert(dbc);
+    //assert(dbc);
 
     tmp = Table::newInstance(this->proc(), args, dbc, NULL_NODE, mode);
-    assert(tmp);
+    //assert(tmp);
     return tmp;
 */
 }
@@ -184,22 +184,22 @@ ExpandType::newInstance(const ArgumentList &args, Type::mode_t mode)
 {
     Object *tmp = 0;
  
-    assert(this->getNode() == NULL);
+    ARGON_ICERR(this->getNode() == NULL, "invalid node");
 
 
-    assert(args.size() > 0);
+    ARGON_ICERR(args.size() > 0, "invalid size");
 
     tmp = Expand::newInstance(this->proc(), args, NULL_NODE, mode);
-    assert(tmp);
+    ARGON_ICERR(tmp, "invalid Expand obj");
     return tmp;
 
 /*
     ArgumentList::const_iterator i = args.begin();
     dbc = i->cast<Connection>();    
-    assert(dbc);
+    //assert(dbc);
 
     tmp = Table::newInstance(this->proc(), args, dbc, NULL_NODE, mode);
-    assert(tmp);
+    //assert(tmp);
     return tmp;
 */
 }
@@ -217,22 +217,22 @@ CompactType::newInstance(const ArgumentList &args, Type::mode_t mode)
 {
     Object *tmp = 0;
  
-    assert(this->getNode() == NULL);
+    ARGON_ICERR(this->getNode() == NULL, "invalid node");
 
 
-    assert(args.size() > 0);
+    ARGON_ICERR(args.size() > 0, "invalid args count");
 
     tmp = Compact::newInstance(this->proc(), args, NULL_NODE, mode);
-    assert(tmp);
+    ARGON_ICERR(tmp, "invalid compact obj");
     return tmp;
 
 /*
     ArgumentList::const_iterator i = args.begin();
     dbc = i->cast<Connection>();    
-    assert(dbc);
+    //assert(dbc);
 
     tmp = Table::newInstance(this->proc(), args, dbc, NULL_NODE, mode);
-    assert(tmp);
+    //assert(tmp);
     return tmp;
 */
 }
@@ -258,13 +258,13 @@ Connection*
 ObjectType::findConnection(const ArgumentList &args)
 {
     DeclNode *n = this->getNode();
-    assert(n);
+    ARGON_ICERR(n, "invalid node");
     ArgumentsNode *argsNode = find_node<ArgumentsNode>(n);
-    assert(argsNode);
-    assert(argsNode->getChilds().size() > 0);
+    ARGON_ICERR(argsNode, "invalid args node");
+    ARGON_ICERR(argsNode->getChilds().size() > 0, "invalid child count");
     Node *x = argsNode->getChilds()[0];
     IdNode *idNode = node_cast<IdNode>(x);
-    assert(idNode);
+    ARGON_ICERR(idNode, "invalid node");
     Identifier id = idNode->data();
     
     try
@@ -274,7 +274,7 @@ ObjectType::findConnection(const ArgumentList &args)
     }
     catch(...) /// @bug check this?!
     {
-        assert(args.size() > 0);
+        ARGON_ICERR(args.size() > 0, "invalid args count");
 
         //ArgumentList::const_iterator i = args.begin();
 
@@ -312,14 +312,14 @@ CustomTableType::newInstance(const ArgumentList &args, Type::mode_t mode)
 {
     Object *tmp = 0;
 
-    assert(this->getNode());
+    ARGON_ICERR(this->getNode(), "invalid node");
 
     Connection *dbc = this->findConnection(args);
-    assert(dbc);
+    ARGON_ICERR(dbc, "invalid dbc");
 
 
     tmp = Table::newInstance(this->proc(), args, dbc, this->getNode(), mode);
-    assert(tmp);
+    ARGON_ICERR(tmp, "invalid table obj");
     return tmp;
 }
 
@@ -338,17 +338,17 @@ SqlType::newInstance(const ArgumentList &args, Type::mode_t mode)
 {
     Object *tmp = 0;
  
-    assert(this->getNode() == NULL);
+    ARGON_ICERR(this->getNode() == NULL, "invalid node");
 
     Connection *dbc = NULL;
 
-    assert(args.size() > 0);
+    ARGON_ICERR(args.size() > 0, "invalid args count");
     ArgumentList::const_iterator i = args.begin();
     dbc = i->cast<Connection>();    
-    assert(dbc);
+    ARGON_ICERR(dbc, "invalid dbc");
 
     tmp = Sql::newInstance(this->proc(), args, dbc, NULL_NODE, mode);
-    assert(tmp);
+    ARGON_ICERR(tmp, "invalid sql obj");
     return tmp;
 
 }
@@ -364,14 +364,14 @@ CustomSqlType::newInstance(const ArgumentList &args, Type::mode_t mode)
 {
     Object *tmp = 0;
 
-    assert(this->getNode());
+    ARGON_ICERR(this->getNode(), "invalid node");
 
     Connection *dbc = this->findConnection(args);
-    assert(dbc);
+    ARGON_ICERR(dbc, "invalid dbc");
 
 
     tmp = Sql::newInstance(this->proc(), args, dbc, this->getNode(), mode);
-    assert(tmp);
+    ARGON_ICERR(tmp, "invalid sql obj");
     return tmp;
 }
 
@@ -387,7 +387,7 @@ CustomExceptionType::newInstance(const ArgumentList &args, Type::mode_t mode)
 void
 CustomExceptionType::throwException(const ArgumentList &args) const
 {
-    assert(args.size() == 0 || args.size() == 1);
+    ARGON_ICERR(args.size() == 0 || args.size() == 1, "invalid args count");
     if(args.size() == 1)
     {
         Value v = args.at(0)->_value();

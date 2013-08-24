@@ -35,9 +35,10 @@
 
 #include <dbwtl/dbobjects>
 #include <dbwtl/dal/engines/generic>
+#include "argon/argon_config.hh"
 
-
-#include <tr1/memory>
+//#include <tr1/memory>
+#include <memory>
 
 
 ARGON_NAMESPACE_BEGIN
@@ -68,7 +69,7 @@ class SemanticCheckEntry;
 
 
 
-typedef std::tr1::shared_ptr<Element> ElementPtr;
+typedef std::shared_ptr<Element> ElementPtr;
 
 
 namespace db

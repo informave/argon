@@ -93,7 +93,7 @@ typedef std::set<Column> ColumnList;
 ///
 /// @since 0.0.1
 /// @brief Value
-class Value
+class ARGON_EXPORT Value
 {
 public:
     bool isVoid(void) const { return true; }
@@ -145,7 +145,7 @@ protected:
 /// @since 0.0.1
 /// @brief Safe pointer
 template<typename T>
-class safe_ptr
+class ARGON_EXPORT safe_ptr
 {
 public:
     safe_ptr(T* p = 0) : m_pointee(p)
@@ -190,7 +190,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Ref class
-class Ref
+class ARGON_EXPORT Ref
 {
 public:
     Ref(Element *elem);
@@ -231,8 +231,9 @@ public:
 protected:
     Element *m_element;
 
-private:
-    Ref& operator=(const Ref&);
+//private:
+public:
+    Ref& operator=(const Ref& r);
 };
 
 
@@ -246,7 +247,7 @@ typedef std::deque<Ref> ArgumentList;
 ///
 /// @since 0.0.1
 /// @brief Symbol table
-class SymbolTable
+class ARGON_EXPORT SymbolTable
 {
 public:
     typedef std::map<Identifier, Ref>         map_type;
@@ -305,7 +306,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Type table
-class TypeTable
+class ARGON_EXPORT TypeTable
 {
 public:
     typedef std::map<Identifier, Type*>  element_map;
@@ -366,7 +367,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Element base class
-class Element
+class ARGON_EXPORT Element
 {
 public:
     friend class Executor;
@@ -422,7 +423,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Element Executor
-class Executor
+class ARGON_EXPORT Executor
 {
 public:
     Executor(void)
@@ -437,13 +438,12 @@ public:
 
 
 
-
 //..............................................................................
 ///////////////////////////////////////////////////////////////////// Connection
 ///
 /// @since 0.0.1
 /// @brief Connection element
-class Connection : public Element
+class ARGON_EXPORT Connection : public Element
 {
 public:
     Connection(Processor &proc, ConnNode *node, db::ConnectionMap &userConns);
@@ -490,7 +490,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Type element
-class Type : public Element
+class ARGON_EXPORT Type : public Element
 {
 public:
     Type(Processor &proc, Identifier type_id) : Element(proc),
@@ -528,7 +528,7 @@ protected:
 };
 
 
-class IExceptionInfo
+class ARGON_EXPORT IExceptionInfo
 {
 public:
     virtual ~IExceptionInfo(void)
@@ -536,7 +536,7 @@ public:
 };
 
 template<typename T>
-class ExceptionInfo : public IExceptionInfo
+class ARGON_EXPORT ExceptionInfo : public IExceptionInfo
 {
 public:
     ExceptionInfo(T &exception)
@@ -552,7 +552,7 @@ public:
 ///
 /// @since 0.0.1
 /// @brief Context elements
-class Context : public Element
+class ARGON_EXPORT Context : public Element
 {
 public:
     friend class RuntimeError;
@@ -625,7 +625,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Function base class
-class Function : public Context
+class ARGON_EXPORT Function : public Context
 {
 public:
     Function(Processor &proc, FunctionNode *node, const ArgumentList &args);
@@ -674,7 +674,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Lambda function class
-class Lambdafunction : public Context
+class ARGON_EXPORT Lambdafunction : public Context
 {
 public:
     Lambdafunction(Processor &proc, LambdaFuncNode *node, Context &parent_context);
@@ -724,7 +724,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Lambda function class
-class GlobalContext : public Context
+class ARGON_EXPORT GlobalContext : public Context
 {
 public:
     GlobalContext(Processor &proc, Node *tree);
@@ -774,7 +774,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Task base class
-class Task : public Context
+class ARGON_EXPORT Task : public Context
 {
 public:
     Task(Processor &proc, TaskNode *node, const ArgumentList &args);
@@ -834,7 +834,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief FETCH Task
-class FetchTask : public Task
+class ARGON_EXPORT FetchTask : public Task
 {
 public:
     FetchTask(Processor &proc, TaskNode *node, const ArgumentList &args);
@@ -876,7 +876,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief STORE Task
-class StoreTask : public Task
+class ARGON_EXPORT StoreTask : public Task
 {
 public:
     StoreTask(Processor &proc, TaskNode *node, const ArgumentList &args);
@@ -917,7 +917,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief TRANSFER Task
-class TransferTask : public Task
+class ARGON_EXPORT TransferTask : public Task
 {
 public:
     TransferTask(Processor &proc, TaskNode *node, const ArgumentList &args);
@@ -961,7 +961,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief VOID Task
-class VoidTask : public Task
+class ARGON_EXPORT VoidTask : public Task
 {
 public:
     VoidTask(Processor &proc, TaskNode *node, const ArgumentList &args);
@@ -993,7 +993,7 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Object base
-class Object : public Context
+class ARGON_EXPORT Object : public Context
 {
 public:
 
@@ -1008,6 +1008,8 @@ public:
     /// @brief Fetches the next record
     /// @return true if there was a new record
     virtual bool next(void) = 0;
+
+	virtual void first(void) = 0;
 
     /// @return true if end of resultset is reached
     virtual bool eof(void) const = 0;
@@ -1054,7 +1056,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Table element
-class Table : public Object
+class ARGON_EXPORT Table : public Object
 {
 public:
     static Table* newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, DeclNode *node, Type::mode_t mode);
@@ -1084,6 +1086,8 @@ public:
     virtual const db::Value& getColumn(Column col);
 
     virtual void execute(void);
+
+	virtual void first(void);
 
     virtual bool next(void);
 
@@ -1125,7 +1129,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief SQL
-class Sql : public Object
+class ARGON_EXPORT Sql : public Object
 {
 public:
     static Sql* newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, DeclNode *node, Type::mode_t mode);
@@ -1156,6 +1160,8 @@ public:
     virtual const db::Value& getColumn(Column col);
 
     virtual void execute(void);
+
+	virtual void first(void);
 
     virtual bool next(void);
 
@@ -1202,7 +1208,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief GEN_RANGE
-class GenRange : public Object
+class ARGON_EXPORT GenRange : public Object
 {
 public:
     static GenRange* newInstance(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode);
@@ -1233,6 +1239,8 @@ public:
     virtual const db::Value& getColumn(Column col);
 
     virtual void execute(void);
+
+	virtual void first(void);
 
     virtual bool next(void);
 
@@ -1275,15 +1283,14 @@ private:
 ///
 /// @since 0.0.1
 /// @brief GEN_RANGE
-class Expand : public Object
+class ARGON_EXPORT Expand : public Object
 {
 public:
     static Expand* newInstance(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode);
 
     Expand(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode); // change node
 
-    virtual ~Expand(void) 
-    {}
+    virtual ~Expand(void);
 
     virtual String str(void) const;
 
@@ -1306,6 +1313,8 @@ public:
     virtual const db::Value& getColumn(Column col);
 
     virtual void execute(void);
+
+	virtual void first(void);
 
     virtual bool next(void);
 
@@ -1351,7 +1360,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief COMPACT
-class Compact : public Object
+class ARGON_EXPORT Compact : public Object
 {
 public:
     static Compact* newInstance(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode);
@@ -1382,6 +1391,8 @@ public:
     virtual const db::Value& getColumn(Column col);
 
     virtual void execute(void);
+
+	virtual void first(void);
 
     virtual bool next(void);
 
@@ -1425,7 +1436,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief LOG Command
-class LogCmd : public Element
+class ARGON_EXPORT LogCmd : public Element
 {
 public:
     LogCmd(Processor &proc, Context &context, LogNode *node);
@@ -1465,7 +1476,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief EXEC SQL Command
-class SqlExecCmd : public Element
+class ARGON_EXPORT SqlExecCmd : public Element
 {
 public:
     SqlExecCmd(Processor &proc, Context &context, SqlExecNode *node);
@@ -1508,7 +1519,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Value Element
-class ValueElement : public Element
+class ARGON_EXPORT ValueElement : public Element
 {
 public:
     ValueElement(Processor &proc, const Value& value);
@@ -1556,7 +1567,7 @@ inline Value enter_element(const T &f, Element &elem)
 ///
 /// @since 0.0.1
 /// @brief Sequence Element
-class Sequence : public Element
+class ARGON_EXPORT Sequence : public Element
 {
 public:
     Sequence(Processor &proc, const Value& value, const Value &inc_by);
@@ -1595,7 +1606,7 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Column
-class Column
+class ARGON_EXPORT Column
 {
 public:
     enum selection_mode {
@@ -1695,7 +1706,7 @@ struct builtin_func_def
 ///
 /// @since 0.0.1
 /// @brief DTS Processor
-class Processor
+class ARGON_EXPORT Processor
 {
     friend class Pass1Visitor;
     friend class Pass2Visitor;
@@ -1773,7 +1784,7 @@ public:
         : m_ptr(elem),
           m_stack(proc.m_stack)
     {
-        m_stack.push_front(elem);
+        m_stack.push_back(elem);
     }
 
     ~ScopedStackPush(void);
@@ -1805,7 +1816,7 @@ public:
 
 protected:
     Processor::stack_type &m_stack;
-    Processor::stack_type::iterator m_pos;
+    Processor::stack_type::size_type m_saved_size;
 };
 
 
@@ -1848,7 +1859,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Scoped Release Exception
-class ScopedReleaseException
+class ARGON_EXPORT ScopedReleaseException
 {
 public:
     ScopedReleaseException(Context &ctx);
@@ -1872,7 +1883,7 @@ protected:
 /// @since 0.0.1
 /// @brief Smart pointer for Objects
 /// Used in task implementations to hold an object pointer
-class ObjectSmartPtr
+class ARGON_EXPORT ObjectSmartPtr
 {
 public:
     ObjectSmartPtr(Object **destptr, Object *ptr) : m_ptr(destptr)
@@ -1883,6 +1894,7 @@ public:
     ~ObjectSmartPtr(void)
     {
         delete *m_ptr;
+		*m_ptr = 0;
     }
 
 protected:
@@ -1903,7 +1915,7 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Last Error
-class LastError
+class ARGON_EXPORT LastError
 {
 public:
     LastError(const Processor::stack_type &stack) : m_stack(stack)
@@ -1924,7 +1936,7 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Control exception
-class CustomException : public std::exception
+class ARGON_EXPORT CustomException : public std::exception
 {
 public:
     CustomException(const ExceptionType &type)
@@ -1961,7 +1973,7 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Control exception
-class ControlException
+class ARGON_EXPORT ControlException
 {
 public:
 	virtual ~ControlException()
@@ -1975,7 +1987,7 @@ public:
 ///
 /// @since 0.0.1
 /// @brief Control exception for return statement
-class ReturnControlException : public ControlException
+class ARGON_EXPORT ReturnControlException : public ControlException
 {
 public:
 	ReturnControlException(Value retvalue);
@@ -1994,7 +2006,7 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Control exception for continue statement
-class ContinueControlException : public ControlException
+class ARGON_EXPORT ContinueControlException : public ControlException
 {
 public:
 	ContinueControlException(void);
@@ -2009,7 +2021,7 @@ public:
 ///
 /// @since 0.0.1
 /// @brief Control exception condition command
-class ConditionControlException : public ControlException
+class ARGON_EXPORT ConditionControlException : public ControlException
 {
 public:
 	ConditionControlException(void);
@@ -2024,7 +2036,7 @@ public:
 ///
 /// @since 0.0.1
 /// @brief Control exception for break statement
-class BreakControlException : public ControlException
+class ARGON_EXPORT BreakControlException : public ControlException
 {
 public:
 	BreakControlException(void);
@@ -2039,7 +2051,7 @@ public:
 ///
 /// @since 0.0.1
 /// @brief Control exception for break statement
-class RethrowControlException : public ControlException
+class ARGON_EXPORT RethrowControlException : public ControlException
 {
 public:
 	RethrowControlException(void);
@@ -2054,7 +2066,7 @@ public:
 ///
 /// @since 0.0.1
 /// @brief Control exception for program termination
-class TerminateControlException : public ControlException
+class ARGON_EXPORT TerminateControlException : public ControlException
 {
 public:
 	TerminateControlException(Value exitcode);
@@ -2073,7 +2085,7 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief Control exception for asserts
-class AssertControlException : public ControlException
+class ARGON_EXPORT AssertControlException : public ControlException
 {
 public:
 	AssertControlException(AssertNode *node);
@@ -2100,7 +2112,7 @@ protected:
 ///
 /// @since 0.0.1
 /// @brief DTS Engine
-class DTSEngine
+class ARGON_EXPORT DTSEngine
 {
     friend class Processor;
 
@@ -2147,7 +2159,8 @@ protected:
     Processor                   m_proc;
     function_map                m_functions;
     logger_callback_t           m_logger_callback;
-    void                       *m_logger_cb_arg;
+        void                       *m_logger_cb_arg;
+
 
 private:
     DTSEngine(const DTSEngine&);

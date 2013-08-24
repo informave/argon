@@ -52,7 +52,7 @@ EvalExprVisitor::EvalExprVisitor(Processor &proc, Context &context, Value &value
 void
 EvalExprVisitor::visit(NullNode *node)
 {
-	assert(node);
+	ARGON_ICERR(node, "invalid node");
 	this->m_value.data() = db::Variant();
 }
 
@@ -61,7 +61,7 @@ EvalExprVisitor::visit(NullNode *node)
 void
 EvalExprVisitor::visit(BooleanNode *node)
 {
-	assert(node);
+	ARGON_ICERR(node, "invalid node");
 	this->m_value.data() = db::Variant(node->data());
 }
 
@@ -69,7 +69,7 @@ EvalExprVisitor::visit(BooleanNode *node)
 void
 EvalExprVisitor::visit(AssignNode *node)
 {
-	assert(node->getChilds().size() == 2);
+	ARGON_ICERR(node->getChilds().size() == 2, "invalid child count");
 
     Node *op0 = node->getChilds().at(0);
     Node *op1 = node->getChilds().at(1);
@@ -89,7 +89,7 @@ EvalExprVisitor::visit(AssignNode *node)
 void
 EvalExprVisitor::visit(UnaryExprNode *node)
 {
-    assert(node->getChilds().size() == 1);
+    ARGON_ICERR(node->getChilds().size() == 1, "invalid child count");
 
     Value val0;
     Node *op0 = node->getChilds().at(0);
@@ -127,7 +127,7 @@ void
 EvalExprVisitor::visit(BinaryExprNode *node)
 {
     using informave::db::BinaryOperatorVariant;
-    assert(node->getChilds().size() == 2);
+    ARGON_ICERR(node->getChilds().size() == 2, "invalid child count");
 
     Value val0, val1;
     Node *op0 = node->getChilds().at(0);
@@ -378,7 +378,7 @@ EvalExprVisitor::visit(FuncCallNode *node)
     ArgumentList al;
     Identifier id = node->data();
     ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
-    assert(argsnode);
+    ARGON_ICERR(argsnode, "invalid node");
 
     // Fill argument list with the result of each argument node
     foreach_node(argsnode->getChilds(), ArgumentsVisitor(m_proc, m_context, al), 1);
@@ -398,7 +398,7 @@ EvalExprVisitor::visit(FuncCallNode *node)
     
     elem = this->m_proc.getTypes().find<FunctionType>(id)->newInstance(al);
 
-    assert(elem);
+    ARGON_ICERR(elem, "invalid function element ptr");
 
     ARGON_SCOPED_STACKPUSH(this->m_proc, elem);
 

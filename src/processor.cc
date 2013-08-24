@@ -43,7 +43,8 @@ ARGON_NAMESPACE_BEGIN
 
 ScopedStackPush::~ScopedStackPush(void)
 {
-    Element *elem = m_stack.front();
+   ARGON_ICERR(m_stack.size() > 0, "stack error");
+    Element *elem = *m_stack.rbegin();
 
     if(this->m_ptr != elem) // something bad happens
     {
@@ -59,7 +60,7 @@ ScopedStackPush::~ScopedStackPush(void)
     else
     {
         delete elem;
-        m_stack.pop_front();
+        m_stack.pop_back();
     }
 }
 
@@ -113,7 +114,7 @@ Processor::addtoHeap(Element *elem)
 void
 Processor::stackPush(Element *elem)
 {
-    this->m_stack.push_front(elem);
+    this->m_stack.push_back(elem);
 }
 
 
@@ -223,7 +224,7 @@ Processor::call(const Identifier &id, const ArgumentList &list)
     Element *elem = 0;
     //elem = this->getTypes().find<TaskType>(id)->newInstance(list);
     elem = this->getTypes().find<Type>(id)->newInstance(list);
-    assert(elem);
+    ARGON_ICERR(elem, "invalid element");
     ARGON_SCOPED_STACKPUSH(*this, elem);
 
     return enter_element(Executor(), *elem);
@@ -240,7 +241,7 @@ Processor::call(const Identifier &id, ArgumentsNode *argsNode, Context &ctx)
     // new stack frame for this call
     ARGON_SCOPED_STACKFRAME(*this);
 
-    assert(argsNode);
+    ARGON_ICERR(argsNode, "invalid node");
 
     ArgumentList alist;
     // resolve all arguments
@@ -249,7 +250,7 @@ Processor::call(const Identifier &id, ArgumentsNode *argsNode, Context &ctx)
     const Processor::stack_type::size_type size = this->getStack().size();
 
     Value v = this->call(id, alist);
-    assert(this->getStack().size() == size); // stack must have same size as saved before call
+    ARGON_ICERR(this->getStack().size() == size, "invalid stack size"); // stack must have same size as saved before call
     return v;
 }
 
@@ -269,7 +270,7 @@ Value Processor::run(void)
         try
         {
             GlobalContext *gctx = new GlobalContext(*this, this->m_tree);
-            assert(gctx);
+            ARGON_ICERR(gctx, "invalid global context");
             this->m_globalcontext = gctx;
 
             ARGON_SCOPED_STACKPUSH(*this, gctx);
@@ -301,7 +302,7 @@ Value Processor::run(void)
         return ARGON_EXIT_PARSER_ERROR;
     }
 
-    assert(this->m_stack.size() == 0);
+    ARGON_ICERR(this->m_stack.size() == 0, "invalid stack size");
     return ARGON_EXIT_SUCCESS;
 }
 

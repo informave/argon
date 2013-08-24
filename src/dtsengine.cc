@@ -103,7 +103,7 @@ DTSEngine::DTSEngine(void)
 /// @details
 /// 
 void 
-DTSEngine::addConnection(String name, db::Connection *dbc)
+	DTSEngine::addConnection(String name, db::Connection *dbc)
 {
     this->m_userConns[Identifier(name)] = dbc;
 }
@@ -216,8 +216,8 @@ DTSEngine::load(std::istreambuf_iterator<wchar_t> in, String sourcename)
         //std::cout << "found token: " << t.getSourceInfo() << std::endl;
         if(t.id() != 0)
         {
-            assert(! t.data().empty());
-            assert(t.getSourceInfo().linenum() > 0);
+            ARGON_ICERR(! t.data().empty(), "data is empty");
+            ARGON_ICERR(t.getSourceInfo().linenum() > 0, "invalid line number");
             
             Token *tp = this->m_tree->newToken(t);
 

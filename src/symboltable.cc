@@ -111,7 +111,7 @@ SymbolTable::deleteSub(SymbolTable::map_type* ptr)
 SymbolTable::map_type&
 SymbolTable::getCurrentSub(void)
 {
-    assert(this->m_sub_symbols.size() > 0);
+    ARGON_ICERR(this->m_sub_symbols.size() > 0, "sub_symbols = 0");
     return **this->m_sub_symbols.begin();
 }
 
@@ -121,7 +121,7 @@ SymbolTable::getCurrentSub(void)
 const SymbolTable::map_type&
 SymbolTable::getCurrentSub(void) const
 {
-    assert(this->m_sub_symbols.size() > 0);
+    ARGON_ICERR(this->m_sub_symbols.size() > 0, "sub_symbols = 0");
     return **this->m_sub_symbols.begin();
 }
 
@@ -131,7 +131,7 @@ SymbolTable::getCurrentSub(void) const
 void
 SymbolTable::add(Identifier name, const Ref &ref)
 {
-    assert(name.str().length() > 0);
+    ARGON_ICERR(name.str().length() > 0, "empty id");
             
     map_type::iterator i = this->getCurrentSub().find(name);
     if(i != this->getCurrentSub().end())
@@ -148,7 +148,7 @@ SymbolTable::cloneSymbols(const SymbolTable &from)
         j != from.m_sub_symbols.end();
         ++j)
     {
-        std::for_each((*j)->begin(), (*j)->end(), [this](typename map_type::value_type &v){
+        std::for_each((*j)->begin(), (*j)->end(), [this](map_type::value_type &v){
                 try
                 {
                     this->add(v.first, v.second);

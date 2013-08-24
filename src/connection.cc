@@ -54,7 +54,7 @@ public:
 
     virtual void visit(KeyValueNode *node)
     {
-        assert(node->getChilds().size() == 2);
+        ARGON_ICERR(node->getChilds().size() == 2, "Invalid child count");
 
         LiteralNode *key = node_cast<LiteralNode>(node->getChilds()[0]);
         LiteralNode *value = node_cast<LiteralNode>(node->getChilds()[1]);
@@ -107,7 +107,7 @@ Connection::Connection(Processor &proc, ConnNode *node, db::ConnectionMap &userC
 
 //        apply_visitor(node->getChilds(), KeyValueCreator(opts));
 
-        assert(opts["engine"].length() > 0);
+        ARGON_ICERR(opts["engine"].length() > 0, "Engine not set");
 
 //        for(dbcopts_t::iterator i = opts.begin(); i != opts.end(); ++i)
 //            std::cout << i->first << " " << i->second << std::endl;
@@ -165,7 +165,7 @@ Connection::type(void) const
 db::Connection&
 Connection::getDbc(void)
 {
-    assert(this->m_dbc);
+    ARGON_ICERR(this->m_dbc, "dbc not set");
     return *this->m_dbc;
 }
 
@@ -175,8 +175,9 @@ Connection::getDbc(void)
 db::Env&
 Connection::getEnv(void)
 {
-    assert(this->m_alloc_env.get());
-    return *this->m_alloc_env.get();
+	return this->m_dbc->getEnv();
+    //assert(this->m_alloc_env.get());
+    //return *this->m_alloc_env.get();
 }
 
 

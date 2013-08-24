@@ -107,7 +107,7 @@ if(MSVC)
   add_definitions("-D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS")
   add_definitions("-D_SCL_SECURE_NO_WARNINGS -DCRT_NONSTDC_NO_WARNINGS")
   add_definitions("-D_SCL_SECURE_NO_DEPRECATE")
-  add_definitions("-wd4309 -wd4251")
+  add_definitions("-wd4309 -wd4251 -wd4099 -wd4800")
 
   if(NOT ${ARGON_USE_CRT} STREQUAL "")
     list(FIND MSVC_CRT ${ARGON_USE_CRT} idx)
@@ -181,6 +181,9 @@ include(CheckIncludeFiles)
 
 
 check_include_files("stdint.h" ARGON_HAVE_STDINT_H)
+
+
+
 
 
 
@@ -282,14 +285,32 @@ endif(MSVC)
 # library
 add_library(argon SHARED ${argon_srcs})
 
-target_link_libraries(argon dbwtl)
+
+
+# ICU Library
+set(DBWTL_FIND_REQUIRED true)
+set(DBWTL_FIND_QUIETLY false)
+
+
+include(FindDBWTL)
+
+
+include_directories(${DBWTL_INCLUDE_DIRS})
+target_link_libraries(argon ${DBWTL_LIBRARIES})
+
+
+#target_link_libraries(argon dbwtl)
+
 
 #SET_TARGET_PROPERTIES(argon PROPERTIES LINK_FLAGS "-L/home/cytrinox/bin/usr/lib")
+
+if(UNIX)
 SET (CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS_INIT}
 "-L/home/cytrinox/bin/usr/lib")
 
 SET (CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS_INIT}
 "-L/home/cytrinox/bin/usr/lib")
+endif()
 
 # CLI
 set(argoncli_srcs
@@ -298,7 +319,8 @@ set(argoncli_srcs
 
 add_executable(argoncli ${argoncli_srcs})
 
-target_link_libraries (argoncli argon)
+
+target_link_libraries(argoncli argon)
 
 
 if(UNIX)
@@ -323,6 +345,10 @@ endif()
 if(UNIX)
 	install(TARGETS argon LIBRARY DESTINATION lib)
 endif(UNIX)
+
+if(NOT UNIX)
+	install(TARGETS argon DESTINATION lib)
+endif(NOT UNIX)
 
 install(DIRECTORY ${ARGON_MAIN_INCLUDE_DIR}/argon
   DESTINATION include

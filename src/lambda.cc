@@ -61,7 +61,7 @@ Lambdafunction::run(void)
 {
     //ARGON_DPRINT(ARGON_MOD_PROC, "Running lambda function " << this->id());
 
-    assert(this->m_node);
+    ARGON_ICERR(this->m_node, "invalid node");
 
 /*
     safe_ptr<ArgumentsSpecNode> argsSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
@@ -82,7 +82,7 @@ Lambdafunction::run(void)
     //this->resolve<ValueElement>(Identifier("foo"));
 
     CompoundNode *n = find_node<CompoundNode>(this->m_node);
-    assert(n);
+    ARGON_ICERR(n, "invalid node");
 
     ARGON_SCOPED_STACKFRAME(this->proc());
 

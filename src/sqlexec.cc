@@ -141,7 +141,7 @@ SqlExecCmd::bindParam(int pnum, Value value)
 Value
 SqlExecCmd::run(void)
 {
-    assert(! this->m_node->sql().empty());
+    ARGON_ICERR(! this->m_node->sql().empty(), "sql is empty");
 
     //assert(this->getCallArgs().size() == 0);
 
