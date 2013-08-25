@@ -1,0 +1,353 @@
+Informave ARGON Function Reference
+==================================
+Daniel Vogelbacher <daniel@vogelbacher.name>
+v0.1, August 2013:
+Initial draft.
+
+
+== Introduction
+
+The is the reference manual for all built-in functions in the ARGON
+scripting language.
+
+
+
+== global namespace
+=== isnull() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+bool isnull(val)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns 'true' if the value argument is NULL, false otherwise.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : fetch[customers]
+begin
+ before:
+ 	condition not isnull($customer_name);
+ rules:
+ 	<processing rules...>
+end;
+--------------------------------------------------------------------------------
+
+
+=== coalesce() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value coalesce(value1, ...)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns the first value argument which is not NULL. If all argument
+values are NULL, the function returns NULL.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : fetch[customers]
+begin
+ before:
+        condition not isnull(coalesce($customer_name, $customer_company));
+ rules:
+        <processing rules...>
+end;
+--------------------------------------------------------------------------------
+
+
+== *sys* namespace
+=== sys.terminate() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+null sys.terminate()
+--------------------------------------------------------------------------------
+
+.Return value
+The function has no return value, instead the program is terminated.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : fetch[customers]
+begin
+ rules:
+        <processing rules...>
+ except:
+	log "error";
+	exec function sys.terminate();
+end;
+--------------------------------------------------------------------------------
+
+
+
+=== sys.charseq() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value sys.charseq(value1, ...)
+--------------------------------------------------------------------------------
+
+.Return value
+The function concats the argument values and returns the resulting string.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : fetch[customers]
+begin
+ rules:
+        <processing rules...>
+	log "String: " || sys.charseq(57, 92, 84, 60);
+end;    
+--------------------------------------------------------------------------------
+
+
+
+=== sys.byteseq() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value sys.byteseq(value1, ...)
+--------------------------------------------------------------------------------
+
+.Return value
+The function concats the argument values and returns the resulting varbinary.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : store[binary_data]
+begin
+ rules:
+        <processing rules...>
+        $blob_field	<< sys.byteseq(1, 2, 3, 4, 0, 3, 1);
+end;    
+--------------------------------------------------------------------------------
+
+
+
+=== sys.newline() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value sys.newline(void)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns a new line, depending on the host system.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : store[customers]
+begin
+ rules:
+        $address	<< name1 || sys.newline() || name2;
+end;    
+--------------------------------------------------------------------------------
+
+
+
+
+== *string* namespace
+
+=== string.concat() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value string.concat(value1, ...)
+--------------------------------------------------------------------------------
+
+.Return value
+The function concats the argument values and returns the resulting string.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : store[customers]
+begin
+ rules:
+	$address	<< string.concat(name1, name2);
+end;    
+--------------------------------------------------------------------------------
+
+
+=== string.len() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value string.len(value)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns the count of characters.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : fetch[customers]
+begin
+ before:
+	condition string.len($customer_name) < 30;
+ rules:
+	<processing rules...>
+end;    
+--------------------------------------------------------------------------------
+
+
+=== string.truncate() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value string.truncate(value, length)
+--------------------------------------------------------------------------------
+
+.Return value
+The function truncates the string 'value' to 'length'.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : store[customers]
+begin
+ rules:
+	$name	<< string.truncate(customer_name, 30);
+end;    
+--------------------------------------------------------------------------------
+
+
+=== string.substr() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value string.substr(value, start <, count>)
+--------------------------------------------------------------------------------
+
+.Return value
+The function extracts the substring from 'start' (first character is 1) to the
+end of the string or maximal 'count' characters.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : store[customers]
+begin
+ rules:
+	$name	<< string.substr("ID34: John Doe", 7);
+end;    
+--------------------------------------------------------------------------------
+
+
+=== string.find()
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value string.find(value, substr)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns the start position (first charater is 1) of the 'substr'
+string in the 'value' string. The return value is -1, if 'substr' is not in
+'value'.
+
+
+=== string.char()
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value string.char(value, pos)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns the character at position 'pos'.
+
+
+
+=== string.contains()
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value string.contains(value, substr)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns true if the 'substr' string is contained in 'value'.
+
+
+
+== *seq* namespace
+=== seq.next()
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value seq.next(seqobj)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns the next value for the sequence 'seqobj'.
+
+.Examples
+
+--------------------------------------------------------------------------------
+task sampleTask : store[customers]
+begin
+ rules:
+	$id	<< seq.next(customer_id_seq);
+end;    
+--------------------------------------------------------------------------------
+
+
+
+== *sql* namespace
+
+=== sql.scalar() function
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value sql.scalar(dbc, sqlcmd)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns the first column value from the first row that the
+'sqlcmd' query contains. If there is no result available, the return value is
+NULL.
+
+
+
+=== sql.exec() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value sql.exec(dbc, sqlcmd)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns the count of modified row or -1 if the sqlcmd query is
+a SELECT statement.
+
+
+
+
+
+
