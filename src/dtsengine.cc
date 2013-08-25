@@ -216,7 +216,7 @@ DTSEngine::load(std::istreambuf_iterator<wchar_t> in, String sourcename)
         //std::cout << "found token: " << t.getSourceInfo() << std::endl;
         if(t.id() != 0)
         {
-            ARGON_ICERR(! t.data().empty(), "data is empty");
+            //ARGON_ICERR(! t.data().empty(), "data is empty"); // this matches empty string literals, too!
             ARGON_ICERR(t.getSourceInfo().linenum() > 0, "invalid line number");
             
             Token *tp = this->m_tree->newToken(t);

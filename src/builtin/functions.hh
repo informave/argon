@@ -10,6 +10,6 @@
 #include "debug.hh"
 #include "seq.hh"
 #include "sql.hh"
-
+#include "regex.hh"
 
 #endif

@@ -54,6 +54,10 @@ option(ARGON_CXX98_COMPATIBILITY
 	version" ON)
 
 
+set(BOOST_REGEX_INCLUDE_DIRS "x" CACHE STRING "Regex Include Dir")
+set(BOOST_REGEX_LIBRARIES "x" CACHE STRING "Regex library dir")
+
+
 
 set(ARGON_DEFAULT_CHARSET "UTF-8" CACHE STRING "This charset is used for input 1-byte chars when converting to the internal wide charset")
 
@@ -273,6 +277,7 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/builtin/debug.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/sql.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/seq.cc
+	${ARGON_MAIN_SRC_DIR}/builtin/regex.cc
 	)
 
 
@@ -296,12 +301,20 @@ set(DBWTL_FIND_QUIETLY false)
 include(FindDBWTL)
 
 
+
+if(MSVC)
+include_directories(${BOOST_REGEX_INCLUDE_DIRS})
+target_link_libraries(argon ${BOOST_REGEX_LIBRARIES})
+endif()
+
+
 include_directories(${DBWTL_INCLUDE_DIRS})
 target_link_libraries(argon ${DBWTL_LIBRARIES})
 
 
-#target_link_libraries(argon dbwtl)
-
+if(UNIX)
+target_link_libraries(argon boost_regex)
+endif()
 
 #SET_TARGET_PROPERTIES(argon PROPERTIES LINK_FLAGS "-L/home/cytrinox/bin/usr/lib")
 
