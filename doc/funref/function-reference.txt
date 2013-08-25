@@ -62,6 +62,46 @@ end;
 --------------------------------------------------------------------------------
 
 
+
+== *regex* namespace
+=== regex.match() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+bool regex.match(str, pattern)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns true if str matches the pattern, false otherwise.
+
+
+=== regex.search_n() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+string regex.search_n(str, pattern, n)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns the n-th sub-match of the pattern, NULL if no sub-match
+found.
+
+
+=== regex.replace() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+string regex.replace(str, pattern, rep)
+--------------------------------------------------------------------------------
+
+.Return value
+The function returns 'str', replaced by 'rep' where 'pattern' matches.
+
+
+
 == *sys* namespace
 === sys.terminate() function
 
@@ -291,6 +331,7 @@ value string.contains(value, substr)
 
 .Return value
 The function returns true if the 'substr' string is contained in 'value'.
+
 
 
 

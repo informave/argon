@@ -774,6 +774,39 @@ end;</tt></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_strong_regex_strong_namespace"><strong>regex</strong> namespace</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_regex_match_function">regex.match() function</h3>
+<div class="listingblock">
+<div class="title">SYNOPSIS</div>
+<div class="content">
+<pre><tt>bool regex.match(str, pattern)</tt></pre>
+</div></div>
+<div class="paragraph"><div class="title">Return value</div><p>The function returns true if str matches the pattern, false otherwise.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_regex_search_n_function">regex.search_n() function</h3>
+<div class="listingblock">
+<div class="title">SYNOPSIS</div>
+<div class="content">
+<pre><tt>string regex.search_n(str, pattern, n)</tt></pre>
+</div></div>
+<div class="paragraph"><div class="title">Return value</div><p>The function returns the n-th sub-match of the pattern, NULL if no sub-match
+found.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_regex_replace_function">regex.replace() function</h3>
+<div class="listingblock">
+<div class="title">SYNOPSIS</div>
+<div class="content">
+<pre><tt>string regex.replace(str, pattern, rep)</tt></pre>
+</div></div>
+<div class="paragraph"><div class="title">Return value</div><p>The function returns <em>str</em>, replaced by <em>rep</em> where <em>pattern</em> matches.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_strong_sys_strong_namespace"><strong>sys</strong> namespace</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -1018,7 +1051,7 @@ a SELECT statement.</p></div>
 <div id="footer">
 <div id="footer-text">
 Version 0.1<br />
-Last updated 2013-08-25 14:23:05 CEST
+Last updated 2013-08-25 19:45:59 CEST
 </div>
 </div>
 </body>
