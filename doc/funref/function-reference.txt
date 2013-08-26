@@ -61,6 +61,40 @@ begin
 end;
 --------------------------------------------------------------------------------
 
+=== getval() function
+
+.SYNPOSIS
+
+--------------------------------------------------------------------------------
+value getval(key)
+--------------------------------------------------------------------------------
+
+.Preconditions
+key::
+	Argument must be of type string or string-convertable.
+
+.Return value
+The function returns the value for the key (set by setval()) or NULL if there
+is no value for the key.
+
+=== setval() function
+
+.SYNOPSIS
+
+--------------------------------------------------------------------------------
+value setval(key, value)
+--------------------------------------------------------------------------------
+
+.Preconditions
+key::
+	Argument must be of type string or string-convertable.
+
+.Return value
+The function returns the previous saved value or NULL if the key not exists.
+
+
+
+
 
 
 == *regex* namespace

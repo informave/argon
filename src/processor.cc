@@ -78,7 +78,8 @@ Processor::Processor(DTSEngine &engine)
       m_tree(0),
       //m_symbols(),
       m_types(),
-      m_globalcontext(0)
+      m_globalcontext(0),
+      m_globalmap()
 {}
 
 
@@ -130,6 +131,21 @@ Processor::addBuiltinFunctiontable(builtin_func_def *ptr)
         ++defp;
     }
 }
+
+
+
+void
+Processor::setGlobalMapValue(const std::wstring &key, const db::Variant &var)
+{
+	this->m_globalmap[key] = db::Variant(var);
+}
+
+db::Variant
+Processor::getGlobalMapValue(const std::wstring &key)
+{
+	return this->m_globalmap[key];
+}
+
 
 /// @details
 ///

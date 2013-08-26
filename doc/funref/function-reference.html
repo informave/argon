@@ -771,6 +771,45 @@ begin
 end;</tt></pre>
 </div></div>
 </div>
+<div class="sect2">
+<h3 id="_getval_function">getval() function</h3>
+<div class="listingblock">
+<div class="title">SYNPOSIS</div>
+<div class="content">
+<pre><tt>value getval(key)</tt></pre>
+</div></div>
+<div class="dlist"><div class="title">Preconditions</div><dl>
+<dt class="hdlist1">
+key
+</dt>
+<dd>
+<p>
+        Argument must be of type string or string-convertable.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><div class="title">Return value</div><p>The function returns the value for the key (set by setval()) or NULL if there
+is no value for the key.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_setval_function">setval() function</h3>
+<div class="listingblock">
+<div class="title">SYNOPSIS</div>
+<div class="content">
+<pre><tt>value setval(key, value)</tt></pre>
+</div></div>
+<div class="dlist"><div class="title">Preconditions</div><dl>
+<dt class="hdlist1">
+key
+</dt>
+<dd>
+<p>
+        Argument must be of type string or string-convertable.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><div class="title">Return value</div><p>The function returns the previous saved value or NULL if the key not exists.</p></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1051,7 +1090,7 @@ a SELECT statement.</p></div>
 <div id="footer">
 <div id="footer-text">
 Version 0.1<br />
-Last updated 2013-08-25 19:45:59 CEST
+Last updated 2013-08-27 00:01:07 CEST
 </div>
 </div>
 </body>

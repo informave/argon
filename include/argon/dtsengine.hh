@@ -1750,6 +1750,9 @@ public:
     DTSEngine& getEngine(void);
     const DTSEngine& getEngine(void) const;
 
+    void setGlobalMapValue(const std::wstring &key, const db::Variant &value);
+    db::Variant getGlobalMapValue(const std::wstring &key);
+
 protected:
     db::ConnectionMap& getConnections(void);
     void addBuiltinFunctiontable(builtin_func_def *ptr);
@@ -1761,6 +1764,9 @@ protected:
     //SymbolTable   m_symbols;
     TypeTable     m_types;
     GlobalContext *m_globalcontext;
+
+    typedef std::map<std::wstring, db::Variant> globalmap_type;
+    globalmap_type m_globalmap;
 
 private:
     Processor(const Processor&);
