@@ -15,7 +15,7 @@ of connections: full specificated connections and external connections.
 
 [source,cpp]
 --------------------------------------------------------------------------------
-connection conn1
+connection dbi
 begin
 	"engine"	=> "sqlite:libsqlite",
 	"database"	=> ":memory:";
@@ -31,6 +31,50 @@ connection conn1;
 
 argon looks for an already existing connection in the connection
 list. See the integration chapter for more details on this feature.
+
+
+=== Writing tasks
+Tasks are the most basic part of ARGON. Each task must depend (inherit) from
+a task template. These templates are:
+
+void::
+Task does not interact with source or destination objects.
+
+fetch::
+Task reads all rows from the source object and executes the *rules* section
+for each row.
+
+store::
+Task stores a new record on the destination object. The *rules* section
+is only processed once.
+
+transfer::
+Task reads all rows from the source object and executes the *rules* section
+for each row. The resulting row is stored on the destination object,
+
+
+.Example for a simple transfer task:
+
+[source,cpp]
+--------------------------------------------------------------------------------
+task copyCustomers : transfer[table(dbo, "customers"), table(dbi, "c_data")]
+begin
+ initialization:
+ 	// rules processed on the beginning of the task
+ before:
+ 	// rules processed after a record is fetched from the c_data table
+ rules:
+ 	// assignment rules
+	$cust_no	<< $c_number;
+	$cust_name	<< $name;
+	$cust_street	<< $street;
+ after:
+ 	// rules processed after the new record is stored on the customers
+	// table
+ finalization:
+ 	// rules processed on the end of the task
+end;
+--------------------------------------------------------------------------------
 
 
 

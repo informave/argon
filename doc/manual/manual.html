@@ -728,7 +728,7 @@ of connections: full specificated connections and external connections.</p></div
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>connection conn1
+<pre><tt>connection dbi
 begin
         <span style="color: #FF0000">"engine"</span>        <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">"sqlite:libsqlite"</span><span style="color: #990000">,</span>
         <span style="color: #FF0000">"database"</span>      <span style="color: #990000">=&gt;</span> <span style="color: #FF0000">":memory:"</span><span style="color: #990000">;</span>
@@ -743,13 +743,78 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>argon looks for an already existing connection in the connection
 list. See the integration chapter for more details on this feature.</p></div>
 </div>
+<div class="sect2">
+<h3 id="_writing_tasks">Writing tasks</h3>
+<div class="paragraph"><p>Tasks are the most basic part of ARGON. Each task must depend (inherit) from
+a task template. These templates are:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+void
+</dt>
+<dd>
+<p>
+Task does not interact with source or destination objects.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch
+</dt>
+<dd>
+<p>
+Task reads all rows from the source object and executes the <strong>rules</strong> section
+for each row.
+</p>
+</dd>
+<dt class="hdlist1">
+store
+</dt>
+<dd>
+<p>
+Task stores a new record on the destination object. The <strong>rules</strong> section
+is only processed once.
+</p>
+</dd>
+<dt class="hdlist1">
+transfer
+</dt>
+<dd>
+<p>
+Task reads all rows from the source object and executes the <strong>rules</strong> section
+for each row. The resulting row is stored on the destination object,
+</p>
+</dd>
+</dl></div>
+<div class="listingblock">
+<div class="title">Example for a simple transfer task:</div>
+<div class="content"><!-- Generator: GNU source-highlight 3.1
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #008080">task</span> copyCustomers <span style="color: #990000">:</span> transfer<span style="color: #990000">[</span><span style="font-weight: bold"><span style="color: #000000">table</span></span><span style="color: #990000">(</span>dbo<span style="color: #990000">,</span> <span style="color: #FF0000">"customers"</span><span style="color: #990000">),</span> <span style="font-weight: bold"><span style="color: #000000">table</span></span><span style="color: #990000">(</span>dbi<span style="color: #990000">,</span> <span style="color: #FF0000">"c_data"</span><span style="color: #990000">)]</span>
+begin
+ initialization<span style="color: #990000">:</span>
+        <span style="font-style: italic"><span style="color: #9A1900">// rules processed on the beginning of the task</span></span>
+ before<span style="color: #990000">:</span>
+        <span style="font-style: italic"><span style="color: #9A1900">// rules processed after a record is fetched from the c_data table</span></span>
+ rules<span style="color: #990000">:</span>
+        <span style="font-style: italic"><span style="color: #9A1900">// assignment rules</span></span>
+        $cust_no        <span style="color: #990000">&lt;&lt;</span> $c_number<span style="color: #990000">;</span>
+        $cust_name      <span style="color: #990000">&lt;&lt;</span> $name<span style="color: #990000">;</span>
+        $cust_street    <span style="color: #990000">&lt;&lt;</span> $street<span style="color: #990000">;</span>
+ after<span style="color: #990000">:</span>
+        <span style="font-style: italic"><span style="color: #9A1900">// rules processed after the new record is stored on the customers</span></span>
+        <span style="font-style: italic"><span style="color: #9A1900">// table</span></span>
+ finalization<span style="color: #990000">:</span>
+        <span style="font-style: italic"><span style="color: #9A1900">// rules processed on the end of the task</span></span>
+end<span style="color: #990000">;</span></tt></pre></div></div>
+</div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-08-25 16:26:47 CEST
+Last updated 2013-08-27 00:22:14 CEST
 </div>
 </div>
 </body>
