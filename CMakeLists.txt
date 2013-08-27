@@ -272,6 +272,7 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/globalcontext.cc
 	${ARGON_MAIN_SRC_DIR}/lambda.cc
 	${ARGON_MAIN_SRC_DIR}/sequence.cc
+	${ARGON_MAIN_SRC_DIR}/customexception.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/string.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/sys.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/debug.cc

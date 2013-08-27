@@ -1945,27 +1945,15 @@ protected:
 class ARGON_EXPORT CustomException : public std::exception
 {
 public:
-    CustomException(const ExceptionType &type)
-    : m_type(type), m_value()
-    {}
+    CustomException(const ExceptionType &type);
 
-    CustomException(const ExceptionType &type, const Value& val)
-        : m_type(type), m_value(val)
-    {}
+    CustomException(const ExceptionType &type, const Value& val);
 
-	virtual ~CustomException() throw()
-	{}
+	virtual ~CustomException() throw();
 
-    const char* what(void) const throw()
-    {
-        /// @bug check for null
-        return m_value.str().utf8();
-    }
+    virtual const char* what(void) const throw();
 
-    const ExceptionType& getType(void) const
-    {
-        return this->m_type;
-    }
+    virtual const ExceptionType& getType(void) const;
 
 protected:
     const ExceptionType &m_type;
