@@ -229,18 +229,27 @@ Table::run(void)
     {
         ArgumentList::const_iterator i = this->getCallArgs().begin();
 
+        ARGON_ICERR_CTX(i != this->getCallArgs().end(), *this,
+                        "table call args count mismatch");
+
+        ARGON_ICERR_CTX(i->is<Connection>(), *this,
+                        "connection argument to table is not a connection");
+
         this->m_conn = i->cast<Connection>();
+        ++i; // move to table name
 
-        ++i; /// @bug no check for end()
-
-        /// @todo only literal strings supported for now. This
-        /// can be extended to identifiers later.
-
+        ARGON_ICERR_CTX(i != this->getCallArgs().end(), *this,
+                        "table call args count mismatch");
         
         tableName = (*i++)->_value().data().asStr();
+
         if(i != this->getCallArgs().end())
         {
             schemaName = (*i++)->_value().data().asStr();
+            if(i != this->getCallArgs().end())
+            {
+                dbName = (*i++)->_value().data().asStr();
+            }
         }
 
     
@@ -303,36 +312,33 @@ Table::run(void)
 
 
 
-        // Prepare table name, schema etc.
+        // Prepare table, schema and catalog name
         {
             Node::nodelist_type &args = argNode->getChilds();
-            safe_ptr<LiteralNode> node;
 
+            ARGON_ICERR_CTX(args.size() > 1, *this, "table args node count mismatch");
 
-            /// @todo only literal strings supported for now. This
-            /// can be extended to identifiers later.
-
-            try
             {
-                node = node_cast<LiteralNode>(args.at(1));
-                tableName = node->data();
-            }
-            catch(...)
-            {
-                IdNode *node = node_cast<IdNode>(args.at(1));
-                tableName = this->getSymbols().find<Element>(node->data())->_value().data().asStr();
+                Value val1;
+                apply_visitor(args.at(1), EvalExprVisitor(proc(), *this, val1));
+                ARGON_ICERR_CTX(!val1.data().isnull(), *this, "table name expr is NULL");
+                tableName = val1.data().asStr();
             }
 
             if(args.size() > 2)
             {
-                node = node_cast<LiteralNode>(args.at(2));
-                schemaName = node->data();
+                Value val1;
+                apply_visitor(args.at(2), EvalExprVisitor(proc(), *this, val1));
+                ARGON_ICERR_CTX(!val1.data().isnull(), *this, "schema name expr is NULL");
+                schemaName = val1.data().asStr();
             }
 
             if(args.size() > 3)
             {
-                node = node_cast<LiteralNode>(args.at(3));
-                dbName = node->data();
+                Value val1;
+                apply_visitor(args.at(3), EvalExprVisitor(proc(), *this, val1));
+                ARGON_ICERR_CTX(!val1.data().isnull(), *this, "catalog name expr is NULL");
+                dbName = val1.data().asStr();
             }
         }
 

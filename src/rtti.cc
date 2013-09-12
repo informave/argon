@@ -127,6 +127,10 @@ TableType::newInstance(const ArgumentList &args, Type::mode_t mode)
 
     ARGON_ICERR(args.size() > 0, "invalid args count");
     ArgumentList::const_iterator i = args.begin();
+
+    ARGON_ICERR(i->is<Connection>(),
+                "connection argument to table is not a connection");
+
     dbc = i->cast<Connection>();    
     ARGON_ICERR(dbc, "invalid dbc");
 
