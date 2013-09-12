@@ -297,25 +297,27 @@ Sql::run(void)
 {
     String sqlCommand;
 
-
     Object::run();
 
 
     if(!this->m_node)
     {
-
         ArgumentList::const_iterator i = this->getCallArgs().begin();
+
+        ARGON_ICERR_CTX(i != this->getCallArgs().end(), *this,
+                        "sql call args count mismatch");
 
         this->m_conn = i->cast<Connection>();
 
-        ++i; /// @bug no check for end()
+        ARGON_ICERR_CTX(i->is<Connection>(), *this,
+                        "connection argument to sql is not a connection");
 
-        /// @todo only literal strings supported for now. This
-        /// can be extended to identifiers later.
+        ++i; // move to sql string
 
+        ARGON_ICERR_CTX(i != this->getCallArgs().end(), *this,
+                        "sql call args count mismatch");
         
         sqlCommand = (*i)->_value().data().asStr();
-
     }
     else
     {
@@ -353,13 +355,12 @@ Sql::run(void)
         // Prepare table name, schema etc.
         {
             Node::nodelist_type &args = argNode->getChilds();
-            safe_ptr<LiteralNode> node;
-
-
-            /// @todo only literal strings supported for now. This
-            /// can be extended to identifiers later.
-            node = node_cast<LiteralNode>(args.at(1));
-            sqlCommand = node->data();
+            {
+                Value val1;
+                apply_visitor(args.at(1), EvalExprVisitor(proc(), *this, val1));
+                ARGON_ICERR_CTX(!val1.data().isnull(), *this, "sql string expr is NULL");
+                sqlCommand = val1.data().asStr();
+            }
 
 /*
   if(args.size() > 2)
@@ -535,44 +536,7 @@ Sql::newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, Dec
     /// the dbc argument is currently not used, because there is no
     /// special handling for different db engines.
 
-    if(!node)
-    {
-        // handle anonymous object
-    }
-    else
-    {
-
-        safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(node);
-
-        ARGON_ICERR(!!argNode,
-                    "table node does not contains an argument node");
-
-        ARGON_ICERR(argNode->getChilds().size() >= 2 && argNode->getChilds().size() <= 4,
-                    "table argument count is invalid");
-
-        Connection* conn;
-
-        // Find connection
-        {
-            Node::nodelist_type &args = argNode->getChilds();
-            safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
-            conn = proc.getGlobalContext().getSymbols().find<Connection>(node->data());
-            //conn = this->resolve<Connection>(node->data());
-        }
-
-    }
-
     return new Sql(proc, args, node, mode);
-/*    
-      switch(conn->getEnv().getEngineType())
-      {
-      case informave::db::dal::DAL_ENGINE_SQLITE:
-      return new TableSqlite(proc, node, mode);        
-      default:
-      ARGON_ICERR(false,
-      "Unknown engine type in Sql::newInstance()");
-      } 
-*/
 }
 
 

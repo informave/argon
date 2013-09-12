@@ -371,6 +371,7 @@ CustomSqlType::newInstance(const ArgumentList &args, Type::mode_t mode)
     ARGON_ICERR(this->getNode(), "invalid node");
 
     Connection *dbc = this->findConnection(args);
+
     ARGON_ICERR(dbc, "invalid dbc");
 
 
