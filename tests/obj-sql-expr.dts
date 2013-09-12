@@ -1,0 +1,37 @@
+program objSqlExpr;
+
+connection tmp
+begin
+	"engine"	=> "sqlite:libsqlite",
+	"database"	=> ":memory:";
+end;
+
+
+
+
+declare obj(db, postfix) : sql(db, "SELECT * FROM test_" || postfix)
+begin
+end;
+
+
+task test(data) : fetch[obj(tmp, data)]
+begin
+	log "found one";
+end;
+
+
+task test2(db) : fetch[sql(db, "SELECT * FROM test" || "_me")]
+begin
+	log "found one";
+end;
+
+
+
+task main : void
+begin
+	exec sql on tmp "CREATE TABLE test_me(id, name)";
+	exec task test("me");
+	exec task test2(tmp);
+	log "done";
+end;
+
