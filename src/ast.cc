@@ -94,6 +94,13 @@ void ThrowNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
 void TaskRuleBlockNode::accept(Visitor &visitor)       { visitor.visit(this); }
 
+
+void DeclRuleBlockNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void DeclInitNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void DeclReadingNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void DeclWritingNode::accept(Visitor &visitor)       { visitor.visit(this); }
+void DeclFinalNode::accept(Visitor &visitor)       { visitor.visit(this); }
+
 void TaskExceptNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskExceptIdNode::accept(Visitor &visitor)       { visitor.visit(this); }
 void TaskExceptLiteralNode::accept(Visitor &visitor)       { visitor.visit(this); }
@@ -326,6 +333,14 @@ DEFAULT_VISIT(UnaryExprNode)
 DEFAULT_VISIT(AssignNode)
 DEFAULT_VISIT(CompoundNode)
     DEFAULT_VISIT(TaskRuleBlockNode)
+
+
+    DEFAULT_VISIT(DeclRuleBlockNode)
+    DEFAULT_VISIT(DeclInitNode)
+    DEFAULT_VISIT(DeclReadingNode)
+    DEFAULT_VISIT(DeclWritingNode)
+    DEFAULT_VISIT(DeclFinalNode)
+
 
     DEFAULT_VISIT(IfelseNode)
     DEFAULT_VISIT(WhileNode)

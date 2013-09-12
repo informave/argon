@@ -726,7 +726,54 @@ objType(A) ::= procedureObj(B).   { A = B; }
 objType(A) ::= sqlObj(B).         { A = B; }
 */
 
-declBody(A) ::= BEGIN bodyExprList(B) END.  { A = B; }
+
+%type declBodySectionList { NodeList* }
+
+
+//declBodySections(A) ::= declBody
+
+declBodySectionList(A) ::= declBodySectionList(B) declBodySection(C). {
+	A = B;
+	A->push_back(C);
+}
+
+declBodySectionList(A) ::= declBodySection(B). {
+	A = tree->newNodeList();
+	A->push_back(B);
+}
+
+
+declBodySection(A) ::= declBodySectionKeyword(B) COLON bodyExprList(C). {
+	CREATE_NODE(DeclRuleBlockNode);
+	A = B;
+	A->addChild(node);
+	node->addChilds(C);
+}
+
+
+declBodySectionKeyword(A) ::= TASK_INIT. {
+	CREATE_NODE(DeclInitNode);
+	A = node;
+}
+
+declBodySectionKeyword(A) ::= READING. {
+	CREATE_NODE(DeclReadingNode);
+	A = node;
+}
+
+
+declBodySectionKeyword(A) ::= WRITING. {
+	CREATE_NODE(DeclWritingNode);
+	A = node;
+}
+
+declBodySectionKeyword(A) ::= TASK_FINAL. {
+	CREATE_NODE(DeclFinalNode);
+	A = node;
+}
+
+
+declBody(A) ::= BEGIN declBodySectionList(B) END.  { A = B; }
 declBody(A) ::= .                           { A = tree->newNodeList(); }
 
 /*

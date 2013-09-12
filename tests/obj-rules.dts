@@ -1,0 +1,66 @@
+program objRules;
+
+connection tmp
+begin
+	"engine"	=> "sqlite:libsqlite",
+	"database"	=> ":memory:";
+end;
+
+
+sequence dataSeq(0, 1);
+
+
+declare dataTable(x) : table(tmp, "data")
+begin
+ initialization:
+ 	log "init";
+ writing:
+ 	log "write";
+	$id     << seq.next(dataSeq) + x;
+ reading:
+ 	log "read";
+	log "read " || $id;
+ finalization:
+ 	log "final";
+end;
+
+
+declare sqlTable(id) : sql(tmp, "SELECT * FROM data WHERE id = ?")
+begin
+ initialization:
+	$1	<< id;
+end;
+
+
+
+task insertData : transfer[dataTable(4), gen_range(1, 5)]
+begin
+	//$id	<< seq.next(dataSeq);
+	$name	<< "bar";
+end;
+
+
+task readData : fetch[dataTable(1)]
+begin
+	log "foo";
+end;
+
+
+task readSql : fetch[sqlTable(5)]
+begin
+ rules:
+ 	log "found a row by sql";
+end;
+
+
+
+
+task main : void
+begin
+	exec sql on tmp "CREATE TABLE data(id integer primary key, name text)";
+	exec task insertData;
+	exec task readData;
+	exec task readSql;
+	log "done";
+end;
+

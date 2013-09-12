@@ -222,6 +222,42 @@ TaskRuleBlockNode::semanticCheck(SemanticCheck &sc)
 /// @details
 /// 
 void
+DeclRuleBlockNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+DeclInitNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+DeclReadingNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+DeclWritingNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+/// @details
+/// 
+void
+DeclFinalNode::semanticCheck(SemanticCheck &sc)
+{
+}
+
+
+/// @details
+/// 
+void
 ExceptionDeclNode::semanticCheck(SemanticCheck &sc)
 {
 }

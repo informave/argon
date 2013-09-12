@@ -77,6 +77,12 @@ struct LambdaFuncNode;
 struct AssertNode;
 struct TaskRuleBlockNode;
 
+struct DeclRuleBlockNode;
+struct DeclInitNode;
+struct DeclReadingNode;
+struct DeclWritingNode;
+struct DeclFinalNode;
+
 struct BinaryExprNode;
 struct UnaryExprNode;
 struct AssignNode;
@@ -259,6 +265,12 @@ public:
     virtual void visit(ExceptionDeclNode *node);
 
     virtual void visit(TaskRuleBlockNode *node);
+
+    virtual void visit(DeclRuleBlockNode *node);
+    virtual void visit(DeclInitNode *node);
+    virtual void visit(DeclReadingNode *node);
+    virtual void visit(DeclWritingNode *node);
+    virtual void visit(DeclFinalNode *node);
 
     virtual void visit(TaskExceptNode *node);
     virtual void visit(TaskExceptIdNode *node);
@@ -489,6 +501,12 @@ DefineNode(TaskExcept, void);
 DefineNode(TaskExceptId, void);
 
 DefineNode(TaskExceptLiteral, void);
+
+DefineNode(DeclRuleBlock, void);
+DefineNode(DeclInit, void);
+DefineNode(DeclReading, void);
+DefineNode(DeclWriting, void);
+DefineNode(DeclFinal, void);
 
 
 DefineNode(TaskFinal, void);

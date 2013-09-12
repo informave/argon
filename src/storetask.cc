@@ -87,6 +87,8 @@ StoreTask::getDestObject(void)
 void
 StoreTask::do_processData(void)
 {
+    this->getDestObject()->doWriting();
+
     // Executes all before instructions
     foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
     // Executes all rules instructions
@@ -170,6 +172,8 @@ StoreTask::run(void)
     // Executes all finalize-instructions
     foreach_node( this->m_final_nodes, TaskChildVisitor(this->proc(), *this), 1);
 
+
+    this->getDestObject()->doFinal();
 
     //this->m_destobject.reset(0); // workaround
     return Value();

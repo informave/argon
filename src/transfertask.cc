@@ -92,6 +92,9 @@ TransferTask::getDestObject(void)
 void
 TransferTask::do_processData(void)
 {
+    this->getMainObject()->doReading();
+    this->getDestObject()->doWriting();
+
     // Executes all before instructions
     foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
     // Executes all rules instructions
@@ -235,6 +238,9 @@ TransferTask::run(void)
 
     //this->m_destobject.reset(0); // workaround
     //this->m_srcobject.reset(0); // workaround
+
+    this->getMainObject()->doFinal();
+    this->getDestObject()->doFinal();
 
     return Value();
 }

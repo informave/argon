@@ -44,39 +44,39 @@ ARGON_NAMESPACE_BEGIN
 ///
 /// @since 0.0.1
 /// @brief Object Child Visitor
-struct SqlObjectChildVisitor : public Visitor
-{
-public:
-    SqlObjectChildVisitor(Processor &proc, Context &context, Sql &sqlobj)
-        : Visitor(Visitor::ignore_none),
-          m_proc(proc),
-          m_context(context),
-          m_sqlobj(sqlobj)
-    {}
+// struct SqlObjectChildVisitor : public Visitor
+// {
+// public:
+//     SqlObjectChildVisitor(Processor &proc, Context &context, Sql &sqlobj)
+//         : Visitor(Visitor::ignore_none),
+//           m_proc(proc),
+//           m_context(context),
+//           m_sqlobj(sqlobj)
+//     {}
 
 
-    virtual void visit(LogNode *node)
-    {
-        LogCmd cmd(this->m_proc, m_context, node);
-        this->m_proc.call(cmd);
-    }
+//     virtual void visit(LogNode *node)
+//     {
+//         LogCmd cmd(this->m_proc, m_context, node);
+//         this->m_proc.call(cmd);
+//     }
 
-    virtual void visit(ArgumentsSpecNode *node)
-    {
-        // This visitor only handles instructions, so it's save to ignore this node.
-    }
+//     virtual void visit(ArgumentsSpecNode *node)
+//     {
+//         // This visitor only handles instructions, so it's save to ignore this node.
+//     }
 
-    virtual void visit(ArgumentsNode *node)
-    {
-        // This visitor only handles instructions, so it's save to ignore this node.
-    }
+//     virtual void visit(ArgumentsNode *node)
+//     {
+//         // This visitor only handles instructions, so it's save to ignore this node.
+//     }
     
-private:
-    Processor &m_proc;
-    Context &m_context;
-    //SourceTable      &m_sourcetable;
-    Sql &m_sqlobj;
-};
+// private:
+//     Processor &m_proc;
+//     Context &m_context;
+//     //SourceTable      &m_sourcetable;
+//     Sql &m_sqlobj;
+// };
 
 
 
@@ -86,58 +86,58 @@ private:
 ///
 /// @since 0.0.1
 /// @brief Object Child Visitor
-struct SqlObjectColAssignVisitor : public Visitor
-{
-public:
-    SqlObjectColAssignVisitor(Processor &proc, Context &context, Sql &sqlobj)
-        : Visitor(Visitor::ignore_none),
-          m_proc(proc),
-          m_context(context),
-          m_sqlobj(sqlobj)
-    {}
+// struct SqlObjectColAssignVisitor : public Visitor
+// {
+// public:
+//     SqlObjectColAssignVisitor(Processor &proc, Context &context, Sql &sqlobj)
+//         : Visitor(Visitor::ignore_none),
+//           m_proc(proc),
+//           m_context(context),
+//           m_sqlobj(sqlobj)
+//     {}
 
 
-    virtual void visit(ColumnAssignNode *node)
-    {
-        ARGON_ICERR(node->getChilds().size() == 2, "invalid child count");
+//     virtual void visit(ColumnAssignNode *node)
+//     {
+//         ARGON_ICERR(node->getChilds().size() == 2, "invalid child count");
         
-        //ColumnAssignOp op(this->m_proc, m_context, node);
-        //this->m_proc.call(op);
+//         //ColumnAssignOp op(this->m_proc, m_context, node);
+//         //this->m_proc.call(op);
         
-        Column col;
-        LValueColumnVisitor(this->m_proc, this->m_context, col)(node->getChilds()[0]);
+//         Column col;
+//         LValueColumnVisitor(this->m_proc, this->m_context, col)(node->getChilds()[0]);
         
-        Value val;
-        EvalExprVisitor eval(this->m_proc, this->m_context, val);
-        eval(node->getChilds()[1]);
+//         Value val;
+//         EvalExprVisitor eval(this->m_proc, this->m_context, val);
+//         eval(node->getChilds()[1]);
 
-        //this->m_context.getMainObject()->setColumn(col, val);
+//         //this->m_context.getMainObject()->setColumn(col, val);
 
-        this->m_sqlobj.setColumn(col, val);
+//         this->m_sqlobj.setColumn(col, val);
 
 
-/*
-//Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
+// /*
+// //Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
         
-Value val;
-EvalExprVisitor eval(this->m_proc, this->m_context, val);
-eval(node->getChilds()[1]);
+// Value val;
+// EvalExprVisitor eval(this->m_proc, this->m_context, val);
+// eval(node->getChilds()[1]);
         
-this->m_context.getDestObject()->setColumn(col, val);
-*/      
+// this->m_context.getDestObject()->setColumn(col, val);
+// */      
         
-        //this->m_context.getMainObject()->setColumn(Column("id"), Value(23));
-        //this->m_context.getMainObject()->setColumn(Column("name"), Value(23));
+//         //this->m_context.getMainObject()->setColumn(Column("id"), Value(23));
+//         //this->m_context.getMainObject()->setColumn(Column("name"), Value(23));
 
-        // ARGON_ICERR_CTX.., assign not allowed?
-    }
+//         // ARGON_ICERR_CTX.., assign not allowed?
+//     }
     
-private:
-    Processor &m_proc;
-    Context &m_context;
-    //SourceTable      &m_sourcetable;
-    Sql &m_sqlobj;
-};
+// private:
+//     Processor &m_proc;
+//     Context &m_context;
+//     //SourceTable      &m_sourcetable;
+//     Sql &m_sqlobj;
+// };
 
 
 
@@ -154,9 +154,9 @@ Sql::Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t
       m_columns(),
       m_result_columns(),
       m_objname(),
-      m_mode(mode),
-      m_prepost_nodes(),
-      m_colassign_nodes()
+      m_mode(mode)
+      //m_prepost_nodes(),
+      //m_colassign_nodes()
 {
 
     if(node)
@@ -167,28 +167,28 @@ Sql::Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t
         ARGON_ICERR(childs.size() >= 2, "invalid child count");
 
         // Skip first two arguments. Checked by semantic checker, too. TODO!
-        size_t c = 3;
+        //size_t c = 3;
     
-        while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
-        {
-            m_prepost_nodes.push_back(childs[c-1]);
-            ++c;
-        }
+        // while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+        // {
+        //     m_prepost_nodes.push_back(childs[c-1]);
+        //     ++c;
+        // }
     
-        while(c <= childs.size() && is_nodetype<ColumnAssignNode*>(childs[c-1]))
-        {
-            m_colassign_nodes.push_back(childs[c-1]);
-            ++c;
-        }
+        // while(c <= childs.size() && is_nodetype<ColumnAssignNode*>(childs[c-1]))
+        // {
+        //     m_colassign_nodes.push_back(childs[c-1]);
+        //     ++c;
+        // }
     
-        while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
-        {
-            m_prepost_nodes.push_back(childs[c-1]);
-            ++c;
-        }
+        // while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+        // {
+        //     m_prepost_nodes.push_back(childs[c-1]);
+        //     ++c;
+        // }
     
         // All childs must been processed.
-        ARGON_ICERR(c > childs.size(), "unprocessed childs");
+        // ARGON_ICERR(c > childs.size(), "unprocessed childs");
     }
 }
 
@@ -324,7 +324,7 @@ Sql::run(void)
 
 
         //foreach_node( this->m_node->getChilds(), SqlObjectChildVisitor(this->proc(), *this, *this), 1);
-        foreach_node( this->m_prepost_nodes, SqlObjectChildVisitor(this->proc(), *this, *this), 1);
+        //foreach_node( this->m_prepost_nodes, SqlObjectChildVisitor(this->proc(), *this, *this), 1);
 
 
         safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(this->m_node);
@@ -433,8 +433,10 @@ Sql::run(void)
     //m_stmt->prepare("foo"); // invalid read, FIX THIS!
     
     m_stmt->prepare(sql_query);
+
+    this->doInit();
     
-    foreach_node( this->m_colassign_nodes, SqlObjectColAssignVisitor(this->proc(), *this, *this), 1);
+    //foreach_node( this->m_colassign_nodes, SqlObjectColAssignVisitor(this->proc(), *this, *this), 1);
     
 //    if(m_mode == Object::READ_MODE)
 //        m_stmt->execute();

@@ -1005,6 +1005,11 @@ public:
 
     virtual void execute(void) = 0;
 
+    virtual void doInit(void);
+    virtual void doReading(void);
+    virtual void doWriting(void);
+    virtual void doFinal(void);
+
     /// @brief Fetches the next record
     /// @return true if there was a new record
     virtual bool next(void) = 0;
@@ -1042,6 +1047,11 @@ protected:
 
 
     DeclNode *m_node;
+
+    NodeList m_init_nodes,
+        m_reading_nodes,
+        m_writing_nodes,
+        m_final_nodes;
 
 private:
     Object(const Object&);
@@ -1192,8 +1202,8 @@ protected:
 
     Type::mode_t m_mode;
 
-    NodeList  m_prepost_nodes;
-    NodeList  m_colassign_nodes;
+    //NodeList  m_prepost_nodes;
+    //NodeList  m_colassign_nodes;
 
 private:
     Sql(const Sql&);

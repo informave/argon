@@ -157,6 +157,9 @@ public:
 
 	this->m_keywords[ _str<CharT, TraitsT>("EXCEPTION")        ] = ARGON_TOK_EXCEPTION;
 
+	this->m_keywords[ _str<CharT, TraitsT>("READING")        ] = ARGON_TOK_READING;
+	this->m_keywords[ _str<CharT, TraitsT>("WRITING")        ] = ARGON_TOK_WRITING;
+
         /// Additional map with names
         this->m_templates[ _str<CharT, TraitsT>("VOID")         ] = ARGON_TOK_TEMPLATE;
         this->m_templates[ _str<CharT, TraitsT>("FETCH")        ] = ARGON_TOK_TEMPLATE;

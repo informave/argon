@@ -117,6 +117,74 @@ Column::getFrom(db::Resultset &rs, Context &context)
 
 
 
+//..............................................................................
+////////////////////////////////////////////////////// SqlObjectColAssignVisitor
+///
+/// @since 0.0.1
+/// @brief Object Child Visitor
+struct ObjectRulesVisitor : public Visitor
+{
+public:
+    ObjectRulesVisitor(Processor &proc, Context &context, Object &obj)
+        : Visitor(Visitor::ignore_none),
+          m_proc(proc),
+          m_context(context),
+          m_obj(obj)
+    {}
+
+
+    virtual void visit(LogNode *node)
+    {
+        LogCmd cmd(this->m_proc, m_context, node);
+        this->m_proc.call(cmd);
+    }
+
+
+    virtual void visit(ColumnAssignNode *node)
+    {
+        ARGON_ICERR(node->getChilds().size() == 2, "invalid child count");
+        
+        //ColumnAssignOp op(this->m_proc, m_context, node);
+        //this->m_proc.call(op);
+        
+        Column col;
+        LValueColumnVisitor(this->m_proc, this->m_context, col)(node->getChilds()[0]);
+        
+        Value val;
+        EvalExprVisitor eval(this->m_proc, this->m_context, val);
+        eval(node->getChilds()[1]);
+
+        //this->m_context.getMainObject()->setColumn(col, val);
+
+        this->m_obj.setColumn(col, val);
+
+
+/*
+//Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
+        
+Value val;
+EvalExprVisitor eval(this->m_proc, this->m_context, val);
+eval(node->getChilds()[1]);
+        
+this->m_context.getDestObject()->setColumn(col, val);
+*/      
+        
+        //this->m_context.getMainObject()->setColumn(Column("id"), Value(23));
+        //this->m_context.getMainObject()->setColumn(Column("name"), Value(23));
+
+        // ARGON_ICERR_CTX.., assign not allowed?
+    }
+    
+private:
+    Processor &m_proc;
+    Context &m_context;
+    //SourceTable      &m_sourcetable;
+    Object &m_obj;
+};
+
+
+
+
 
 //..............................................................................
 ///////////////////////////////////////////////////////////////////////// Object
@@ -126,8 +194,60 @@ Column::getFrom(db::Resultset &rs, Context &context)
 Object::Object(Processor &proc, DeclNode *node, const ArgumentList &args)
     : Context(proc, args),
       m_column_mappings(),
-      m_node(node)
-{}
+      m_node(node),
+      m_init_nodes(),
+      m_reading_nodes(),
+      m_writing_nodes(),
+      m_final_nodes()
+      
+{
+    if(this->m_node) // only process custom objects
+    {
+        {
+            Node *n = find_node<DeclInitNode>(this->m_node);
+            if(n && (n = find_node<DeclRuleBlockNode>(n)))
+            {
+                this->m_init_nodes = n->getChilds();
+                ARGON_ICERR(find_nodes<ColumnNode>(n).empty(), "column node not empty");
+                ARGON_ICERR(find_nodes<ColumnNumNode>(n).empty(), "columnnum node not empty");
+                ARGON_ICERR(find_nodes<ResColumnNode>(n).empty(), "columnres node not empty");
+                ARGON_ICERR(find_nodes<ResColumnNumNode>(n).empty(), "columnresnum node not empty");
+
+                // this is allowed for sql object which prepares SELECT statements
+                // with parameter assignment
+                //ARGON_ICERR(find_nodes<ColumnAssignNode>(n).empty(), "columnassign node not empty");
+            }
+        }
+
+
+        {
+            Node *n = find_node<DeclReadingNode>(this->m_node);
+            if(n && (n = find_node<DeclRuleBlockNode>(n)))
+            {
+                this->m_reading_nodes = n->getChilds();
+                ARGON_ICERR(find_nodes<ResColumnNode>(n).empty(), "rescolumn node not empty");
+                ARGON_ICERR(find_nodes<ResColumnNumNode>(n).empty(), "rescolumnnum node not empty");
+                ARGON_ICERR(find_nodes<ColumnAssignNode>(n).empty(), "columnassign node not empty");
+            }
+        }
+
+        {
+            Node *n = find_node<DeclWritingNode>(this->m_node);
+            if(n && (n = find_node<DeclRuleBlockNode>(n)))
+            {
+                this->m_writing_nodes = n->getChilds();
+                ARGON_ICERR(find_nodes<ResColumnNode>(n).empty(), "rescolumn node not empty");
+                ARGON_ICERR(find_nodes<ResColumnNumNode>(n).empty(), "rescolumnnum node not empty");
+            }
+        }
+
+        {
+            Node *n = find_node<DeclFinalNode>(this->m_node);
+            if(n && (n = find_node<DeclRuleBlockNode>(n)))
+                this->m_final_nodes = n->getChilds();
+        }
+    }
+}
 
 
 /// @details
@@ -151,7 +271,37 @@ Object::run(void)
     foreach_node(argsSpecNode->getChilds(),
                  Arg2SymVisitor(this->proc(), this->getSymbols(), i, this->getCallArgs().end()), 1);
     }
+
+
+    
+
+
     return Value();
+}
+
+
+void
+Object::doInit(void)
+{
+    foreach_node( this->m_init_nodes, ObjectRulesVisitor(this->proc(), *this, *this), 1);
+}
+
+void
+Object::doReading(void)
+{
+    foreach_node( this->m_reading_nodes, ObjectRulesVisitor(this->proc(), *this, *this), 1);
+}
+
+void
+Object::doWriting(void)
+{
+    foreach_node( this->m_writing_nodes, ObjectRulesVisitor(this->proc(), *this, *this), 1);
+}
+
+void
+Object::doFinal(void)
+{
+    foreach_node( this->m_final_nodes, ObjectRulesVisitor(this->proc(), *this, *this), 1);
 }
 
 
@@ -172,8 +322,10 @@ Object::resolveColumn(const Column &col)
 Object*
 Object::getMainObject(void)
 {
-    ARGON_ICERR_CTX(false, *this,
-                "An object does not contains a main object.");
+    // we return the object itself. This is a good workaround
+    // for requesting the object by visitors when processing custom
+    // object rules with column identifiers.
+    return this;
 }
 
 

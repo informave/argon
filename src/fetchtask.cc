@@ -88,6 +88,8 @@ FetchTask::getDestObject(void)
 void
 FetchTask::do_processData(void)
 {
+    this->getMainObject()->doReading();
+
     // Executes all before instructions
     foreach_node( this->m_before_nodes, TaskChildVisitor(this->proc(), *this), 1);
 
@@ -186,6 +188,7 @@ FetchTask::run(void)
     foreach_node( this->m_final_nodes, TaskChildVisitor(this->proc(), *this), 1);
 
 
+    this->getMainObject()->doFinal();
 
     //this->m_mainobject.reset(0); // workaround
 

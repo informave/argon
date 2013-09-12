@@ -45,44 +45,44 @@ ARGON_NAMESPACE_BEGIN
 ///
 /// @since 0.0.1
 /// @brief Object Child Visitor
-struct TableObjectChildVisitor : public Visitor
-{
-public:
-    TableObjectChildVisitor(Processor &proc, Context &context, /*SourceTable*/ Object &task)
-        : Visitor(Visitor::ignore_none),
-          m_proc(proc),
-          m_context(context),
-          m_sourcetable(task)
-    {}
+// struct TableObjectChildVisitor : public Visitor
+// {
+// public:
+//     TableObjectChildVisitor(Processor &proc, Context &context, /*SourceTable*/ Object &task)
+//         : Visitor(Visitor::ignore_none),
+//           m_proc(proc),
+//           m_context(context),
+//           m_sourcetable(task)
+//     {}
 
-    virtual void visit(IdNode *node)
-    {
-        // The ID node refers to the object base.
-    }
+//     virtual void visit(IdNode *node)
+//     {
+//         // The ID node refers to the object base.
+//     }
 
-    virtual void visit(LogNode *node)
-    {
-        LogCmd cmd(this->m_proc, m_context, node);
-        this->m_proc.call(cmd);
-    }
+//     virtual void visit(LogNode *node)
+//     {
+//         LogCmd cmd(this->m_proc, m_context, node);
+//         this->m_proc.call(cmd);
+//     }
 
-    virtual void visit(ArgumentsSpecNode *node)
-    {
-        // This visitor only handles instructions, so it's save to ignore this node.
-    }
+//     virtual void visit(ArgumentsSpecNode *node)
+//     {
+//         // This visitor only handles instructions, so it's save to ignore this node.
+//     }
 
-    virtual void visit(ArgumentsNode *node)
-    {
-        // This visitor only handles instructions, so it's save to ignore this node.
-    }
+//     virtual void visit(ArgumentsNode *node)
+//     {
+//         // This visitor only handles instructions, so it's save to ignore this node.
+//     }
 
 
-private:
-    Processor &m_proc;
-    Context &m_context;
-    //SourceTable      &m_sourcetable;
-    Object &m_sourcetable;
-};
+// private:
+//     Processor &m_proc;
+//     Context &m_context;
+//     //SourceTable      &m_sourcetable;
+//     Object &m_sourcetable;
+// };
 
 
 
@@ -282,7 +282,7 @@ Table::run(void)
     else
     {
 
-        foreach_node( this->m_node->getChilds(), TableObjectChildVisitor(this->proc(), *this, *this), 1);
+        //foreach_node( this->m_node->getChilds(), TableObjectChildVisitor(this->proc(), *this, *this), 1);
 
         safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(this->m_node);
     
@@ -362,16 +362,29 @@ Table::run(void)
 
 
 
-
+    ColumnList lclist, rclist;
     String sql_query;
     
 
     switch(this->m_mode)
     {
     case Type::READ_MODE:
+        foreach_node( this->m_reading_nodes, ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
+        ARGON_ICERR_CTX(lclist.size() == 0, *this,
+                        "left-side columns not allowed in reading section");
+        std::copy(rclist.begin(), rclist.end(),
+                  std::inserter(this->m_columns, this->m_columns.end()));
         sql_query = this->generateSelect(m_objname);
         break;
     case Type::INSERT_MODE:
+        foreach_node( this->m_writing_nodes, ColumnVisitor(this->proc(), *this, lclist, rclist), 1);
+        
+        ARGON_ICERR_CTX(rclist.size() == 0, *this,
+                        "right-side columns not allowed in writing section");
+        
+        std::copy(lclist.begin(), lclist.end(),
+                  std::inserter(this->m_columns, this->m_columns.end()));
+
         sql_query = this->generateInsert(m_objname);
         break;
     default:
@@ -385,6 +398,9 @@ Table::run(void)
     {
         ARGON_DPRINT(ARGON_MOD_PROC, "RUN QUERY: " << sql_query);
         m_stmt->prepare(sql_query);
+
+        // process init rules for object
+        this->doInit();
     }
     catch(informave::db::ex::exception &e)
     {
