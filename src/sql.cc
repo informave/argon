@@ -117,13 +117,13 @@ public:
 
 
 /*
-        //Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
+//Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
         
-        Value val;
-        EvalExprVisitor eval(this->m_proc, this->m_context, val);
-        eval(node->getChilds()[1]);
+Value val;
+EvalExprVisitor eval(this->m_proc, this->m_context, val);
+eval(node->getChilds()[1]);
         
-        this->m_context.getDestObject()->setColumn(col, val);
+this->m_context.getDestObject()->setColumn(col, val);
 */      
         
         //this->m_context.getMainObject()->setColumn(Column("id"), Value(23));
@@ -162,33 +162,33 @@ Sql::Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t
     if(node)
     {
 
-    NodeList childs = node->getChilds();
+        NodeList childs = node->getChilds();
 
-    ARGON_ICERR(childs.size() >= 2, "invalid child count");
+        ARGON_ICERR(childs.size() >= 2, "invalid child count");
 
-    // Skip first two arguments. Checked by semantic checker, too. TODO!
-    size_t c = 3;
+        // Skip first two arguments. Checked by semantic checker, too. TODO!
+        size_t c = 3;
     
-    while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
-    {
-        m_prepost_nodes.push_back(childs[c-1]);
-        ++c;
-    }
+        while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+        {
+            m_prepost_nodes.push_back(childs[c-1]);
+            ++c;
+        }
     
-    while(c <= childs.size() && is_nodetype<ColumnAssignNode*>(childs[c-1]))
-    {
-        m_colassign_nodes.push_back(childs[c-1]);
-        ++c;
-    }
+        while(c <= childs.size() && is_nodetype<ColumnAssignNode*>(childs[c-1]))
+        {
+            m_colassign_nodes.push_back(childs[c-1]);
+            ++c;
+        }
     
-    while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
-    {
-        m_prepost_nodes.push_back(childs[c-1]);
-        ++c;
-    }
+        while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
+        {
+            m_prepost_nodes.push_back(childs[c-1]);
+            ++c;
+        }
     
-    // All childs must been processed.
-    ARGON_ICERR(c > childs.size(), "unprocessed childs");
+        // All childs must been processed.
+        ARGON_ICERR(c > childs.size(), "unprocessed childs");
     }
 }
 
@@ -210,7 +210,7 @@ Sql::setColumnList(const ColumnList &list)
 void
 Sql::setResultList(const ColumnList &list)
 {
-	ARGON_ICERR(this->m_mode == Type::INSERT_MODE, "invalid mode");
+    ARGON_ICERR(this->m_mode == Type::INSERT_MODE, "invalid mode");
     this->m_result_columns = list;
 }
 
@@ -222,7 +222,7 @@ void
 Sql::setColumn(const Column &col, const Value &v)
 {
     // removed because param binding works for both moded
-	//assert(this->m_mode == Object::ADD_MODE);
+    //assert(this->m_mode == Object::ADD_MODE);
     
     ARGON_ICERR(col.mode() == Column::by_number, "invalid column mode");
 
@@ -232,8 +232,8 @@ Sql::setColumn(const Column &col, const Value &v)
 
     this->m_stmt->bind(col.getNum(), v.data());
 
-	//this->m_column_values[col.getName()] = v;
-//	this->m_column_values[c
+    //this->m_column_values[col.getName()] = v;
+//  this->m_column_values[c
 }
 
 
@@ -253,7 +253,7 @@ Sql::getColumn(Column col)
 Value
 Sql::lastInsertRowId(void)
 {
-	return m_stmt->lastInsertRowId();
+    return m_stmt->lastInsertRowId();
 }
 
 
@@ -321,60 +321,60 @@ Sql::run(void)
     {
 
 
-    //foreach_node( this->m_node->getChilds(), SqlObjectChildVisitor(this->proc(), *this, *this), 1);
-    foreach_node( this->m_prepost_nodes, SqlObjectChildVisitor(this->proc(), *this, *this), 1);
+        //foreach_node( this->m_node->getChilds(), SqlObjectChildVisitor(this->proc(), *this, *this), 1);
+        foreach_node( this->m_prepost_nodes, SqlObjectChildVisitor(this->proc(), *this, *this), 1);
 
 
-    safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(this->m_node);
+        safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(this->m_node);
     
-    ARGON_ICERR_CTX(!!argNode, *this,
-                "table node does not contains an argument node");
+        ARGON_ICERR_CTX(!!argNode, *this,
+                        "table node does not contains an argument node");
 
-    ARGON_ICERR_CTX(argNode->getChilds().size() == 2, *this,
-                "table argument count is invalid");
-
-
-    safe_ptr<ArgumentsSpecNode> argSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
-
-    ARGON_ICERR_CTX(!!argSpecNode, *this,
-                "table node does not contains an argument specification node");
-
-    ARGON_ICERR_CTX((argSpecNode->getChilds().size() == this->getCallArgs().size()), *this,
-                "argument count mismatch");
-
-    // Prepare connection
-    {
-        Node::nodelist_type &args = argNode->getChilds();
-        safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
-        //this->m_conn = this->proc().getSymbols().find<Connection>(node->data());
-	this->m_conn = this->resolve<Connection>(node->data());
-    }
-
-    // Prepare table name, schema etc.
-    {
-        Node::nodelist_type &args = argNode->getChilds();
-        safe_ptr<LiteralNode> node;
+        ARGON_ICERR_CTX(argNode->getChilds().size() == 2, *this,
+                        "table argument count is invalid");
 
 
-        /// @todo only literal strings supported for now. This
-        /// can be extended to identifiers later.
-        node = node_cast<LiteralNode>(args.at(1));
-        sqlCommand = node->data();
+        safe_ptr<ArgumentsSpecNode> argSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
+
+        ARGON_ICERR_CTX(!!argSpecNode, *this,
+                        "table node does not contains an argument specification node");
+
+        ARGON_ICERR_CTX((argSpecNode->getChilds().size() == this->getCallArgs().size()), *this,
+                        "argument count mismatch");
+
+        // Prepare connection
+        {
+            Node::nodelist_type &args = argNode->getChilds();
+            safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
+            //this->m_conn = this->proc().getSymbols().find<Connection>(node->data());
+            this->m_conn = this->resolve<Connection>(node->data());
+        }
+
+        // Prepare table name, schema etc.
+        {
+            Node::nodelist_type &args = argNode->getChilds();
+            safe_ptr<LiteralNode> node;
+
+
+            /// @todo only literal strings supported for now. This
+            /// can be extended to identifiers later.
+            node = node_cast<LiteralNode>(args.at(1));
+            sqlCommand = node->data();
 
 /*
-        if(args.size() > 2)
-        {
-            node = node_cast<LiteralNode>(args.at(2));
-            schemaName = node->data();
-        }
+  if(args.size() > 2)
+  {
+  node = node_cast<LiteralNode>(args.at(2));
+  schemaName = node->data();
+  }
 
-        if(args.size() > 3)
-        {
-            node = node_cast<LiteralNode>(args.at(3));
-            dbName = node->data();
-        }
+  if(args.size() > 3)
+  {
+  node = node_cast<LiteralNode>(args.at(3));
+  dbName = node->data();
+  }
 */
-    }
+        }
 
     }
 
@@ -391,34 +391,34 @@ Sql::run(void)
     String sql_query = m_objname;
     
 /*
-    switch(this->m_mode)
-    {
-    case Object::READ_MODE:
-        sql_query = this->generateSelect(m_objname);
-        break;
-    case Object::ADD_MODE:
-        sql_query = this->generateInsert(m_objname);
-        break;
-    default:
-        throw std::runtime_error("object mode not handled");
-    }
+  switch(this->m_mode)
+  {
+  case Object::READ_MODE:
+  sql_query = this->generateSelect(m_objname);
+  break;
+  case Object::ADD_MODE:
+  sql_query = this->generateInsert(m_objname);
+  break;
+  default:
+  throw std::runtime_error("object mode not handled");
+  }
 */
 
 /*
-    String s("SELECT * FROM ");
-    //String objname;
+  String s("SELECT * FROM ");
+  //String objname;
 
-    if(dbName.length() > 0)
-        objname.append(dbName);
+  if(dbName.length() > 0)
+  objname.append(dbName);
 
-    if(schemaName.length() > 0)
-        objname.append( (objname.length() > 0 ? String(".") : String("")) + schemaName);
+  if(schemaName.length() > 0)
+  objname.append( (objname.length() > 0 ? String(".") : String("")) + schemaName);
 
-    if(sqlCommand.length() > 0)
-        objname.append( (objname.length() > 0 ? String(".") : String("")) + sqlCommand);
+  if(sqlCommand.length() > 0)
+  objname.append( (objname.length() > 0 ? String(".") : String("")) + sqlCommand);
 
 
-    s.append(objname);
+  s.append(objname);
 
 */
 
@@ -542,36 +542,36 @@ Sql::newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, Dec
     else
     {
 
-    safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(node);
+        safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(node);
 
-    ARGON_ICERR(!!argNode,
-                "table node does not contains an argument node");
+        ARGON_ICERR(!!argNode,
+                    "table node does not contains an argument node");
 
-    ARGON_ICERR(argNode->getChilds().size() >= 2 && argNode->getChilds().size() <= 4,
-                "table argument count is invalid");
+        ARGON_ICERR(argNode->getChilds().size() >= 2 && argNode->getChilds().size() <= 4,
+                    "table argument count is invalid");
 
-    Connection* conn;
+        Connection* conn;
 
-    // Find connection
-    {
-        Node::nodelist_type &args = argNode->getChilds();
-        safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
-        conn = proc.getGlobalContext().getSymbols().find<Connection>(node->data());
-	//conn = this->resolve<Connection>(node->data());
-    }
+        // Find connection
+        {
+            Node::nodelist_type &args = argNode->getChilds();
+            safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
+            conn = proc.getGlobalContext().getSymbols().find<Connection>(node->data());
+            //conn = this->resolve<Connection>(node->data());
+        }
 
     }
 
     return new Sql(proc, args, node, mode);
 /*    
-    switch(conn->getEnv().getEngineType())
-    {
-    case informave::db::dal::DAL_ENGINE_SQLITE:
-        return new TableSqlite(proc, node, mode);        
-    default:
-    ARGON_ICERR(false,
-                "Unknown engine type in Sql::newInstance()");
-    } 
+      switch(conn->getEnv().getEngineType())
+      {
+      case informave::db::dal::DAL_ENGINE_SQLITE:
+      return new TableSqlite(proc, node, mode);        
+      default:
+      ARGON_ICERR(false,
+      "Unknown engine type in Sql::newInstance()");
+      } 
 */
 }
 
