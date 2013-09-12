@@ -461,7 +461,7 @@ Sql::str(void) const
 {
     String s;
     //s.append(this->id().str());
-    s.append("[TASK]");
+    s.append("[SQL]");
     return s;
 }
 
@@ -481,7 +481,7 @@ Sql::name(void) const
 String
 Sql::type(void) const
 {
-    return "TABLE";
+    return "SQL";
 }
 
 
@@ -500,7 +500,7 @@ Sql::getSourceInfo(void) const
 Value
 Sql::_value(void) const
 {
-    return String("TABLE");
+    return String("SQL");
 }
 
 /// @details
@@ -524,7 +524,7 @@ Sql::_name(void) const
 String
 Sql::_type(void) const
 {
-    return "TABLE";
+    return "SQL";
 }
 
 
