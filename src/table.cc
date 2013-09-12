@@ -307,7 +307,7 @@ Table::run(void)
             safe_ptr<IdNode> node = node_cast<IdNode>(args.at(0));
             /// @bug Needs review
             //this->m_conn = this->proc().getSymbols().find<Connection>(node->data());
-            this->m_conn = this->getSymbols().find<Connection>(node->data());
+            this->m_conn = this->resolve<Connection>(node->data());
         }
 
 
