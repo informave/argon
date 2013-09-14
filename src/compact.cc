@@ -195,14 +195,19 @@ Compact::run(void)
 
     if(this->m_node == NULL_NODE)
     {
-        ARGON_ICERR_CTX(this->getCallArgs().size() == 2, *this,
-                        "compact requires 2 arguments");
+        ARGON_ICERR_CTX(this->getCallArgs().size() >= 2 && this->getCallArgs().size() <= 3, *this,
+                        "compact requires 2 or 3 arguments");
 
         ArgumentList::const_iterator i = this->getCallArgs().begin();
         ArgumentList::const_iterator end = this->getCallArgs().end();
         
         this->m_ref = (i++)->cast<ValueElement>();
         this->m_sep = (i++)->cast<ValueElement>()->getValue().data().get<String>();
+		if(i != end) // reset ref with argument value
+		{
+				Value v = i->cast<ValueElement>()->getValue();
+				this->m_ref->getValue() = v;
+		}
     }
     else
     {
