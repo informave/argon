@@ -155,7 +155,7 @@ Processor::compile(ParseTree *tree)
     this->m_tree = tree;
 
     // print node tree
-#if defined(ARGON_DEV_DEBUG) || 1
+#if defined(ARGON_DEV_DEBUG)
     foreach_node(this->m_tree, PrintTreeVisitor(*this, std::wcout), 1);
 #endif
 
@@ -188,6 +188,7 @@ Processor::compile(ParseTree *tree)
     this->addBuiltinFunctiontable(table_seq_funcs);
     this->addBuiltinFunctiontable(table_sql_funcs);
     this->addBuiltinFunctiontable(table_regex_funcs);
+    this->addBuiltinFunctiontable(table_trx_funcs);
 
 
 

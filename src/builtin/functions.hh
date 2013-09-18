@@ -11,5 +11,6 @@
 #include "seq.hh"
 #include "sql.hh"
 #include "regex.hh"
+#include "trx.hh"
 
 #endif
