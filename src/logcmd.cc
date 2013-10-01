@@ -63,7 +63,7 @@ public:
             
             m_stream << val.data().asStr(m_stream.getloc());
         }
-        catch(informave::db::ex::null_value &err)
+        catch(informave::db::NullException &err)
         {
             m_stream << "<NULL>";
         }

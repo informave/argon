@@ -402,7 +402,7 @@ Table::run(void)
         // process init rules for object
         this->doInit();
     }
-    catch(informave::db::ex::exception &e)
+    catch(informave::db::EngineException &e)
     {
         /// @bug Workaround, we need a ARGON_ERR_CTX(*this, e) ma
         ARGON_ICERR_CTX(false, *this, e.what());

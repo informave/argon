@@ -101,7 +101,6 @@ ARGON_NAMESPACE_BEGIN
 const db::Value&
 Column::getFrom(db::Resultset &rs, Context &context)
 {
-    using informave::db::ex::not_found;
     try
     {
         if(Column::by_number == mode())
@@ -109,7 +108,7 @@ Column::getFrom(db::Resultset &rs, Context &context)
         else
             return rs.column(getName());
     }
-    catch(not_found &e)
+    catch(informave::db::NotFoundException &e)
     {
         throw FieldNotFound(context, e.what()); /// @bug replace what with colum name
     }

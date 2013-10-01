@@ -326,7 +326,7 @@ EvalExprVisitor::visit(ExprNode *node)
             m_value.data() = val1.data().asStr() + val2.data().asStr();
             break;
         }
-        catch(informave::db::ex::null_value &err)
+        catch(informave::db::NullException &err)
         {
             m_value.data().set<String>( (val1.data().isnull() ? "<null>" : val1.data().asStr()) );
             m_value.data().set<String>( m_value.data().asStr() + (val2.data().isnull() ? "<null>" : val2.data().asStr()) );
