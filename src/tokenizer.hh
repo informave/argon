@@ -308,6 +308,9 @@ public:
             assert(m_char == '|');
             consume();
             return Token(ARGON_TOK_CONCAT, si, "||");
+	case '&':
+	    consume();
+	    return Token(ARGON_TOK_CONCAT, si, "&");
 	case '?':
 	    consume();
 	    return Token(ARGON_TOK_QMARK, si, "?");
