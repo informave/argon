@@ -44,6 +44,8 @@ namespace string
     //ARGON_SIMPLE_FUNCTION(find_nth);
     ARGON_SIMPLE_FUNCTION(char);
     ARGON_SIMPLE_FUNCTION(contains);
+    ARGON_SIMPLE_FUNCTION(lfill);
+    ARGON_SIMPLE_FUNCTION(rfill);
 
     ARGON_SIMPLE_FUNCTION(debug1);
 }

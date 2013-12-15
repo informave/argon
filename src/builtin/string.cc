@@ -117,6 +117,38 @@ namespace string
             return db::Variant(bool(true));
     }
 
+    ARGON_FUNCTION_DEF(lfill)
+    {
+        ARGON_ICERR_CTX(m_args.size() == 3, *this, "string.lfill() req argument count: 3");
+
+        std::wstring data = m_args[0]->_value().str();
+        size_t c = m_args[1]->_value().data().get<int>();
+        std::wstring fill = m_args[2]->_value().str();
+
+	/// @bug fill must equal size 1
+        while(data.length() < c)
+        {
+            data = fill + data;
+        }
+        return db::Variant(String(data));
+    }
+
+    ARGON_FUNCTION_DEF(rfill)
+    {
+        ARGON_ICERR_CTX(m_args.size() == 3, *this, "string.rfill() req argument count: 3");
+
+        std::wstring data = m_args[0]->_value().str();
+        size_t c = m_args[1]->_value().data().get<int>();
+        std::wstring fill = m_args[2]->_value().str();
+
+	/// @bug fill must equal size 1
+        while(data.length() < c)
+        {
+            data += fill;
+        }
+        return db::Variant(String(data));
+    }
+
 
 
     ARGON_FUNCTION_DEF(debug1)
@@ -158,6 +190,8 @@ builtin_func_def table_string_funcs[] =
     { "string.find",     factory_function<string::func_find>,      2,  2 },
     { "string.char",     factory_function<string::func_char>,      2,  2 },
     { "string.contains", factory_function<string::func_contains>,  2,  2 },
+    { "string.lfill",     factory_function<string::func_lfill>,    3,  3 },
+    { "string.rfill",     factory_function<string::func_rfill>,    3,  3 },
     { "debug",		     factory_function<string::func_debug1>,	   1,  1 },
     { NULL, NULL, 0, 0 }
 };
