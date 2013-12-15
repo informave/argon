@@ -46,6 +46,7 @@ namespace string
     ARGON_SIMPLE_FUNCTION(contains);
     ARGON_SIMPLE_FUNCTION(lfill);
     ARGON_SIMPLE_FUNCTION(rfill);
+    ARGON_SIMPLE_FUNCTION(numeric);
 
     ARGON_SIMPLE_FUNCTION(debug1);
 }

@@ -150,6 +150,24 @@ namespace string
     }
 
 
+	struct no_separator : std::numpunct<char>
+    {
+    protected:
+        virtual string_type do_grouping() const
+            { return "\000"; } // groups of 0 (disable)
+    };
+
+    ARGON_FUNCTION_DEF(numeric)
+    {
+        ARGON_ICERR_CTX(m_args.size() == 1, *this, "string.numeric() req argument count: 1");
+
+		std::locale loc(std::locale("C"), new no_separator());
+
+        String data = m_args[0]->_value().data().asStr(loc);
+        return db::Variant(data);
+    }
+
+
 
     ARGON_FUNCTION_DEF(debug1)
     {
@@ -190,8 +208,9 @@ builtin_func_def table_string_funcs[] =
     { "string.find",     factory_function<string::func_find>,      2,  2 },
     { "string.char",     factory_function<string::func_char>,      2,  2 },
     { "string.contains", factory_function<string::func_contains>,  2,  2 },
-    { "string.lfill",     factory_function<string::func_lfill>,    3,  3 },
-    { "string.rfill",     factory_function<string::func_rfill>,    3,  3 },
+    { "string.lfill",    factory_function<string::func_lfill>,     3,  3 },
+    { "string.rfill",    factory_function<string::func_rfill>,     3,  3 },
+    { "string.numeric",  factory_function<string::func_numeric>,   1,  1 },
     { "debug",		     factory_function<string::func_debug1>,	   1,  1 },
     { NULL, NULL, 0, 0 }
 };
