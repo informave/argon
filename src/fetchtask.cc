@@ -177,7 +177,7 @@ FetchTask::run(void)
     // Executes all init-instructions
     foreach_node( this->m_init_nodes, TaskChildVisitor(this->proc(), *this), 1);
 
-	this->m_mainobject->first();
+	//this->m_mainobject->first();
     while(! this->m_mainobject->eof())
     {
         this->processData();

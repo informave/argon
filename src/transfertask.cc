@@ -223,7 +223,7 @@ TransferTask::run(void)
     foreach_node( this->m_init_nodes, TaskChildVisitor(this->proc(), *this), 1);
 
     // Iterate over all records in the main object
-	this->getMainObject()->first();
+	//this->getMainObject()->first();
     while(! this->getMainObject()->eof())
     {
         this->processData();
