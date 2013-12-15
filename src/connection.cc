@@ -98,7 +98,7 @@ Connection::Connection(Processor &proc, ConnNode *node, db::ConnectionMap &userC
 
         if(node->getChilds().size() == 0)
         {
-            throw std::runtime_error("no dbc type given");
+            throw std::runtime_error("The connection is not defined and no external connection is available.");
         }
 
         informave::db::IDbc::Options opts;
