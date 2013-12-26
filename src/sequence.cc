@@ -56,6 +56,14 @@ Sequence::nextValue(void)
 }
 
 
+void
+Sequence::resetValue(const Value &newVal)
+{
+    this->m_value.data() = newVal.data();
+}
+
+
+
 /// @details
 /// 
 String

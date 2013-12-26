@@ -1587,6 +1587,8 @@ public:
 
     void nextValue(void);
 
+    void resetValue(const Value &newVal);
+
     virtual Value& getValue(void)
     {
         return this->m_value;

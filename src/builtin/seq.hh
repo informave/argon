@@ -36,6 +36,8 @@ public:                                                                 \
 namespace seq
 {
     ARGON_SIMPLE_FUNCTION(next);
+    ARGON_SIMPLE_FUNCTION(reset);
+    ARGON_SIMPLE_FUNCTION(current);
 }
 
 
