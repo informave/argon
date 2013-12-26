@@ -35,6 +35,9 @@ namespace string
     {
         ARGON_ICERR_CTX(m_args.size() == 1, *this, "string.len() req argument count: 1");
 
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
+
         String str = m_args[0]->_value().str();
         return str.length();
     }
@@ -43,6 +46,9 @@ namespace string
     ARGON_FUNCTION_DEF(truncate)
     {
         ARGON_ICERR_CTX(m_args.size() == 2, *this, "string.len() req argument count: 2");
+
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
 
         std::wstring str = m_args[0]->_value().str();
         int tsize = m_args[1]->_value().data().get<int>();
@@ -58,6 +64,9 @@ namespace string
     ARGON_FUNCTION_DEF(substr)
     {
         ARGON_ICERR_CTX(m_args.size() >= 2 && m_args.size() <= 3, *this, "string.substr() req argument count: 2-3");
+
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
 
         std::wstring haystack = m_args[0]->_value().str();
         int start = m_args[1]->_value().data().get<int>();
@@ -79,6 +88,9 @@ namespace string
     ARGON_FUNCTION_DEF(find)
     {
         ARGON_ICERR_CTX(m_args.size() == 2, *this, "string.find() req argument count: 2");
+
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
 
         std::wstring haystack = m_args[0]->_value().str();
         std::wstring needle = m_args[1]->_value().str();
@@ -107,6 +119,9 @@ namespace string
     {
         ARGON_ICERR_CTX(m_args.size() == 2, *this, "string.find() req argument count: 2");
 
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
+
         std::wstring haystack = m_args[0]->_value().str();
         std::wstring needle = m_args[1]->_value().str();
 
@@ -120,6 +135,9 @@ namespace string
     ARGON_FUNCTION_DEF(lfill)
     {
         ARGON_ICERR_CTX(m_args.size() == 3, *this, "string.lfill() req argument count: 3");
+
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
 
         std::wstring data = m_args[0]->_value().str();
         size_t c = m_args[1]->_value().data().get<int>();
@@ -136,6 +154,9 @@ namespace string
     ARGON_FUNCTION_DEF(rfill)
     {
         ARGON_ICERR_CTX(m_args.size() == 3, *this, "string.rfill() req argument count: 3");
+
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
 
         std::wstring data = m_args[0]->_value().str();
         size_t c = m_args[1]->_value().data().get<int>();
@@ -160,6 +181,9 @@ namespace string
     ARGON_FUNCTION_DEF(numeric)
     {
         ARGON_ICERR_CTX(m_args.size() == 1, *this, "string.numeric() req argument count: 1");
+
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
 
 		std::locale loc(std::locale("C"), new no_separator());
 

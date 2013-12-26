@@ -19,6 +19,9 @@ namespace regex
     {
         ARGON_ICERR(m_args.size() == 2, "invalid args count");
 
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
+
         String val = m_args[0]->_value().str();
         String pattern = m_args[1]->_value().str();
 
@@ -46,6 +49,9 @@ namespace regex
     ARGON_FUNCTION_DEF(search_n)
     {
         ARGON_ICERR(m_args.size() == 3, "invalid args count");
+
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
 
         String val = m_args[0]->_value().str();
         String pattern = m_args[1]->_value().str();
@@ -80,6 +86,9 @@ namespace regex
     ARGON_FUNCTION_DEF(replace)
     {
         ARGON_ICERR(m_args.size() == 3, "invalid args count");
+
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
 
         String val = m_args[0]->_value().str();
         String pattern = m_args[1]->_value().str();
