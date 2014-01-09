@@ -281,6 +281,7 @@ Expand::run(void)
 void
 Expand::execute(void)
 {
+    this->first();
     //m_stmt->execute();
 }
 
