@@ -52,6 +52,23 @@ namespace sys
 
 
 
+    ARGON_FUNCTION_DEF(assert)
+    {
+        ARGON_ICERR(m_args.size() >= 1 && m_args.size() <= 2, "invalid args count");
+        if(m_args[0]->_value().data().isnull())
+        {
+            throw TerminateControlException(Value(int(-1)));
+        }
+        else
+        {
+            if(!m_args[0]->_value().data().get<bool>())
+                throw TerminateControlException(Value(int(-1)));
+            return Value(true);
+        }
+    }
+
+
+
     ARGON_FUNCTION_DEF(charseq)
     {
         ARGON_ICERR(m_args.size() >= 1, "invalid args count");
@@ -125,6 +142,7 @@ builtin_func_def table_sys_funcs[] =
     { "coalesce",  factory_function<sys::func_coalesce>, 1, -1 },
     { "setval",  factory_function<sys::func_setval>, 2, 2 },
     { "getval",  factory_function<sys::func_getval>, 1, 1 },
+    { "assert",  factory_function<sys::func_assert>, 1, 2 },
     { "sys.terminate",  factory_function<sys::func_terminate>, 0, 1 },
     { "sys.charseq", factory_function<sys::func_charseq>, 1, -1},
     { "sys.byteseq", factory_function<sys::func_byteseq>, 1, -1},
