@@ -1,0 +1,8 @@
+program assert_test;
+
+task main : void
+begin
+	log assert((1 < 2) and (2 > 1));
+	log assert(not (1==2));
+end;
+

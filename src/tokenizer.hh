@@ -173,6 +173,7 @@ public:
 	this->m_templates[ _str<CharT, TraitsT>("AND")       ] = ARGON_TOK_AND;
 	this->m_templates[ _str<CharT, TraitsT>("OR")       ] = ARGON_TOK_OR;
 	this->m_templates[ _str<CharT, TraitsT>("XOR")       ] = ARGON_TOK_XOR;
+	this->m_templates[ _str<CharT, TraitsT>("NOT")       ] = ARGON_TOK_NOT;
 	this->m_templates[ _str<CharT, TraitsT>("IF")       ] = ARGON_TOK_IF;
 	this->m_templates[ _str<CharT, TraitsT>("ELSE")       ] = ARGON_TOK_ELSE;
 	this->m_templates[ _str<CharT, TraitsT>("WHILE")       ] = ARGON_TOK_WHILE;
@@ -302,7 +303,7 @@ public:
 		return Token(ARGON_TOK_NOTEQUAL, si, "!=");
 	    }
 	    else
-	    	return Token(ARGON_TOK_EXMARK, si, "!");
+	        return Token(ARGON_TOK_ID, si, "!"); /// @bug fixme
         case '|':
             consume();
             assert(m_char == '|');
