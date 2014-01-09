@@ -121,6 +121,8 @@ public:
 
     //RuntimeError(void) { }
     
+    void setMessage(const String &msg);
+    
     void addSourceInfo(const SourceInfo &info);
 
     virtual ~RuntimeError(void) throw()

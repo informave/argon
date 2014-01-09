@@ -31,7 +31,7 @@
 #include "argon/token.hh"
 #include "argon/exceptions.hh"
 #include "debug.hh"
-
+#include <dbwtl/dbobjects>
 
 #include <cstdlib>
 #include <cstdio>
@@ -212,6 +212,22 @@ Node::Node(void)
 Node::~Node(void)
 {}
 
+
+void
+Visitor::operator()(Node *node)
+{
+	try
+	{
+		node->accept(*this);
+	}
+	catch(informave::db::NullException &e)
+	{
+		RuntimeError err;
+		err.setMessage(String("NullException while processing the statement ") + node->dump() + String(" at ") + node->getSourceInfo().str());
+		err.addSourceInfo(node->getSourceInfo());
+		throw err;
+	}
+}
 
 /// @details
 /// 

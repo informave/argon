@@ -298,10 +298,7 @@ public:
     virtual void visit(ResIdNode *node);
     virtual void visit(VarNode *node);
 
-    inline void operator()(Node *node)
-    {
-        node->accept(*this);
-    }
+    void operator()(Node *node);
 
 protected:
     /// @brief This method is called by each visit method defined

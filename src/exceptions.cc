@@ -97,6 +97,13 @@ RuntimeError::RuntimeError(void)
     //m_what = e.str();
 }
 
+void
+RuntimeError::setMessage(const String &msg)
+{
+	m_what = msg + m_what;
+}
+
+
 
 /// @details
 /// 
