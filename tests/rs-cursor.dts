@@ -1,0 +1,56 @@
+
+program rs_cursor_test;
+
+connection db
+begin
+	"engine"	=> "sqlite:libsqlite",
+	"database"	=> ":memory:";
+end;
+
+
+
+sequence fi(0, 1);
+sequence ti(0, 1);
+
+
+
+task putData(dbc, val) : store[table(dbc, "test")]
+begin
+	$data		<< val;
+end;
+
+
+var dummy(NULL);
+
+task fetchIterate : fetch[table(db, "test")]
+begin
+	log $data;
+	exec function seq.next(fi);
+end;
+
+
+task transferIterate : transfer[compact(dummy, ","), table(db, "test")]
+begin
+	$1		<< $data;
+	exec function seq.next(ti);
+end;
+
+
+task main : void
+begin
+	log "Create test data";
+	exec sql on db "CREATE TABLE test(id INTEGER PRIMARY KEY, data INTEGER)";
+	exec task putData(db, 5);
+	exec task putData(db, 7);
+	exec task putData(db, -5);
+
+	exec task fetchIterate;
+
+	exec task transferIterate;
+
+	exec function assert(seq.current(fi) == 3);
+	exec function assert(seq.current(ti) == 3);
+
+	log "done";
+end;
+
