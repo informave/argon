@@ -182,8 +182,8 @@ namespace string
     {
         ARGON_ICERR_CTX(m_args.size() == 1, *this, "string.numeric() req argument count: 1");
 
-//		if(m_args[0]->_value().data().isnull())
-//			return db::Variant();
+		if(m_args[0]->_value().data().isnull())
+			return db::Variant();
 
 		std::locale loc(std::locale("C"), new no_separator());
 
