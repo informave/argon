@@ -170,6 +170,8 @@ Expand::lastInsertRowId(void)
 bool
 Expand::next(void)
 {
+    if(m_eof) return false;
+
     m_eof = !this->m_splitter->next();
     if(!m_eof)
     {
@@ -186,7 +188,10 @@ Expand::first(void)
         this->m_splitter.reset(new strutils::split<std::wstring>(
                                    m_value.begin(), m_value.end(),
                                    m_sep));
+	if(!this->m_value.empty())
 		this->next();
+	else
+		m_eof = true;
 }
 
 
@@ -214,7 +219,14 @@ Expand::run(void)
 
         ArgumentList::const_iterator arg = this->getCallArgs().begin();
 
-        this->m_value = (arg++)->cast<ValueElement>()->_value().data().get<String>();
+	try
+	{
+        	this->m_value = (arg++)->cast<ValueElement>()->_value().data().get<String>();
+	}
+	catch(informave::db::NullException &e)
+	{
+		this->m_value = String();
+	}
         this->m_sep   = (arg++)->cast<ValueElement>()->_value().data().get<String>();
 
         ARGON_ICERR_CTX(this->m_sep.size() >= 1, *this,
