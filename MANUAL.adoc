@@ -1,0 +1,809 @@
+ARGON User Guide
+================
+Daniel Vogelbacher <daniel@vogelbacher.name>
+v2.0, February 2003:
+Rewritten for version 2 release.
+:toc:
+:icons:
+:numbered:
+:website: http://asciidoc.org/
+
+:language: {basebackend@docbook:c++:cpp}
+
+:fixme: This section is not written yet.
+
+We use SQLite memory db.
+
+
+== Getting started
+
+
+=== Hello world
+.Simple Hello-World example
+[source]
+--------------------------------------------------------------------------------
+program helloworld;
+
+task main : void
+begin
+  log "Hello World";
+end;
+--------------------------------------------------------------------------------
+
+
+=== Create a script file
+A ARGON script file requires the declaration of the program name at
+the beginning. 
+
+[source]
+--------------------------------------------------------------------------------
+program helloworld;
+--------------------------------------------------------------------------------
+
+
+=== Add a connection
+One of the basic things what you do when writing a new DTS script
+from scratch is to define your connections. There are two types
+of connections: full specificated connections and external connections.
+
+
+[source]
+--------------------------------------------------------------------------------
+connection dbi
+begin
+        "engine"        => "sqlite:libsqlite",
+        "database"      => ":memory:";
+end;
+--------------------------------------------------------------------------------
+
+If you only write:
+
+[source]
+--------------------------------------------------------------------------------
+connection conn1;
+--------------------------------------------------------------------------------
+
+argon looks for an already existing connection in the connection
+list. See the integration chapter for more details on this feature.
+
+
+== Connections
+
+.Connection definition
+[source]
+--------------------------------------------------------------------------------
+connection dbi
+begin
+        "engine"        => "sqlite:libsqlite",
+        "database"      => ":memory:";
+end;
+--------------------------------------------------------------------------------
+
+It's possible to pass an existing connection (known to the
+interpreter) to the script. In this case, an existing connection
+definition is ignored. If you are lazy, you can just declare the
+connection identifier.
+
+.Connection declaration
+[source]
+--------------------------------------------------------------------------------
+connection dbi;
+--------------------------------------------------------------------------------
+
+[WARNING]
+If you don't define connection parameter, your script will not run
+without passing an external connection to the interpreter. It is
+recommended to define a minimal connection.
+
+
+
+== Tasks
+=== Introduction
+
+Tasks are the most basic part of ARGON. Each task must depend (inherit) from
+a task template. These templates are:
+
+void::
+Task does not interact with source or destination objects.
+
+fetch::
+Task reads all rows from the source object and executes the *rules* section
+for each row.
+
+store::
+Task stores a new record on the destination object. The *rules* section
+is only processed once.
+
+transfer::
+Task reads all rows from the source object and executes the *rules* section
+for each row. The resulting row is stored on the destination object,
+
+
+[NOTE]
+When running a ARGON script, the interpretor searches for a task
+named *main*. In large scripts, this task is typically of type *void*,
+but you can always use any task type for the main task.
+
+
+=== Sections
+A task is divided into multiple rule section. These sections are:
+
+initialization::
+Rules in this section are run only once after the task is called and
+before any data gets loaded. You can not use column identifiers.
+
+before::
+Rules in this section are run after the input data is loaded and
+before the data processing (rules section) starts.
+
+rules::
+Rules in this section can process the data with *assignment rules*.
+
+after::
+Rules in this section are run after the data is processed and stored
+in the destination object. You can access the input columns and
+destination columns.
+
+finalization::
+Rules in this section are run only once after the task finished all
+data processing. You can use the input columns and destination columns
+to access tha last processed data.
+
+
+[TIP]
+If you omit the sections, all rules are interpreted as section *rules*.
+
+.Example for a simple transfer task:
+[source]
+--------------------------------------------------------------------------------
+task copyCustomers : transfer[table(dbo, "customers"), table(dbi, "c_data")]
+begin
+ initialization:
+        // rules processed on the beginning of the task
+ before:
+        // rules processed after a record is fetched from the c_data table
+ rules:
+        // assignment rules
+        $cust_no        << $c_number;
+        $cust_name      << $name;
+        $cust_street    << $street;
+ after:
+        // rules processed after the new record is stored on the customers
+        // table
+ finalization:
+        // rules processed on the end of the task
+end;
+--------------------------------------------------------------------------------
+
+
+
+=== Void task
+
+.Synopsis
+[subs="quotes"]
+----
+*task* _id_ : *void*
+*begin*
+*end*;
+----
+
+.Example of an void task
+[source]
+--------------------------------------------------------------------------------
+task processCustomers : void
+begin
+ initialization:
+        // rules processed on the beginning of the task
+ rules:
+        exec task copyCustomers;
+        exec task copyAddresses;
+ finalization:
+        // rules processed on the end of the task
+end;
+--------------------------------------------------------------------------------
+
+
+=== Fetch task
+
+.Synopsis
+[subs="quotes"]
+----
+*task* _id_ : *fetch*[_src-object_]
+*begin*
+*end*;
+----
+
+.Example of an fetch task
+[source]
+--------------------------------------------------------------------------------
+task processCustomers : fetch[table(idb, "customers")]
+begin
+ initialization:
+        // rules processed on the beginning of the task
+ rules:
+        log "Customer name: ".$custName;
+ finalization:
+        // rules processed on the end of the task
+end;
+--------------------------------------------------------------------------------
+
+
+=== Store task
+
+.Synopsis
+[subs="quotes"]
+----
+*task* _id_ : *store*[_destination-object_]
+*begin*
+*end*;
+----
+
+.Example of an fetch task
+[source]
+--------------------------------------------------------------------------------
+task processCustomers : fetch[table(idb, "customers")]
+begin
+ initialization:
+        // rules processed on the beginning of the task
+ rules:
+        log "Customer name: ".$custName;
+ finalization:
+        // rules processed on the end of the task
+end;
+--------------------------------------------------------------------------------
+
+=== Transfer task
+
+.Synopsis
+[subs="quotes"]
+----
+*task* _id_ : *transfer*[_destination-object_, _src-object_]
+*begin*
+*end*;
+----
+
+.Example for a simple transfer task:
+[source]
+--------------------------------------------------------------------------------
+task copyCustomers : transfer[table(dbo, "customers"), table(dbi, "c_data")]
+begin
+ initialization:
+        // rules processed on the beginning of the task
+ before:
+        // rules processed after a record is fetched from the c_data table
+ rules:
+        // assignment rules
+        $cust_no        << $c_number;
+        $cust_name      << $name;
+        $cust_street    << $street;
+ after:
+        // rules processed after the new record is stored on the customers
+        // table
+ finalization:
+        // rules processed on the end of the task
+end;
+--------------------------------------------------------------------------------
+
+
+== Expressions and Operators
+
+=== Last-ID operator (%%)
+This operator returns the last insert row id. This operator can only
+be used in an *after* section. If the database can't return the last
+insert row id, an exception is raised.
+
+=== Result-Column operator (%)
+This operator is used as a prefix for an column identififer and
+specify a column from the destination object.
+
+=== Standard-Value operator (@)
+This operator converts an expression to the standard value if the
+expression evaluates to NULL.
+
+=== Column-Ref operator ($)
+This operator is used as a prefix for an column identifier.
+
+=== Concatenation operator (&)
+This operator concats to values. Both values are converted to string
+before the concatenation.
+
+
+
+== Objects
+
+Objects can used in various ways:
+
+inline::
+Inline objects can be used as task type argument, e.g. *task foo :
+transfer[table(dbc, "test")]*
+
+external declaration::
+If external declaration is possible, you can declare an define the
+object outside a template:
+
+----
+declare foo : table(dbc, "test");
+----
+
+as destination::
+Such objects can be used as destination objects for tasks.
+
+as source::
+Such objects can be used as source objects for tasks.
+
+.Available object types
+[width="60%",cols="2,^2,^2,^2,^2",options="header"]
+|===================================================================
+|object    |inline support | ext. declaration | destination | source 
+|table     |*yes*            | *yes*            | *yes*      | *yes*
+|sql       |*yes*            | *yes*            | *yes*      | *yes*
+|view      |*yes*            | *yes*            | *yes*      | *yes*
+|procedure |*yes*            | *yes*            | *yes*      | *yes*
+|gen_range |*yes*            | no               | no         | *yes*
+|compact   |*yes*            | no               | *yes*      | no
+|expand    |*yes*            | no               | no         | *yes*
+|===================================================================
+
+
+=== Rules
+
+initialization::
+Rules in this section are executed when the object is constructed.
+
+reading::
+Rules in this section are executed on each data fetch.
+
+writing::
+Rules in this section are executed on each data write.
+
+finalization::
+Rules in this section are executed when the object is destroyed.
+
+
+=== Inline object
+An inline object can be used directly in a task and is the simplest
+form of using objects.
+
+.Usage of an inline table object
+[source]
+--------------------------------------------------------------------------------
+task processCustomers : fetch[table(idb, "customers")]
+begin
+	... // rules
+end;
+--------------------------------------------------------------------------------
+
+
+=== table object
+
+.Synopsis
+[subs="quotes"]
+----
+*table*(_connection-id_, _table-name_ [, _schema-name_ [, _catalog-name_] ])
+----
+
+
+=== view object
+
+.Synopsis
+[subs="quotes"]
+----
+*view*(_connection-id_, _view-name_ [, _schema-name_ [, _catalog-name_] ])
+----
+
+
+=== sql object
+
+.Synopsis
+[subs="quotes"]
+----
+*sql*(_connection-id_, _sql-string_)
+----
+
+
+=== procedure object
+.Synopsis
+[subs="quotes"]
+----
+*procedure*(_connection-id_, _procedure-name_ [, _schema-name_ [, _catalog-name_] ])
+----
+
+=== gen_range object
+.Synopsis
+[subs="quotes"]
+----
+*gen_range*(_start-num_, _stop-num_ [, _step_=1])
+----
+
+=== expand object
+.Synopsis
+[subs="quotes"]
+----
+*expand*(_value_, _separator_)
+----
+
+value::
+The value which should be expanded.
+
+separator::
+Character(s) used as separator.
+
+
+=== compact object
+.Synopsis
+[subs="quotes"]
+----
+*compact*(_var-id_, _separator_ [, _init_])
+----
+
+var-id::
+Identifier of an variable where to put the data.
+
+separator::
+Data is separated by this character(s).
+
+init::
+If _init_ is given, the _var-id_ is initialized with this
+value. Otherwise, existing data is preserved.
+
+
+== Variables
+
+.Synopsis
+[subs="quotes"]
+----
+*var* _var-id_ = _init-value_;
+----
+
+
+== Sequence
+
+.Synopsis
+[subs="quotes"]
+----
+*sequence* _seq-id_(_start-value_, _step-value_);
+----
+
+== Functions
+=== Write custom functions
+{fixme}
+
+
+=== Control structures
+{fixme}
+
+==== If-else
+{fixme}
+
+==== switch
+{fixme}
+
+=== Loops
+{fixme}
+
+==== while
+{fixme}
+
+==== until
+{fixme}
+
+==== for
+{fixme}
+
+=== Lambda functions
+{fixme}
+
+== Exceptions
+{fixme}
+
+=== Exceptions in functions
+
+[source]
+--------------------------------------------------------------------------------
+proc foo()
+begin
+	try
+	except
+	end;
+end;
+--------------------------------------------------------------------------------
+
+
+=== Exceptions in tasks
+
+[source]
+--------------------------------------------------------------------------------
+task foo : transfer[dest, src]
+begin
+ rules:
+   ... // some rules
+ except MyException:
+   ... // catch custom exception
+ except "HY000":
+   ... // catch general errors
+ except:
+   ... // catch all
+end;
+--------------------------------------------------------------------------------
+
+
+=== SQLSTATE exceptions
+{fixme}
+
+=== Custom exceptions
+
+.Synopsis
+[subs="quotes"]
+----
+*exception* _exception-id_;
+----
+
+
+[appendix]
+== Task examples
+{fixme}
+
+=== void task example
+[source]
+-----------------------------------
+include::example.dts[]
+-----------------------------------
+
+=== fetch task example
+{fixme}
+
+=== store task example
+{fixme}
+
+=== transfer task example
+{fixme}
+
+
+[appendix]
+== Object examples
+{fixme}
+
+=== table object example
+{fixme}
+
+=== sql object example
+{fixme}
+
+=== gen_range object example
+{fixme}
+
+=== expand object example
+{fixme}
+
+=== compact object example
+{fixme}
+
+
+[appendix]
+== Reserved keywords
+
+task,
+connection,
+void
+store
+fetch
+transfer
+declare
+table
+view
+procedure
+gen_range
+expand
+compact
+proc
+function
+null
+program
+sql
+
+
+[appendix]
+== Function reference
+{fixme}
+
+=== regex namespace
+{fixme}
+
+
+==== regex::match
+{fixme}
+
+
+==== regex::search_n
+{fixme}
+
+
+==== regex::replace
+{fixme}
+
+
+
+=== seq namespace
+{fixme}
+
+
+==== seq::next
+{fixme}
+
+
+
+=== sql namespace
+{fixme}
+
+
+==== sql::scalar
+{fixme}
+
+
+==== sql::exec
+{fixme}
+
+
+
+=== string namespace
+{fixme}
+
+
+==== string::concat
+
+
+This function converts all arguments to type _string_ and concats
+these to one string.
+
+.Synopsis
+[subs="quotes"]
+----
+*string::concat*(_string-1_ [, _string-2_, ...])
+----
+
+.Return value
+Returns a new string.
+
+.Comments
+ * If a function argument is NULL, the argument is ignored.
+ * All arguments are converted to type _string_.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+==== string::len
+This function returns the length of the argument.
+
+.Synopsis
+[subs="quotes"]
+---- 
+*string::len*(_string-var_)
+----
+
+
+.Return value
+Returns the length of the string.
+
+
+.Comments
+ * If the function argument is NULL, the result is 0.
+ * If the function argument is not of type _string_, a conversion to
+ _string_ is performed before length calculation.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+==== string::truncate
+{fixme}
+
+
+==== string::substr
+{fixme}
+
+
+==== string::find
+{fixme}
+
+
+==== string::char
+{fixme}
+
+
+==== string::contains
+{fixme}
+
+
+
+
+=== trx namespace
+{fixme}
+
+
+==== trx::start
+{fixme}
+
+
+==== trx::commit
+{fixme}
+
+
+==== trx::savepoint
+{fixme}
+
+
+==== trx::rollback
+{fixme}
+
+
+
+=== sys namespace
+{fixme}
+
+
+==== sys::terminate
+{fixme}
+
+
+==== sys::charseq
+{fixme}
+
+
+==== sys::byteseq
+{fixme}
+
+
+==== sys::newline
+{fixme}
+
+
+
+=== global namespace
+{fixme}
+
+
+==== isnull
+{fixme}
+
+
+==== setval
+{fixme}
+
+
+==== getval
+{fixme}
+
+
+==== coalesce
+{fixme}
+
+
+
+
+
+[glossary]
+Example Glossary
+----------------
+Glossaries are optional. Glossaries entries are an example of a style
+of AsciiDoc labeled lists.
+
+[glossary]
+A glossary term::
+  The corresponding (indented) definition.
+
+A second glossary term::
+  The corresponding (indented) definition.
+
+
+ifdef::backend-docbook[]
+[index]
+Example Index
+-------------
+////////////////////////////////////////////////////////////////
+The index is normally left completely empty, it's contents being
+generated automatically by the DocBook toolchain.
+////////////////////////////////////////////////////////////////
+endif::backend-docbook[]
