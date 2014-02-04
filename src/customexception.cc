@@ -31,6 +31,7 @@
 #include "argon/rtti.hh"
 #include "debug.hh"
 #include "visitors.hh"
+#include "utils.hh"
 
 #include <iostream>
 #include <sstream>
@@ -39,41 +40,74 @@
 ARGON_NAMESPACE_BEGIN
 
 
-    CustomException::CustomException(const ExceptionType &type)
-    : m_type(type), m_value()
-    {}
+//
+//
+CustomException::CustomException(const ExceptionType &type)
+    : m_type(type),
+      m_value(),
+      m_message_cache()
+{
+    m_message_cache = FORMAT1("Custom exception '%s' encountered",
+                              this->getType().id().str());
+}
 
-    CustomException::CustomException(const ExceptionType &type, const Value& val)
-        : m_type(type), m_value(val)
-    {}
 
+//
+//
+CustomException::CustomException(const ExceptionType &type, const Value& val)
+    : m_type(type),
+      m_value(val),
+      m_message_cache()
+{
+    if(!val.data().isnull())
+    {
+        m_message_cache = FORMAT2("Custom exception '%s' encountered: %s",
+                                  this->getType().id().str(),
+                                  val.data().asStr());
+    }
+    else
+    {
+        m_message_cache = FORMAT1("Custom exception '%s' encountered: NULL <no message>",
+                                  this->getType().id().str());
+    }
+}
+
+
+//
+//
 CustomException::~CustomException() throw()
-        {}
+{}
 
+
+//
+//
 const char*
 CustomException::what(void) const throw()
-    {
-    	try
-	{
-        	return m_value.str().utf8();
-		}
-	catch(...)
-	{
-		return this->getType().id().str().utf8(); /// @bug local what string with description
-	}
-    }
+{
+    return this->message().toSystemEncoding();
+}
 
+
+//
+//
+String
+CustomException::message(void) const throw()
+{
+    return this->m_message_cache;
+}
+
+
+//
+//
 const ExceptionType&
 CustomException::getType(void) const
-    {
-        return this->m_type;
-    }
-
+{
+    return this->m_type;
+}
 
 
 
 ARGON_NAMESPACE_END
-
 
 
 //

@@ -1965,11 +1965,14 @@ public:
 
     virtual const char* what(void) const throw();
 
+    virtual String message(void) const throw();
+
     virtual const ExceptionType& getType(void) const;
 
 protected:
     const ExceptionType &m_type;
     Value m_value;
+    String m_message_cache;
 };
 
 
