@@ -3,19 +3,19 @@
 //
 // Copyright (C)         informave.org
 //   2010,               Daniel Vogelbacher <daniel@vogelbacher.name>
-// 
+//
 // Lesser GPL 3.0 License
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
@@ -70,7 +70,7 @@ ARGON_NAMESPACE_BEGIN
 //     {
 //         // This visitor only handles instructions, so it's save to ignore this node.
 //     }
-    
+
 // private:
 //     Processor &m_proc;
 //     Context &m_context;
@@ -100,13 +100,13 @@ ARGON_NAMESPACE_BEGIN
 //     virtual void visit(ColumnAssignNode *node)
 //     {
 //         ARGON_ICERR(node->getChilds().size() == 2, "invalid child count");
-        
+
 //         //ColumnAssignOp op(this->m_proc, m_context, node);
 //         //this->m_proc.call(op);
-        
+
 //         Column col;
 //         LValueColumnVisitor(this->m_proc, this->m_context, col)(node->getChilds()[0]);
-        
+
 //         Value val;
 //         EvalExprVisitor eval(this->m_proc, this->m_context, val);
 //         eval(node->getChilds()[1]);
@@ -118,20 +118,20 @@ ARGON_NAMESPACE_BEGIN
 
 // /*
 // //Column col(dynamic_cast<ColumnNode*>(node->getChilds()[0]));
-        
+
 // Value val;
 // EvalExprVisitor eval(this->m_proc, this->m_context, val);
 // eval(node->getChilds()[1]);
-        
+
 // this->m_context.getDestObject()->setColumn(col, val);
-// */      
-        
+// */
+
 //         //this->m_context.getMainObject()->setColumn(Column("id"), Value(23));
 //         //this->m_context.getMainObject()->setColumn(Column("name"), Value(23));
 
 //         // ARGON_ICERR_CTX.., assign not allowed?
 //     }
-    
+
 // private:
 //     Processor &m_proc;
 //     Context &m_context;
@@ -146,7 +146,7 @@ ARGON_NAMESPACE_BEGIN
 //////////////////////////////////////////////////////////////////// SourceTable
 
 /// @details
-/// 
+///
 Sql::Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode)
     : Object(proc, node, args),
       m_stmt(),
@@ -168,25 +168,25 @@ Sql::Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t
 
         // Skip first two arguments. Checked by semantic checker, too. TODO!
         //size_t c = 3;
-    
+
         // while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
         // {
         //     m_prepost_nodes.push_back(childs[c-1]);
         //     ++c;
         // }
-    
+
         // while(c <= childs.size() && is_nodetype<ColumnAssignNode*>(childs[c-1]))
         // {
         //     m_colassign_nodes.push_back(childs[c-1]);
         //     ++c;
         // }
-    
+
         // while(c <= childs.size() && !is_nodetype<ColumnAssignNode*>(childs[c-1]))
         // {
         //     m_prepost_nodes.push_back(childs[c-1]);
         //     ++c;
         // }
-    
+
         // All childs must been processed.
         // ARGON_ICERR(c > childs.size(), "unprocessed childs");
     }
@@ -223,7 +223,7 @@ Sql::setColumn(const Column &col, const Value &v)
 {
     // removed because param binding works for both moded
     //assert(this->m_mode == Object::ADD_MODE);
-    
+
     ARGON_ICERR(col.mode() == Column::by_number, "invalid column mode");
 
     // can be used later if engine can tell name of parameters
@@ -258,19 +258,19 @@ Sql::lastInsertRowId(void)
 
 
 /// @details
-/// 
+///
 bool
 Sql::next(void)
 {
     m_stmt->resultset().next();
 
     return !m_stmt->resultset().eof();
-    
+
     //std::cout << m_stmt->resultset().column(1) << std::endl;
 }
 
 /// @details
-/// 
+///
 void
 Sql::first(void)
 {
@@ -279,7 +279,7 @@ Sql::first(void)
 
 
 /// @details
-/// 
+///
 bool
 Sql::eof(void) const
 {
@@ -291,13 +291,16 @@ Sql::eof(void) const
 
 
 /// @details
-/// 
+///
 Value
 Sql::run(void)
 {
     String sqlCommand;
 
     Object::run();
+
+
+    std::vector<db::Variant> params;
 
 
     if(!this->m_node)
@@ -316,8 +319,15 @@ Sql::run(void)
 
         ARGON_ICERR_CTX(i != this->getCallArgs().end(), *this,
                         "sql call args count mismatch");
-        
+
         sqlCommand = (*i)->_value().data().asStr();
+
+        ++i; // move to first sql param
+        while(i != this->getCallArgs().end())
+        {
+            params.push_back((*i)->_value().data());
+            ++i;
+        }
     }
     else
     {
@@ -328,12 +338,12 @@ Sql::run(void)
 
 
         safe_ptr<ArgumentsNode> argNode = find_node<ArgumentsNode>(this->m_node);
-    
-        ARGON_ICERR_CTX(!!argNode, *this,
-                        "table node does not contains an argument node");
 
-        ARGON_ICERR_CTX(argNode->getChilds().size() == 2, *this,
-                        "table argument count is invalid");
+        ARGON_ICERR_CTX(!!argNode, *this,
+                        "sql node does not contains an argument node");
+
+        ARGON_ICERR_CTX(argNode->getChilds().size() >= 2, *this,
+                        "sql argument count is invalid");
 
 
         safe_ptr<ArgumentsSpecNode> argSpecNode = find_node<ArgumentsSpecNode>(this->m_node);
@@ -361,6 +371,19 @@ Sql::run(void)
                 ARGON_ICERR_CTX(!val1.data().isnull(), *this, "sql string expr is NULL");
                 sqlCommand = val1.data().asStr();
             }
+        }
+
+        // add SQL paramaters
+        size_t i = 3;
+        Node::nodelist_type &args = argNode->getChilds();
+
+        while(i <= args.size())
+        {
+            Value val1;
+            apply_visitor(args.at(i-1), EvalExprVisitor(proc(), *this, val1));
+            params.push_back(val1.data());
+            ++i;
+        }
 
 /*
   if(args.size() > 2)
@@ -375,13 +398,12 @@ Sql::run(void)
   dbName = node->data();
   }
 */
-        }
 
     }
 
     ARGON_ICERR_CTX(sqlCommand.length() > 0, *this,
                     "sql command is empty");
-    
+
 
     if(sqlCommand.length() > 0)
         m_objname.append( (m_objname.length() > 0 ? String(".") : String("")) + sqlCommand);
@@ -390,7 +412,7 @@ Sql::run(void)
 
 
     String sql_query = m_objname;
-    
+
 /*
   switch(this->m_mode)
   {
@@ -429,18 +451,26 @@ Sql::run(void)
 
 
     this->m_stmt.reset( m_conn->getDbc().newStatement() );
-    
+
     //m_stmt->prepare("foo"); // invalid read, FIX THIS!
-    
+
     m_stmt->prepare(sql_query);
 
+    int j = 1;
+    for(std::vector<db::Variant>::const_iterator i = params.begin();
+        i != params.end();
+        ++i, ++j)
+    {
+        m_stmt->bind(j, *i);
+    }
+
     this->doInit();
-    
+
     //foreach_node( this->m_colassign_nodes, SqlObjectColAssignVisitor(this->proc(), *this, *this), 1);
-    
+
 //    if(m_mode == Object::READ_MODE)
 //        m_stmt->execute();
-        
+
 
     return Value();
 }
@@ -457,7 +487,7 @@ Sql::execute(void)
 
 
 /// @details
-/// 
+///
 String
 Sql::str(void) const
 {
@@ -469,7 +499,7 @@ Sql::str(void) const
 
 
 /// @details
-/// 
+///
 String
 Sql::name(void) const
 {
@@ -479,7 +509,7 @@ Sql::name(void) const
 
 
 /// @details
-/// 
+///
 String
 Sql::type(void) const
 {
@@ -488,7 +518,7 @@ Sql::type(void) const
 
 
 /// @details
-/// 
+///
 SourceInfo
 Sql::getSourceInfo(void) const
 {
@@ -498,7 +528,7 @@ Sql::getSourceInfo(void) const
 
 
 /// @details
-/// 
+///
 Value
 Sql::_value(void) const
 {
@@ -506,7 +536,7 @@ Sql::_value(void) const
 }
 
 /// @details
-/// 
+///
 String
 Sql::_string(void) const
 {
@@ -514,7 +544,7 @@ Sql::_string(void) const
 }
 
 /// @details
-/// 
+///
 String
 Sql::_name(void) const
 {
@@ -522,7 +552,7 @@ Sql::_name(void) const
 }
 
 /// @details
-/// 
+///
 String
 Sql::_type(void) const
 {
@@ -531,7 +561,7 @@ Sql::_type(void) const
 
 
 /// @details
-/// 
+///
 Sql*
 Sql::newInstance(Processor &proc, const ArgumentList &args, Connection *dbc, DeclNode *node, Type::mode_t mode)
 {

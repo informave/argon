@@ -1,0 +1,47 @@
+program sqlObjParameterizedTest;
+
+connection db
+begin
+        "engine"        => "sqlite:libsqlite",
+        "database"      => ":memory:";
+end;
+
+var i(0);
+
+function inc
+begin
+	i = i + 1;
+end;
+
+declare mydata(v1, v2) : sql(db, "SELECT name FROM testData WHERE id IN (?, ?)", v1, v2)
+begin
+ initialization:
+ 	$1	<< 2;
+end;
+
+
+task test1(v1, v2) : fetch[sql(db, "SELECT name FROM testData WHERE id IN (?, ?)", v1, v2)]
+begin
+	log $1;
+	exec function inc;
+end;
+
+
+task test2(v1, v2) : fetch[mydata(v1, v2)]
+begin
+	log $1;
+	exec function inc;
+end;
+
+
+
+task main : void
+begin
+	exec sql on db "CREATE TABLE testData(id integer, name text)";
+	exec sql on db "INSERT INTO testData VALUES(1, 'Donald')";
+	exec sql on db "INSERT INTO testData VALUES(2, 'Dagobert')";
+	exec sql on db "INSERT INTO testData VALUES(3, 'Daisy')";
+	exec task test1(1, 3);
+	exec task test2(1, 3);
+	exec function assert(i == 4);
+end;
