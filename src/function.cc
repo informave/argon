@@ -55,8 +55,6 @@ BlockVisitor::visit(ThrowNode *node)
     ARGON_ICERR(node, "invalid node");
     if(node->getChilds().size() == 2) // throw id;
     {
-        std::cout << " -THROW ID- " << std::endl;
-        
         ArgumentList al;
         Identifier id = find_node<IdNode>(node)->data();
         ArgumentsNode *argsnode = find_node<ArgumentsNode>(node);
