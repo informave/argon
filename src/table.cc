@@ -415,6 +415,8 @@ Table::run(void)
 String
 Table::generateSelect(String objname)
 {
+    informave::db::IDbc &dbc = m_conn->getDbc();
+
     String column_list;
     for(ColumnList::iterator i = this->m_columns.begin();
         i != this->m_columns.end();
@@ -422,10 +424,10 @@ Table::generateSelect(String objname)
     {
     	if(! column_list.empty())
 		column_list.append(", ");
-	column_list.append(i->getName()); /// @bug
+        column_list.append(dbc.quoteIdentifier(i->getName())); /// @bug
     }
 
-    String s = String("SELECT ") + column_list + String(" FROM ") + objname;
+    String s = String("SELECT ") + column_list + String(" FROM ") + dbc.quoteIdentifier(objname);
 
     return s;
 }
