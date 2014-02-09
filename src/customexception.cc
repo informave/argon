@@ -90,7 +90,7 @@ CustomException::what(void) const throw()
 
 //
 //
-String
+const String&
 CustomException::message(void) const throw()
 {
     return this->m_message_cache;

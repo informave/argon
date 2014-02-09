@@ -1965,7 +1965,7 @@ public:
 
     virtual const char* what(void) const throw();
 
-    virtual String message(void) const throw();
+    virtual const String& message(void) const throw();
 
     virtual const ExceptionType& getType(void) const;
 
