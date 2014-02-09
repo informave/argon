@@ -41,6 +41,8 @@ ARGON_NAMESPACE_BEGIN
 #define FORMAT5(str, a1, a2, a3, a4, a5) (informave::db::format(str) % a1 % a2 % a3 % a4 % a5)
 
 
+#define BETWEEN(a, b, c) ((a >= b) && (a <= c))
+
 ARGON_NAMESPACE_END
 
 #endif
