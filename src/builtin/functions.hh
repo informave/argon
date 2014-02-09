@@ -12,5 +12,7 @@
 #include "sql.hh"
 #include "regex.hh"
 #include "trx.hh"
+#include "date.hh"
+#include "numeric.hh"
 
 #endif

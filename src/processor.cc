@@ -189,6 +189,8 @@ Processor::compile(ParseTree *tree)
     this->addBuiltinFunctiontable(table_sql_funcs);
     this->addBuiltinFunctiontable(table_regex_funcs);
     this->addBuiltinFunctiontable(table_trx_funcs);
+    this->addBuiltinFunctiontable(table_date_funcs);
+    this->addBuiltinFunctiontable(table_numeric_funcs);
 
 
 

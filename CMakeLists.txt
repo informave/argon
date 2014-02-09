@@ -280,6 +280,8 @@ set(argon_srcs
 	${ARGON_MAIN_SRC_DIR}/builtin/seq.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/regex.cc
 	${ARGON_MAIN_SRC_DIR}/builtin/trx.cc
+	${ARGON_MAIN_SRC_DIR}/builtin/date.cc
+	${ARGON_MAIN_SRC_DIR}/builtin/numeric.cc
 	)
 
 
