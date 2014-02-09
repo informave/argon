@@ -143,7 +143,7 @@ namespace string
         size_t c = m_args[1]->_value().data().get<int>();
         std::wstring fill = m_args[2]->_value().str();
 
-	/// @bug fill must equal size 1
+        /// @bug fill must equal size 1
         while(data.length() < c)
         {
             data = fill + data;
@@ -162,7 +162,7 @@ namespace string
         size_t c = m_args[1]->_value().data().get<int>();
         std::wstring fill = m_args[2]->_value().str();
 
-	/// @bug fill must equal size 1
+        /// @bug fill must equal size 1
         while(data.length() < c)
         {
             data += fill;
@@ -192,24 +192,93 @@ namespace string
     }
 
 
+    ARGON_FUNCTION_DEF(merge)
+    {
+        std::wstringstream ss;
+
+        ARGON_ICERR_CTX(m_args.size() >= 3, *this, "string.merge() req argument count: 3");
+
+
+        if(m_args[0]->_value().data().isnull())
+            return db::Variant();
+
+        bool nullResult = true;
+
+        ArgumentList::const_iterator i = m_args.begin();
+        String sep = (*i++)->_value().data().asStr();
+
+        for(;
+            i != m_args.end();
+            ++i)
+        {
+            if(!(*i)->_value().data().isnull())
+            {
+                if(ss.str().size() > 0) ss << sep;
+                ss << (*i)->_value().data().asStr();
+                nullResult = false;
+            }
+            //ss << (*i)->str();
+            /// @bug requires better solution since we have ValueElement Refs as args
+        }
+
+        if(nullResult) return Value();
+        else return Value(String(ss.str()));
+    }
+
+    ARGON_FUNCTION_DEF(merge_if)
+    {
+        std::wstringstream ss;
+
+        ARGON_ICERR_CTX(m_args.size() >= 4, *this, "string.merge() req argument count: 3");
+
+
+        if(m_args[0]->_value().data().isnull())
+            return db::Variant();
+
+        if(m_args[1]->_value().data().isnull() || m_args[1]->_value().data().get<bool>() == false)
+            return Value();
+
+        bool nullResult = true;
+
+        ArgumentList::const_iterator i = m_args.begin();
+        String sep = (*i++)->_value().data().asStr();
+        ++i; // condition
+
+        for(;
+            i != m_args.end();
+            ++i)
+        {
+            if(!(*i)->_value().data().isnull())
+            {
+                if(ss.str().size() > 0) ss << sep;
+                ss << (*i)->_value().data().asStr();
+                nullResult = false;
+            }
+            //ss << (*i)->str();
+            /// @bug requires better solution since we have ValueElement Refs as args
+        }
+
+        if(nullResult) return Value();
+        else return Value(String(ss.str()));
+    }
 
     ARGON_FUNCTION_DEF(debug1)
     {
         //std::wstringstream ss;
 
-	ARGON_ICERR(m_args.size() == 1, "invalid args count");
-	std::cerr << "[debug():] " << "{" << (*m_args.begin())->_value().data().datatype() << "} " <<
-	(*m_args.begin())->_value().str() << std::endl;
+        ARGON_ICERR(m_args.size() == 1, "invalid args count");
+        std::cerr << "[debug():] " << "{" << (*m_args.begin())->_value().data().datatype() << "} " <<
+            (*m_args.begin())->_value().str() << std::endl;
 /*
-        for(ArgumentList::const_iterator i = m_args.begin();
-            i != m_args.end();
-            ++i)
-        {
-            ss << (*i)->_value().str();
-        }
+  for(ArgumentList::const_iterator i = m_args.begin();
+  i != m_args.end();
+  ++i)
+  {
+  ss << (*i)->_value().str();
+  }
 */
         //return Value((int)ss.str().length()); /// @bug remove cast
-	return Value();
+        return Value();
     }
 
 }
@@ -235,6 +304,8 @@ builtin_func_def table_string_funcs[] =
     { "string.lfill",    factory_function<string::func_lfill>,     3,  3 },
     { "string.rfill",    factory_function<string::func_rfill>,     3,  3 },
     { "string.numeric",  factory_function<string::func_numeric>,   1,  1 },
+    { "string.merge",    factory_function<string::func_merge>,     3, -1 },
+    { "string.merge_if", factory_function<string::func_merge_if>,  4, -1 },
     { "debug",		     factory_function<string::func_debug1>,	   1,  1 },
     { NULL, NULL, 0, 0 }
 };

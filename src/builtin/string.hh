@@ -48,6 +48,9 @@ namespace string
     ARGON_SIMPLE_FUNCTION(rfill);
     ARGON_SIMPLE_FUNCTION(numeric);
 
+    ARGON_SIMPLE_FUNCTION(merge);
+    ARGON_SIMPLE_FUNCTION(merge_if);
+
     ARGON_SIMPLE_FUNCTION(debug1);
 }
 
