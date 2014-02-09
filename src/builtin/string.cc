@@ -262,6 +262,22 @@ namespace string
         else return Value(String(ss.str()));
     }
 
+
+    ARGON_FUNCTION_DEF(isset)
+    {
+        ARGON_ICERR_CTX(m_args.size() == 1, *this, "string.isset() req argument count: 1");
+
+
+        if(m_args[0]->_value().data().isnull())
+            return db::Variant(bool(false));
+
+        if(m_args[0]->_value().data().get<String>().empty())
+            return db::Variant(bool(false));
+
+        return true;
+    }
+
+
     ARGON_FUNCTION_DEF(debug1)
     {
         //std::wstringstream ss;
@@ -306,6 +322,7 @@ builtin_func_def table_string_funcs[] =
     { "string.numeric",  factory_function<string::func_numeric>,   1,  1 },
     { "string.merge",    factory_function<string::func_merge>,     3, -1 },
     { "string.merge_if", factory_function<string::func_merge_if>,  4, -1 },
+    { "string.isset",    factory_function<string::func_isset>,     1,  1 },
     { "debug",		     factory_function<string::func_debug1>,	   1,  1 },
     { NULL, NULL, 0, 0 }
 };
