@@ -415,9 +415,17 @@ Table::run(void)
 String
 Table::generateSelect(String objname)
 {
-    String s("SELECT * FROM ");
+    String column_list;
+    for(ColumnList::iterator i = this->m_columns.begin();
+        i != this->m_columns.end();
+	++i)
+    {
+    	if(! column_list.empty())
+		column_list.append(", ");
+	column_list.append(i->getName()); /// @bug
+    }
 
-    s.append(objname);
+    String s = String("SELECT ") + column_list + String(" FROM ") + objname;
 
     return s;
 }
