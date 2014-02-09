@@ -102,6 +102,17 @@ namespace numeric
         return Value(Variant(TNumeric(this->m_args[0]->_value().data().get<String>())));
     }
 
+    ARGON_FUNCTION_DEF(cast)
+    {
+        ARGON_ICERR(m_args.size() == 1 , "invalid args count");
+
+        if(m_args[0]->_value().data().isnull())
+            return Value();
+
+        return Variant(m_args[0]->_value().data().get<TNumeric>());
+    }
+
+
 }
 
 
@@ -117,6 +128,7 @@ builtin_func_def table_numeric_funcs[] =
 {
     { "numeric.format",         factory_function<numeric::func_format>,         1,  4 },
     { "numeric.from_string",    factory_function<numeric::func_from_string>,    1,  1 },
+    { "numeric.cast",           factory_function<numeric::func_cast>,           1,  1 },
     { NULL, NULL, 0, 0 }
 };
 

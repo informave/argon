@@ -37,6 +37,7 @@ namespace numeric
 {
     ARGON_SIMPLE_FUNCTION(format);
     ARGON_SIMPLE_FUNCTION(from_string);
+    ARGON_SIMPLE_FUNCTION(cast);
 }
 
 
