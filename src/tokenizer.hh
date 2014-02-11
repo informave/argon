@@ -261,7 +261,7 @@ public:
         switch(c)
         {
         case '"':
-            return this->readLiteral(start, len, line);
+            return this->readLiteral(start, len, this->m_line);
         case ';':
             consume();
             return Token(ARGON_TOK_SEP, si, ";");
@@ -559,7 +559,7 @@ public:
     ///
     /// @todo
     /// Support for escaping
-    Token readLiteral(std::streamsize start, size_t len, size_t line)
+    Token readLiteral(std::streamsize start, size_t len, size_t &line)
     {
         std::vector<char_type> v;
         char_type c;
@@ -568,10 +568,24 @@ public:
             traits_type::to_int_type(c) != traits_type::eof();
             c = getnc())
         {
-            if(c != '"')
-                v.push_back(c);
+            if(c == 0xa) ++line;
+
+            if(c == '\\')
+            {
+                c = getnc();
+                if(traits_type::to_int_type(c) != traits_type::eof())
+                {
+                    v.push_back(c);
+                }
+                else break;
+            }
             else
-                break;
+            {
+                if(c != '"')
+                    v.push_back(c);
+                else
+                    break;
+            }
         };
         if(c == '"')
             consume(); // skip "
