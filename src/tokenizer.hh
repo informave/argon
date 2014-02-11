@@ -49,7 +49,7 @@ bool isnumber(const std::basic_string<T> &s)
         i != s.end();
         ++i)
     {
-        if(! (isdigit(*i) || *i == '.'))
+        if(! (isdigit(*i) || *i == '.' || ((*i == 'f' || *i == 'F') && (i+1) == s.end())))
             return false;
     }
     return true;

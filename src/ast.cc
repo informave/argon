@@ -564,18 +564,88 @@ SqlExecNode::sql(void) const
 /// @details
 /// 
 NumberNode::NumberNode(void)
-    : SimpleNode<int>()
+    : SimpleNode<db::Variant>()
 {}
 
 
+
+static inline float
+str2float(const std::string &data)
+{
+	float val;
+	std::stringstream ss(data);
+	ss.imbue(std::locale("C"));
+	ss >> val;
+	return val;
+}
+
+static inline double
+str2double(const std::string &data)
+{
+	double val;
+	std::stringstream ss(data);
+	ss.imbue(std::locale("C"));
+	ss >> val;
+	return val;
+}
+
+
+template<typename T>
+static inline T str2integer(const std::string &str)
+{
+	const char *p = str.c_str();
+	T val = 0;
+	while(*p) val = val*10 + (*p++ - '0');
+	return val;
+}
+
+
 /// @details
-/// 
+///
 void
 NumberNode::init(String data)
 {
     assert(data.length() > 0);
-    db::Variant v(data);
-    this->m_data = v.asInt();
+    std::string str = data;
+
+    if(str.empty())
+    {
+        throw std::runtime_error("lexical error: empty numeric string");
+    }
+
+    if(str.back() == 'f')
+    {
+        str.pop_back();
+        this->m_data = db::Variant(str2float(str));
+        return;
+    }
+    else if(str.back() == 'F')
+    {
+        str.pop_back();
+        this->m_data = db::Variant(str2double(str));
+        return;
+    }
+    else if(std::all_of(str.begin(), str.end(), ::isdigit))
+    {
+        int n = str.size();
+
+        if(n <= std::numeric_limits<signed char>::digits10)
+            this->m_data = db::Variant(str2integer<signed char>(str));
+        else if(n <= std::numeric_limits<signed short int>::digits10)
+            this->m_data = db::Variant(str2integer<signed short int>(str));
+        else if(n <= std::numeric_limits<signed int>::digits10)
+            this->m_data = db::Variant(str2integer<signed int>(str));
+        else if(n <= std::numeric_limits<signed long long>::digits10)
+            this->m_data = db::Variant(str2integer<signed long long>(str));
+        else
+            this->m_data = informave::db::TNumeric(str, std::locale("C"));
+        return;
+    }
+    else
+    {
+        this->m_data = informave::db::TNumeric(str, std::locale("C"));
+        return;
+    }
 }
 
 

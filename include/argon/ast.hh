@@ -693,7 +693,7 @@ struct LiteralNode : public SimpleNode<String>
 ///
 /// @since 0.0.1
 /// @brief Node for Numbers
-struct NumberNode : public SimpleNode<int>
+struct NumberNode : public SimpleNode<db::Variant>
 {
     NumberNode(void);
 
