@@ -238,15 +238,17 @@ end;
 *end*;
 ----
 
-.Example of an fetch task
+.Example of a store task
 [source]
 --------------------------------------------------------------------------------
-task processCustomers : fetch[table(idb, "customers")]
+task saveCustomer(custName, custPhone) : fetch[store(odb, "customers")]
 begin
  initialization:
         // rules processed on the beginning of the task
  rules:
-        log "Customer name: ".$custName;
+        log "Customer name: "&custName;
+	$custName	<< custName;
+	$phone		<< custPhone;
  finalization:
         // rules processed on the end of the task
 end;
@@ -606,6 +608,352 @@ sql
 == Function reference
 {fixme}
 
+
+=== date namespace
+
+
+==== date::encode
+
+This function creates a new DATE value.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.encode*(_year_, _month_, _day_)
+----
+
+.Return value
+Returns a numeric value.
+
+.Comments
+ * If any argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+
+==== date::year
+
+This function returns the year-part of the given date.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.year*(_val_)
+----
+
+.Return value
+Returns the year as integer.
+
+.Comments
+ * If the argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+==== date::month
+
+This function returns the month-part of the given date.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.month*(_val_)
+----
+
+.Return value
+Returns the month as integer.
+
+.Comments
+ * If the argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+==== date::day
+
+This function returns the day-part of the given date.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.day*(_val_)
+----
+
+.Return value
+Returns the day as integer.
+
+.Comments
+ * If the argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+
+
+==== date::format
+
+This function converts the date value to a string.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.format*(_val_, _fmt_)
+----
+
+.Return value
+Returns a string.
+
+.Comments
+ * If the first argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+==== date::diff
+
+This function returns the difference between two dates.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.diff*(_date1_, _date2_)
+----
+
+.Return value
+Returns the difference as integer.
+
+.Comments
+ * If any argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+==== date::now
+
+This function returns the current date.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.now*()
+----
+
+.Return value
+Returns the current date.
+
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+==== date::cast
+
+This function casts the given argument to a DATE value.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.cast*(_val_)
+----
+
+.Return value
+Returns a numeric value.
+
+.Comments
+ * If the first argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+==== date::add
+
+This function adds an interval to a date.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.add*(_date-val_, _mode_, _interval_)
+----
+
+.Return value
+Returns a date value.
+
+.Comments
+ * If the first argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+==== date::sub
+
+This function subtract an interval from a date.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.sub*(_date-val_, _mode_, _interval_)
+----
+
+.Return value
+Returns a date value.
+
+.Comments
+ * If the first argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+==== date::from_string
+
+This function converts a string to a date value.
+
+.Synopsis
+[subs="quotes"]
+----
+*date.from_string*(_date-val_, _fmt_)
+----
+
+.Return value
+Returns a date value.
+
+.Comments
+ * If the first argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+
+
+=== numeric namespace
+
+==== numeric::format
+
+This function converts a numeric value to the given format.
+
+.Synopsis
+[subs="quotes"]
+----
+*numeric.format*(_numeric-val_, _fmt_ [, _thousand_sep_ [, _decimal_sep] ])
+----
+
+.Return value
+Returns the numeric value as string.
+
+.Comments
+ * If the first argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+
+
+==== numeric::from_string
+
+This function converts a string to a numeric value
+
+.Synopsis
+[subs="quotes"]
+----
+*numeric.from_string*(_string-val_)
+----
+
+.Return value
+Returns a numeric value.
+
+.Comments
+ * If the first argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
+
+
+
+
+==== numeric::cast
+
+This function casts the argument to NUMERIC.
+
+.Synopsis
+[subs="quotes"]
+----
+*numeric.cast*(_val_)
+----
+
+.Return value
+Returns a numeric value.
+
+.Comments
+ * If the first argument is NULL, the function returns NULL.
+
+.Version
+Introduced in version 0.1.
+
+''''
+
+
 === regex namespace
 {fixme}
 
@@ -700,21 +1048,71 @@ Introduced in version 0.1.
 ==== string::truncate
 {fixme}
 
+.Synopsis
+[subs="quotes"]
+---- 
+*string.truncate*(_string-var_, _len_)
+----
+
 
 ==== string::substr
 {fixme}
+
+.Synopsis
+[subs="quotes"]
+---- 
+*string.substr*(_string-var_, _start_, _count_)
+----
 
 
 ==== string::find
 {fixme}
 
+.Synopsis
+[subs="quotes"]
+---- 
+*sring.find*(_string-var_, _search-str_)
+----
+
 
 ==== string::char
 {fixme}
 
+.Synopsis
+[subs="quotes"]
+---- 
+*string.char*(_string-var_, _pos_)
+----
+
 
 ==== string::contains
 {fixme}
+
+.Synopsis
+[subs="quotes"]
+---- 
+*string.contains*(_string-var_, _search-str_)
+----
+
+
+==== string::merge
+{fixme}
+
+.Synopsis
+[subs="quotes"]
+---- 
+*string.merge*(_string-var1_ [, _string-varN, ...])
+----
+
+
+==== string::merge_if
+{fixme}
+
+.Synopsis
+[subs="quotes"]
+---- 
+*string.merge*(_condition_, _string-var1_ [, _string-varN, ...])
+----
 
 
 
@@ -726,18 +1124,41 @@ Introduced in version 0.1.
 ==== trx::start
 {fixme}
 
+.Synopsis
+[subs="quotes"]
+---- 
+*trx.start*(_connection_)
+----
+
+
 
 ==== trx::commit
 {fixme}
 
+.Synopsis
+[subs="quotes"]
+---- 
+*trx.commit*(_connection_)
+----
 
 ==== trx::savepoint
 {fixme}
+
+.Synopsis
+[subs="quotes"]
+---- 
+*trx.savepoint*(_connection_, _sp-name_)
+----
 
 
 ==== trx::rollback
 {fixme}
 
+.Synopsis
+[subs="quotes"]
+---- 
+*trx.rollback*(_connection_ [, _sp-name_])
+----
 
 
 === sys namespace
