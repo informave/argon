@@ -48,6 +48,8 @@ namespace date
     ARGON_SIMPLE_FUNCTION(add);
     ARGON_SIMPLE_FUNCTION(sub);
 
+    ARGON_SIMPLE_FUNCTION(from_string);
+
     ARGON_SIMPLE_FUNCTION(debug1);
 }
 

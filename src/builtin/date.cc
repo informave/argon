@@ -113,14 +113,30 @@ namespace date
 
     ARGON_FUNCTION_DEF(format)
     {
+        using namespace boost::gregorian;
+
         ARGON_ICERR(m_args.size() == 2 , "invalid args count");
 
         if(m_args[0]->_value().data().isnull())
             return Value();
 
-        TDate d = m_args[0]->_value().data().get<TDate>();
-        std::string fmt = m_args[1]->_value().data().get<String>();
+        std::wstring fmt = m_args[1]->_value().data().get<String>();
 
+        if(m_args[0]->_value().data().isnull()) return Value();
+
+        TDate tmp1 = m_args[0]->_value().data().get<TDate>();
+
+        boost::gregorian::date d1(tmp1.year(), tmp1.month(), tmp1.day());
+
+        wdate_facet *facet = new wdate_facet(fmt.c_str());
+        std::wstringstream ss;
+	ss.exceptions(std::ios_base::failbit);
+	ss.imbue(std::locale(std::locale(""), facet));
+	ss << d1;
+
+	return Value(String(ss.str()));
+
+/*
         auto i = fmt.begin();
 
         std::string res;
@@ -164,6 +180,7 @@ namespace date
         }
 
         return Value(String(res, "US-ASCII"));
+*/	
     }
 
 
@@ -282,6 +299,27 @@ namespace date
         return Value(TDate(d1.year(), d1.month(), d1.day()));
     }
 
+    ARGON_FUNCTION_DEF(from_string)
+    {
+    	using namespace boost::gregorian;
+	ARGON_ICERR(m_args.size() == 2 , "invalid args count");
+	std::wstring fmt = m_args[1]->_value().data().get<String>();
+
+	if(m_args[0]->_value().data().isnull()) return Value();
+
+	std::wstring tmp1 = m_args[0]->_value().data().get<String>();
+
+	boost::gregorian::date d1;
+
+	wdate_input_facet *facet = new wdate_input_facet(fmt);
+	std::wstringstream ss;
+	ss << m_args[0]->_value().data().get<String>();
+	ss.imbue(std::locale(std::locale(""), facet));
+	ss.exceptions(std::ios_base::failbit);
+	ss >> d1;
+	return TDate(d1.year(), d1.month(), d1.day());
+    }
+
 }
 
 
@@ -310,6 +348,7 @@ builtin_func_def table_date_funcs[] =
     { "date.add",            factory_function<date::func_add>,         3,  3 },
     { "date.sub",            factory_function<date::func_sub>,         3,  3 },
 
+    { "date.from_string",    factory_function<date::func_from_string>, 2,  2 },
 
     { NULL, NULL, 0, 0 }
 };
