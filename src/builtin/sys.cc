@@ -32,6 +32,23 @@ namespace sys
     }
 
 
+    ARGON_FUNCTION_DEF(iif)
+    {
+        ARGON_ICERR(m_args.size() == 3, "invalid args count");
+        
+	if(m_args[0]->_value().data().isnull())
+		return Value();
+	else
+	{
+		if(m_args[0]->_value().data().get<bool>())
+			return m_args[1]->_value().data();
+		else
+			return m_args[2]->_value().data();
+	}
+    }
+
+
+
     ARGON_FUNCTION_DEF(setval)
     {
         ARGON_ICERR(m_args.size() == 2, "invalid args count");
@@ -118,6 +135,21 @@ namespace sys
         return db::Variant(informave::db::TVarbinary(s.data(), s.size()));
     }
 
+
+    ARGON_FUNCTION_DEF(print)
+    {
+        ARGON_ICERR(m_args.size() == 1, "invalid args count");
+
+	if(m_args[0]->_value().data().isnull())
+		this->proc().getEngine().writeLog("<NULL>");
+	else
+	{
+		this->proc().getEngine().writeLog(m_args[0]->_value().data().get<String>());
+	}
+	return Value();
+    }
+
+
     ARGON_FUNCTION_DEF(newline)
     {
         ARGON_ICERR(m_args.size() == 0, "invalid args count");
@@ -139,6 +171,7 @@ static Function* factory_function(Processor &proc, const ArgumentList &args)
 builtin_func_def table_sys_funcs[] =
 {
     { "isnull", factory_function<sys::func_isnull>, 1, 1},
+    { "iif", factory_function<sys::func_iif>, 3, 3},
     { "coalesce",  factory_function<sys::func_coalesce>, 1, -1 },
     { "setval",  factory_function<sys::func_setval>, 2, 2 },
     { "getval",  factory_function<sys::func_getval>, 1, 1 },
@@ -147,6 +180,7 @@ builtin_func_def table_sys_funcs[] =
     { "sys.charseq", factory_function<sys::func_charseq>, 1, -1},
     { "sys.byteseq", factory_function<sys::func_byteseq>, 1, -1},
     { "sys.newline", factory_function<sys::func_newline>, 0, 0},
+    { "sys.print", factory_function<sys::func_print>, 1, 1},
     { NULL, NULL, 0, 0 }
 };
 
