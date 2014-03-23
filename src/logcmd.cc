@@ -135,7 +135,7 @@ LogCmd::run(void)
 
     std::wstringstream ss;
 
-    ss.imbue(std::wcout.getloc());
+    //ss.imbue(std::wcout.getloc());
 
     foreach_node(this->m_node->getChilds(), LogChildVisitor(this->proc(), this->m_context, ss), 1);
 
