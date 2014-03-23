@@ -1146,8 +1146,7 @@ public:
 
     Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t mode); // change node
 
-    virtual ~Sql(void) 
-    {}
+    virtual ~Sql(void); 
 
     virtual String str(void) const;
 

@@ -192,6 +192,11 @@ Sql::Sql(Processor &proc, const ArgumentList &args, DeclNode *node, Type::mode_t
     }
 }
 
+Sql::~Sql(void)
+{
+    if(this->m_stmt.get())
+            this->m_stmt->close();
+}
 
 /// @details
 /// The column list is a list of column names or position numbers. These columns
