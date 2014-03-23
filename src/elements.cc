@@ -106,7 +106,21 @@ Column::getFrom(db::Resultset &rs, Context &context)
         if(Column::by_number == mode())
             return rs.column(getNum());
         else
-            return rs.column(getName());
+	{
+	    try
+	    {
+            	return rs.column(getName());
+	    }
+	    catch(informave::db::NotFoundException &)
+	    {
+	        for(size_t n = 1; n <= rs.columnCount(); ++n)
+		{
+			if(rs.describeColumn(n).getName().asStr().upper() == getName().upper())
+				return rs.column(n);
+		}
+		throw;
+	    }
+	}
     }
     catch(informave::db::NotFoundException &e)
     {
