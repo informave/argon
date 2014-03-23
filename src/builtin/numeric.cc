@@ -48,7 +48,7 @@ namespace numeric
         std::string rpart;
 
 
-        std::locale loc("");
+        std::locale loc;
         std::numpunct<std::string::value_type> const &n = std::use_facet<std::numpunct<std::string::value_type> >(loc);
 
         if(x.scale())
@@ -56,10 +56,15 @@ namespace numeric
             lpart = s.substr(0, s.size() - x.scale());
             rpart = s.substr(s.size() - x.scale());
         }
+        else
+        {
+            lpart = s;
+        }
+
 
         if(!dec.isnull())
         {
-            rpart.resize(dec.get<int>());
+            rpart.resize(dec.get<int>(), '0');
         }
 
         std::string tsep(1, n.thousands_sep());
