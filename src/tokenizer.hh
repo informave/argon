@@ -262,6 +262,8 @@ public:
         {
         case '"':
             return this->readLiteral(start, len, this->m_line);
+        case '\'':
+            return this->readLiteralUnescaped(start, len, this->m_line);
         case ';':
             consume();
             return Token(ARGON_TOK_SEP, si, ";");
@@ -595,6 +597,35 @@ public:
         return tok;
     }
 
+
+
+    /// Read literal
+    ///
+    /// @todo
+    /// Support for escaping
+    Token readLiteralUnescaped(std::streamsize start, size_t len, size_t &line)
+    {
+        std::vector<char_type> v;
+        char_type c;
+
+        for(c = getnc();
+            traits_type::to_int_type(c) != traits_type::eof();
+            c = getnc())
+        {
+            if(c == 0xa) ++line;
+
+                if(c != '\'')
+                    v.push_back(c);
+                else
+                    break;
+        };
+        if(c == '\'')
+            consume(); // skip '
+        std::basic_string<char_type> s(v.begin(), v.end());
+        Token tok(ARGON_TOK_LITERAL, SourceInfo(m_srcname, start, len, line));
+        tok.setData(String(s));
+        return tok;
+    }
 
     Token readMulti(std::streamsize start, size_t len, size_t line)
     {
