@@ -69,7 +69,7 @@ namespace sql
 
         stmt->prepare(sql);
 
-        for(size_t i = 2; (i+3) <= m_args.size(); ++i)
+        for(size_t i = 1; (i+3) <= m_args.size(); ++i)
         {
             stmt->bind(i, m_args[(i+3)-1]->_value().data());
         }
