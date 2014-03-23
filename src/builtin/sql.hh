@@ -37,6 +37,7 @@ namespace sql
 {
     ARGON_SIMPLE_FUNCTION(scalar);
     ARGON_SIMPLE_FUNCTION(exec);
+    ARGON_SIMPLE_FUNCTION(list);
 }
 
 
